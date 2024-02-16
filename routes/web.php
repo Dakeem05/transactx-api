@@ -14,5 +14,9 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return response()->json([
+        "app" => "TransactX",
+        "version" => "0.0.1 alpha",
+        "disclaimer" => "This application is a property of TrackVault Limited"
+    ]);
 });
