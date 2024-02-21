@@ -26,8 +26,7 @@ class CheckApplicationCredentials
         // Check if header contains BuildKey
         if (!$buildKey || $buildKey != env('APP_BUILD_KEY')) {
             return new TransactXErrorResponse([
-                'status' => 401,
-                'code' => 07,
+                'status_code' => 401,
                 'message' => 'Invalid BuildKey. Please ensure you are on the current build version.',
             ]);
         }
@@ -35,8 +34,7 @@ class CheckApplicationCredentials
         // Check if header contains AppID and AppKey
         if (!$appId || !$appKey) {
             return new TransactXErrorResponse([
-                'status' => 401,
-                'code' => 07,
+                'status_code' => 401,
                 'message' => 'AppID and AppKEY are required.',
             ]);
         }
@@ -44,8 +42,7 @@ class CheckApplicationCredentials
         // Validate AppID and AppKey for TransactX Mobile
         if ($appId != env('MOBILE_APP_ID') || $appKey != env('MOBILE_APP_KEY')) {
             return new TransactXErrorResponse([
-                'status' => 401,
-                'code' => 07,
+                'status_code' => 401,
                 'message' => 'Invalid AppID or AppKEY.',
             ]);
         }

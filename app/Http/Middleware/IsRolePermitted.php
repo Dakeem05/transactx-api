@@ -23,8 +23,7 @@ class IsRolePermitted
         if (!auth()->check() || !$this->userHasAnyRole($roles)) {
 
             return new TransactXErrorResponse([
-                'status' => 403,
-                'code' => 06,
+                'status_code' => 403,
                 'message' => 'You are not authorized to perform this operation.',
             ]);
         }

@@ -14,10 +14,19 @@ class TransactXErrorResponse extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $codeMap = [
+            400 => [905, 'bad.request_error'],
+            401 => [907, 'unauthenticated_error'],
+            403 => [906, 'forbidden_error'],
+            429 => [908, 'rate_limit_error'],
+            500 => [909, 'internal_server_error'],
+        ];
+
         return [
-            'tx_code' => $this['code'],
-            'status_code' => $this['status'],
-            'message' => $this['message'],
+            'tx_code' => $codeMap[$this['status_code']][0] ?? null,
+            'tx_error' => $codeMap[$this['status_code']][1] ?? null,
+            'status_code' => $this['status_code'],
+            'data' => $this['message'],
         ];
     }
 }

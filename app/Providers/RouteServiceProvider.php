@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Http\Resources\TransactXErrorResponse;
 use App\Models\User;
 use Exception;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -57,7 +58,10 @@ class RouteServiceProvider extends ServiceProvider
             return $correctCredentials ?
                 [
                     Limit::perMinute(1)->by($request->input('username'))->response(function (Request $request) {
-                        return response()->json(['message' => 'Rate limit exceeded. Please try again later!'], 401);
+                        return new TransactXErrorResponse([
+                            'status_code' => 429,
+                            'message' => 'Rate limit exceeded. Please try again later!',
+                        ]);
                     }),
                 ]
                 : [];
@@ -69,9 +73,9 @@ class RouteServiceProvider extends ServiceProvider
      * @param string username
      * @param string password
      * 
-     * @return bool
+     * @return bool | TransactXErrorResponse
      */
-    private function checkUserCredentials($username, $password): bool
+    private function checkUserCredentials($username, $password): bool | TransactXErrorResponse
     {
         try {
             $user = User::where('username', $username)->first();
@@ -80,7 +84,10 @@ class RouteServiceProvider extends ServiceProvider
             }
             return false;
         } catch (Exception $e) {
-            return response()->json(['code' => '08', 'message' => 'Error encountered - ' . $e->getMessage()], 429);
+            return new TransactXErrorResponse([
+                'status_code' => 500,
+                'message' => 'Error encountered - ' . $e->getMessage(),
+            ]);
         }
     }
 }
