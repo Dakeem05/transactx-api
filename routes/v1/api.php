@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\v1\Auth\RegisterController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -17,3 +18,10 @@ use Illuminate\Support\Facades\Route;
 Route::get('/me', function (Request $request) {
     return "Yaay";
 })->middleware('throttle:login');
+
+
+/* -------------------------- Authentication Routes ------------------------- */
+Route::middleware('checkApplicationCredentials')->prefix('auth')->group(function () {
+    // Register a new user
+    Route::post('register', RegisterController::class)->name('auth.register');
+});

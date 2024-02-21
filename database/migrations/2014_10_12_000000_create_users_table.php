@@ -14,10 +14,12 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->foreignUuid('referred_by_user_id')->nullable()->references('id')->on('users')->onDelete('set null');
             $table->string('email')->nullable();
             $table->string('username')->unique();
             $table->enum('status', UserStatusEnum::toArray())->nullable();
             $table->string('avatar')->nullable();
+            $table->string('referral_code')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
