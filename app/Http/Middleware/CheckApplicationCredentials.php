@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\Resources\TransactXErrorResponse;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -13,9 +14,10 @@ class CheckApplicationCredentials
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \Closure  $next
-     * @return \Illuminate\Http\Response | (\Symfony\Component\HttpFoundation\Response) $next
+     * 
+     * @return TransactXErrorResponse | \Illuminate\Http\Response
      */
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next): TransactXErrorResponse | Response
     {
         $appId = $request->header('AppID');
         $appKey = $request->header('AppKEY');
@@ -23,17 +25,29 @@ class CheckApplicationCredentials
 
         // Check if header contains BuildKey
         if (!$buildKey || $buildKey != env('APP_BUILD_KEY')) {
-            return response()->json(['message' => 'Invalid BuildKey. Please ensure you are on the current build version.'], 401);
+            return new TransactXErrorResponse([
+                'status' => 401,
+                'code' => 07,
+                'message' => 'Invalid BuildKey. Please ensure you are on the current build version.',
+            ]);
         }
 
         // Check if header contains AppID and AppKey
         if (!$appId || !$appKey) {
-            return response()->json(['message' => 'AppID and AppKEY are required.'], 401);
+            return new TransactXErrorResponse([
+                'status' => 401,
+                'code' => 07,
+                'message' => 'AppID and AppKEY are required.',
+            ]);
         }
 
         // Validate AppID and AppKey for TransactX Mobile
         if ($appId != env('MOBILE_APP_ID') || $appKey != env('MOBILE_APP_KEY')) {
-            return response()->json(['message' => 'Invalid AppID or AppKEY.'], 401);
+            return new TransactXErrorResponse([
+                'status' => 401,
+                'code' => 07,
+                'message' => 'Invalid AppID or AppKEY.',
+            ]);
         }
 
         return $next($request);

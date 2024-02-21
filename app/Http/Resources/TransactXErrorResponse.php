@@ -15,10 +15,9 @@ class TransactXErrorResponse extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'code' => $this['code'],
+            'tx_code' => $this['code'],
             'status_code' => $this['status'],
             'message' => $this['message'],
         ];
-        // return parent::toArray($request);
     }
 }

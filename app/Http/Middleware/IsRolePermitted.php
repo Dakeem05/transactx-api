@@ -15,14 +15,16 @@ class IsRolePermitted
      * @param  \Illuminate\Http\Request  $request
      * @param  \Closure  $next
      * @param  string[]  ...$roles  The roles to check against.
-     * @return App\Http\Resources\TransactXErrorResponse | (\Symfony\Component\HttpFoundation\Response) $next
+     * 
+     * @return TransactXErrorResponse | \Illuminate\Http\Response
      */
-    public function handle(Request $request, Closure $next, ...$roles): TransactXErrorResponse
+    public function handle(Request $request, Closure $next, ...$roles): TransactXErrorResponse | Response
     {
         if (!auth()->check() || !$this->userHasAnyRole($roles)) {
+
             return new TransactXErrorResponse([
-                'status' => 401,
-                'code' => 'unauthorized_error',
+                'status' => 403,
+                'code' => 06,
                 'message' => 'You are not authorized to perform this operation.',
             ]);
         }
