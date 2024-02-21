@@ -57,11 +57,11 @@ class RouteServiceProvider extends ServiceProvider
 
             return $correctCredentials ?
                 [
-                    Limit::perMinute(1)->by($request->input('username'))->response(function (Request $request) {
-                        return new TransactXErrorResponse([
+                    Limit::perMinute(10)->by($request->input('username'),)->response(function (Request $request) {
+                        return (new TransactXErrorResponse([
                             'status_code' => 429,
                             'message' => 'Rate limit exceeded. Please try again later!',
-                        ]);
+                        ]))->response();
                     }),
                 ]
                 : [];

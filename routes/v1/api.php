@@ -14,6 +14,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('isRolePermitted:user, admin')->get('/me', function (Request $request) {
+Route::get('/me', function (Request $request) {
     return "Yaay";
-});
+})->middleware('throttle:login');
