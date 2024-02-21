@@ -13,3 +13,7 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+
+Route::middleware('isRolePermitted:user, admin')->get('/me', function (Request $request) {
+    return "Yaay";
+});
