@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\Resources\TransactXErrorResponse;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,12 +15,16 @@ class IsRolePermitted
      * @param  \Illuminate\Http\Request  $request
      * @param  \Closure  $next
      * @param  string[]  ...$roles  The roles to check against.
-     * @return \Illuminate\Http\Response | (\Symfony\Component\HttpFoundation\Response) $next
+     * @return App\Http\Resources\TransactXErrorResponse | (\Symfony\Component\HttpFoundation\Response) $next
      */
-    public function handle(Request $request, Closure $next, ...$roles): Response
+    public function handle(Request $request, Closure $next, ...$roles): TransactXErrorResponse
     {
         if (!auth()->check() || !$this->userHasAnyRole($roles)) {
-            return response()->json(['message' => 'You are not authorized to perform this operation.'], 401);
+            return new TransactXErrorResponse([
+                'status' => 401,
+                'code' => 'unauthorized_error',
+                'message' => 'You are not authorized to perform this operation.',
+            ]);
         }
 
         return $next($request);
