@@ -52,11 +52,11 @@ class RouteServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('login', function (Request $request) {
-            $correctCredentials = $this->checkUserCredentials($request->input('email'), $request->input('password'));
+            $correctCredentials = $this->checkUserCredentials($request->input('username'), $request->input('password'));
 
             return $correctCredentials ?
                 [
-                    Limit::perMinute(3)->by($request->input('email'))->response(function (Request $request) {
+                    Limit::perMinute(1)->by($request->input('username'))->response(function (Request $request) {
                         return response()->json(['message' => 'Rate limit exceeded. Please try again later!'], 401);
                     }),
                 ]
@@ -64,7 +64,14 @@ class RouteServiceProvider extends ServiceProvider
         });
     }
 
-    private function checkUserCredentials($email, $password)
+    /**
+     * Checks the user credentials for correctness
+     * @param string username
+     * @param string password
+     * 
+     * @return bool
+     */
+    private function checkUserCredentials($username, $password): bool
     {
         try {
             $user = User::where('username', $username)->first();
