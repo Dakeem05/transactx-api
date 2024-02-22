@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Http\Resources\TransactXErrorResponse;
+use App\Helpers\TransactX;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,11 +21,7 @@ class IsRolePermitted
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
         if (!auth()->check() || !$this->userHasAnyRole($roles)) {
-
-            return (new TransactXErrorResponse([
-                'status_code' => 403,
-                'message' => 'You are not authorized to perform this operation.',
-            ]))->response()->setStatusCode(403);
+            return TransactX::response('You are not authorized to perform this operation.', 403);
         }
 
         return $next($request);

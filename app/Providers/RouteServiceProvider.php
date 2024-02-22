@@ -2,11 +2,12 @@
 
 namespace App\Providers;
 
-use App\Http\Resources\TransactXErrorResponse;
+use App\Helpers\TransactX;
 use App\Models\User;
 use Exception;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
@@ -59,10 +60,7 @@ class RouteServiceProvider extends ServiceProvider
             return $correctCredentials ?
                 [
                     Limit::perMinute(5)->by($request->input('username'))->response(function (Request $request) {
-                        return (new TransactXErrorResponse([
-                            'status_code' => 429,
-                            'message' => 'Rate limit exceeded. Please try again later!',
-                        ]))->response()->setStatusCode(429);
+                        return TransactX::response('Rate limit exceeded. Please try again later!', 429);
                     }),
                 ]
                 : [];
@@ -74,9 +72,9 @@ class RouteServiceProvider extends ServiceProvider
      * @param string username
      * @param string password
      * 
-     * @return bool | Response
+     * @return bool | JsonResponse
      */
-    private function checkUserCredentials($username, $password): bool | Response
+    private function checkUserCredentials($username, $password): bool | JsonResponse
     {
         try {
             $user = User::where('username', $username)->first();
@@ -85,10 +83,7 @@ class RouteServiceProvider extends ServiceProvider
             }
             return false;
         } catch (Exception $e) {
-            return (new TransactXErrorResponse([
-                'status_code' => 500,
-                'message' => 'Error encountered - ' . $e->getMessage(),
-            ]))->response()->setStatusCode(500);
+            return TransactX::response('Error encountered - ' . $e->getMessage(), 500);
         }
     }
 }

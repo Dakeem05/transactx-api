@@ -45,6 +45,7 @@ class RegisterUserAction
                     'data' => $user,
                 ],
             ]);
+
             return $user;
         });
     }

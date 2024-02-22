@@ -17,16 +17,12 @@ class UserResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'tx_code' => TransactXService::get_tx_code_and_message($this['status_code'])['code'] ?? null,
-            'tx_message' => TransactXService::get_tx_code_and_message($this['status_code'])['message'] ?? null,
-            'data' => [
-                'username' => $this['data']->username,
-                'email' => $this['data']->email,
-                'referral_code' => $this['data']->referral_code,
-                'status' => $this['data']->status,
-                'avatar' => $this['data']->avatar,
-                'role' => Role::find($this['data']->role_id)->name,
-            ]
+            'username' => $this->username,
+            'email' => $this->email,
+            'referral_code' => $this->referral_code,
+            'status' => $this->status,
+            'avatar' => $this->avatar,
+            'role' => Role::find($this->role_id)->name,
         ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Helpers\TransactX;
 use App\Http\Resources\TransactXErrorResponse;
 use App\Rules\ValidReferralCodeRule;
 use Illuminate\Contracts\Validation\Validator;
@@ -89,9 +90,6 @@ class RegisterUserRequest extends FormRequest
             ["uid" => $this->request_uuid, "response" => ['errors' => $validator->errors()]]
         );
 
-        throw new HttpResponseException((new TransactXErrorResponse([
-            'status_code' => 422,
-            'message' => $validator->errors()
-        ]))->response()->setStatusCode(422));
+        throw new HttpResponseException(TransactX::response($validator->errors(), 422));
     }
 }

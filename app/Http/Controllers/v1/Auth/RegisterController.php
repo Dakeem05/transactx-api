@@ -4,12 +4,12 @@ namespace App\Http\Controllers\v1\Auth;
 
 use App\Actions\Auth\RegisterUserAction;
 use App\Dtos\CreateUserDto;
+use App\Helpers\TransactX;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RegisterUserRequest;
-use App\Http\Resources\UserResource as UserResourceResponse;
+use App\Http\Resources\UserResource;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class RegisterController extends Controller
@@ -24,10 +24,7 @@ class RegisterController extends Controller
 
             $data = RegisterUserAction::handle($user_data);
 
-            return (new UserResourceResponse([
-                'status_code' => 201,
-                'data' => $data
-            ]))->response()->setStatusCode(201);
+            return TransactX::response(new UserResource($data), 201);
         } catch (Exception $e) {
             Log::error('REGISTER USER: Error Encountered: ' . $e->getMessage());
 
