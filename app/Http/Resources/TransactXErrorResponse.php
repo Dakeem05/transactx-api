@@ -18,7 +18,6 @@ class TransactXErrorResponse extends JsonResource
         return [
             'tx_code' => TransactXService::get_tx_code_and_message($this['status_code'])['code'] ?? null,
             'tx_error' => TransactXService::get_tx_code_and_message($this['status_code'])['message'] ?? null,
-            'status_code' => $this['status_code'],
             'data' => $this['message'],
         ];
     }

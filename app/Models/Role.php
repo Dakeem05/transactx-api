@@ -27,7 +27,7 @@ class Role extends Model
         return $this->hasMany(User::class);
     }
 
-    public static function user_role_id()
+    public static function user_role_id(): string
     {
         return self::select('id')->where('name', RoleEnum::USER->value)->first()->id;
     }

@@ -12,7 +12,10 @@ class TransactXService
     public static function get_tx_code_and_message(int $status_code): array
     {
         $codeMap = [
-            400 => [905, 'bad.request_error'],
+            200 => [900, 'operation_successful'],
+            201 => [901, 'resource_created'],
+            422 => [903, 'unprocessible_entity_error'],
+            400 => [905, 'bad_request_error'],
             401 => [907, 'unauthenticated_error'],
             403 => [906, 'forbidden_error'],
             429 => [908, 'rate_limit_error'],

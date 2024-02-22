@@ -16,16 +16,16 @@ class IsRolePermitted
      * @param  \Closure  $next
      * @param  string[]  ...$roles  The roles to check against.
      * 
-     * @return TransactXErrorResponse | \Illuminate\Http\Response
+     * @return \Illuminate\Http\Response
      */
-    public function handle(Request $request, Closure $next, ...$roles): TransactXErrorResponse | Response
+    public function handle(Request $request, Closure $next, ...$roles): Response
     {
         if (!auth()->check() || !$this->userHasAnyRole($roles)) {
 
-            return new TransactXErrorResponse([
+            return (new TransactXErrorResponse([
                 'status_code' => 403,
                 'message' => 'You are not authorized to perform this operation.',
-            ]);
+            ]))->response()->setStatusCode(403);
         }
 
         return $next($request);

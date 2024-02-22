@@ -20,7 +20,7 @@ class CreateUserDto extends Data
         public readonly string $username,
         public readonly string $email,
         public readonly string $password,
-        public readonly string|null $referral_code,
+        public readonly string|null|Optional $referral_code,
     ) {
     }
 }

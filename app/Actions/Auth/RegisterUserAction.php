@@ -3,10 +3,12 @@
 namespace App\Actions\Auth;
 
 use App\Dtos\CreateUserDto;
+use App\Enums\UserStatusEnum;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class RegisterUserAction
 {
@@ -19,44 +21,30 @@ class RegisterUserAction
      */
     public static function handle(CreateUserDto $createUserDto)
     {
-        return DB::transaction(function () use ($data) {
+        return DB::transaction(function () use ($createUserDto) {
 
-            /* ------------------------------------ Add system generated user's referral code ----------------------------------- */
-            $user = User::create(array_merge($createUserDto->toArray(), [
-                'referral_code' => UserService::generateReferralCode(),
-                'role_id' => Role::user_role_id()
-            ]));
-
-            /* --------------------------- Update Referred By --------------------------- */
-            if ($createUserDto->referral_code != null) {
-                $payload = UpdateReferralDto::from([
-                    'user' => $user,
-                    'referral_code' => $createUserDto->referral_code,
-                ]);
-
-                $referred_by_user = UpdateReferralAction::handle($payload);
-
-                if ($referred_by_user != null) {
-                    /* --------------------------- Notify the Referrer -------------------------- */
-                    $referred_by_user->notify(new NewReferrerAlert(
-                        $referred_by_user->fullname,
-                        $user->fullname,
-                        $data->referral_code
-                    ));
-                }
-            }
-
-            /* ----------------------------- Send Notification to Newly Registered the User ---------------------------- */
-            $user->notify(new NewUserRegistered($user));
-
-            Log::channel('daily')->info('REGISTER: END', [
-                "uid" => $data->uuid,
-                "response" => [
-                    'message' => 'You have successfully registered!',
-                    'user' => $user,
-                ],
+            // Create user
+            $user = User::create([
+                'username' => $createUserDto->username,
+                'email' => $createUserDto->email,
+                'password' => $createUserDto->password,
+                'referral_code' => UserService::generate_referral_code(),
+                'role_id' => Role::user_role_id(),
+                'status' => UserStatusEnum::NEW,
+                'referred_by_user_id' => $createUserDto->referral_code ? UserService::get_user_by_ref_code($createUserDto->referral_code, 'id') : null,
             ]);
 
+            /* --------------------------- Notify the Referrer -------------------------- */
+
+            //Dispatcha job to handle avatar to cloudinay and the call notification
+            // $user->notify(new NewUserRegistered($user));
+
+            Log::channel('daily')->info('REGISTER: END', [
+                "uid" => $createUserDto->request_uuid,
+                "response" => [
+                    'data' => $user,
+                ],
+            ]);
             return $user;
         });
     }

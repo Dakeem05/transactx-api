@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Resources\TransactXErrorResponse;
 use App\Rules\ValidReferralCodeRule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -52,7 +53,8 @@ class RegisterUserRequest extends FormRequest
                 'bail',
                 'required',
                 'confirmed',
-                Password::min(8)->numbers()->symbols()->letters()->mixedCase()->uncompromised(),
+                // Password::min(8)->numbers()->symbols()->letters()->mixedCase()->uncompromised(),
+                Password::min(8)->numbers()->symbols()->letters()->mixedCase(),
             ],
             'referral_code' => ['bail', 'sometimes', 'nullable', 'string', new ValidReferralCodeRule($this->request_uuid)],
         ];
@@ -87,6 +89,9 @@ class RegisterUserRequest extends FormRequest
             ["uid" => $this->request_uuid, "response" => ['errors' => $validator->errors()]]
         );
 
-        throw new HttpResponseException(response()->json(['errors' => $validator->errors()], 422));
+        throw new HttpResponseException((new TransactXErrorResponse([
+            'status_code' => 422,
+            'message' => $validator->errors()
+        ]))->response()->setStatusCode(422));
     }
 }

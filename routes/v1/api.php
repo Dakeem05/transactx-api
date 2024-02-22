@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\v1\Auth\RegisterController;
 use App\Models\Role;
+use App\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -17,7 +18,8 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/me', function (Request $request) {
-    return Role::user_role_id();
+    // return Role::user_role_id();
+    return UserService::get_user_by_ref_code("NW2euf", ['id', 'email']);
 })->middleware('throttle:login');
 
 

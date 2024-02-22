@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
+use Symfony\Component\HttpFoundation\Response;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -57,11 +58,11 @@ class RouteServiceProvider extends ServiceProvider
 
             return $correctCredentials ?
                 [
-                    Limit::perMinute(10)->by($request->input('username'),)->response(function (Request $request) {
+                    Limit::perMinute(5)->by($request->input('username'))->response(function (Request $request) {
                         return (new TransactXErrorResponse([
                             'status_code' => 429,
                             'message' => 'Rate limit exceeded. Please try again later!',
-                        ]))->response();
+                        ]))->response()->setStatusCode(429);
                     }),
                 ]
                 : [];
@@ -73,9 +74,9 @@ class RouteServiceProvider extends ServiceProvider
      * @param string username
      * @param string password
      * 
-     * @return bool | TransactXErrorResponse
+     * @return bool | Response
      */
-    private function checkUserCredentials($username, $password): bool | TransactXErrorResponse
+    private function checkUserCredentials($username, $password): bool | Response
     {
         try {
             $user = User::where('username', $username)->first();
@@ -84,10 +85,10 @@ class RouteServiceProvider extends ServiceProvider
             }
             return false;
         } catch (Exception $e) {
-            return new TransactXErrorResponse([
+            return (new TransactXErrorResponse([
                 'status_code' => 500,
                 'message' => 'Error encountered - ' . $e->getMessage(),
-            ]);
+            ]))->response()->setStatusCode(500);
         }
     }
 }
