@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\v1\Auth;
 
+use App\Actions\Auth\RegisterUserAction;
 use App\Dtos\CreateUserDto;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RegisterUserRequest;
@@ -21,7 +22,7 @@ class RegisterController extends Controller
 
             $user_data = CreateUserDto::from($request->validated());
 
-            $data = RegisterNewUserAction::handle($user_data);
+            $data = RegisterUserAction::handle($user_data);
 
             return new UserResourceResponse([
                 'status_code' => 201,
