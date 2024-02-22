@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\v1\Auth\RegisterController;
+use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -16,7 +17,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/me', function (Request $request) {
-    return "Yaay";
+    return Role::user_role_id();
 })->middleware('throttle:login');
 
 

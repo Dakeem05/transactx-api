@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers\v1\Auth;
 
+use App\Dtos\CreateUserDto;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RegisterUserRequest;
+use App\Http\Resources\UserResource as UserResourceResponse;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class RegisterController extends Controller
 {
@@ -13,6 +17,20 @@ class RegisterController extends Controller
      */
     public function __invoke(RegisterUserRequest $request)
     {
-        dd($request->validated());
+        try {
+
+            $user_data = CreateUserDto::from($request->validated());
+
+            $data = RegisterNewUserAction::handle($user_data);
+
+            return new UserResourceResponse([
+                'status_code' => 201,
+                'data' => $data
+            ]);
+        } catch (Exception $e) {
+            Log::error('REGISTER USER: Error Encountered: ' . $e->getMessage());
+
+            return response()->json(['message' => $e->getMessage()], 400);
+        }
     }
 }
