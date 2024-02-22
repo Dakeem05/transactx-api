@@ -3,7 +3,6 @@
 namespace App\Http\Resources;
 
 use App\Models\Role;
-use App\Services\TransactXService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 

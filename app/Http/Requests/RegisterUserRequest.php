@@ -3,7 +3,6 @@
 namespace App\Http\Requests;
 
 use App\Helpers\TransactX;
-use App\Http\Resources\TransactXErrorResponse;
 use App\Rules\ValidReferralCodeRule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -49,7 +48,7 @@ class RegisterUserRequest extends FormRequest
     {
         return [
             'username' => ['bail', 'required', 'string', 'unique:users'],
-            'email' => ['bail', 'required', 'email'],
+            'email' => ['bail', 'required', 'email', 'unique:users'],
             'password' => [
                 'bail',
                 'required',
