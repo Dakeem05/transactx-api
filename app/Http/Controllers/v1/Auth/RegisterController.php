@@ -28,7 +28,7 @@ class RegisterController extends Controller
         } catch (Exception $e) {
             Log::error('REGISTER USER: Error Encountered: ' . $e->getMessage());
 
-            return response()->json(['message' => $e->getMessage()], 400);
+            return TransactX::response(['message' => $e->getMessage()], 500);
         }
     }
 }

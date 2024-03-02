@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers\v1\Auth;
 
-use App\Actions\Auth\RegisterUserAction;
-use App\Dtos\User\CreateUserDto;
+use App\Actions\Auth\LoginUserAction;
+use App\Dtos\User\LoginUserDto;
 use App\Helpers\TransactX;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\RegisterUserRequest;
-use App\Http\Resources\User\CreateUserResource;
+use App\Http\Requests\User\LoginUserRequest;
+use App\Http\Resources\User\LoginUserResource;
 use Exception;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class LoginController extends Controller
@@ -17,18 +16,18 @@ class LoginController extends Controller
     /**
      * Handle the incoming request.
      */
-    public function __invoke(RegisterUserRequest $request)
+    public function __invoke(LoginUserRequest $request)
     {
         try {
-            $user_data = CreateUserDto::from($request->validated());
+            $login_data = LoginUserDto::from($request->validated());
 
-            $data = RegisterUserAction::handle($user_data, $request);
+            $data = LoginUserAction::handle($login_data, $request);
 
-            return TransactX::response(new CreateUserResource($data), 201);
+            return TransactX::response(new LoginUserResource($data), 200);
         } catch (Exception $e) {
-            Log::error('REGISTER USER: Error Encountered: ' . $e->getMessage());
+            Log::error('LOGIN USER: Error Encountered: ' . $e->getMessage());
 
-            return response()->json(['message' => $e->getMessage()], 400);
+            return TransactX::response(['message' => $e->getMessage()], 500);
         }
     }
 }

@@ -3,14 +3,11 @@
 namespace App\Http\Requests\User;
 
 use App\Helpers\TransactX;
-use App\Rules\ValidReferralCodeRule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rules\Password;
 
 class LoginUserRequest extends FormRequest
 {
@@ -48,10 +45,7 @@ class LoginUserRequest extends FormRequest
     {
         return [
             'username' => ['bail', 'required', 'string'],
-            'password' => [
-                'bail',
-                'required',
-            ],
+            'password' => ['bail', 'required'],
             // 'fcm_token' => ['bail', 'sometimes', 'nullable', 'string'],
         ];
     }
@@ -69,7 +63,7 @@ class LoginUserRequest extends FormRequest
 
         return array_merge($data, [
             'request_uuid' => $this->request_uuid,
-            'password' => Hash::make($data['password']),
+            // 'fcm_device_token' => //Create it here
         ]);
     }
 
@@ -81,7 +75,7 @@ class LoginUserRequest extends FormRequest
     public function failedValidation(Validator $validator): void
     {
         Log::channel('daily')->info(
-            'REGISTER USER: VALIDATION',
+            'LOGIN USER: VALIDATION',
             ["uid" => $this->request_uuid, "response" => ['errors' => $validator->errors()]]
         );
 

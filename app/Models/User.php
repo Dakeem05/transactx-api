@@ -41,7 +41,9 @@ class User extends Authenticatable
         'email_verified_at',
         'transaction_pin_updated_at',
         'push_in_app_notifications',
-        'push_email_notifications'
+        'push_email_notifications',
+        'fcm_device_token',
+        'last_logged_in_device'
     ];
 
     /**
@@ -53,6 +55,7 @@ class User extends Authenticatable
         'password',
         'transaction_pin',
         'remember_token',
+        'fcm_device_token',
     ];
 
     /**
@@ -64,6 +67,7 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'transaction_pin_updated_at' => 'datetime',
         'password' => 'hashed',
+        'transaction_pin' => 'hashed',
     ];
 
     protected $appends = ['last_name', 'first_name', 'other_name'];

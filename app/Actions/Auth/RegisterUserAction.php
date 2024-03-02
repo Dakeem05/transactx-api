@@ -19,7 +19,7 @@ class RegisterUserAction
     /**
      * Handle the registration process for a new user.
      *
-     * @param CreateUserDto $data The data transfer object containing user information.
+     * @param CreateUserDto $createUserDto The data transfer object containing user information.
      * @param Request $request The request
      * @return User|null Returns the registered user object or null if an error occurs.
      */

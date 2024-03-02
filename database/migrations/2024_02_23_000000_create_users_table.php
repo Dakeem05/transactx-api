@@ -30,6 +30,7 @@ return new class extends Migration
             $table->boolean('push_in_app_notifications')->default(true);
             $table->boolean('push_email_notifications')->default(true);
             $table->string('fcm_device_token')->index()->nullable();
+            $table->string('last_logged_in_device')->index()->nullable();
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();
