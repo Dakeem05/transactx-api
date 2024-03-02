@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\v1\Auth\LoginController;
 use App\Http\Controllers\v1\Auth\RegisterController;
 use App\Models\Role;
 use App\Services\UserService;
@@ -22,4 +23,6 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('checkApplicationCredentials')->prefix('auth')->group(function () {
     // Register a new user
     Route::post('register', RegisterController::class)->name('auth.register');
+    // Login a uer
+    Route::post('login', LoginController::class)->name('auth.login');
 });

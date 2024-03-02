@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\User\LoginUserRequest;
 use App\Http\Resources\User\LoginUserResource;
 use Exception;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 
 class LoginController extends Controller
@@ -22,6 +23,10 @@ class LoginController extends Controller
             $login_data = LoginUserDto::from($request->validated());
 
             $data = LoginUserAction::handle($login_data, $request);
+
+            if ($data instanceof JsonResponse) {
+                return $data;
+            }
 
             return TransactX::response(new LoginUserResource($data), 200);
         } catch (Exception $e) {

@@ -24,6 +24,10 @@ class RegisterController extends Controller
 
             $data = RegisterUserAction::handle($user_data, $request);
 
+            if ($data instanceof JsonResponse) {
+                return $data;
+            }
+
             return TransactX::response(new CreateUserResource($data), 201);
         } catch (Exception $e) {
             Log::error('REGISTER USER: Error Encountered: ' . $e->getMessage());
