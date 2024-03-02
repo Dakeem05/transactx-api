@@ -20,8 +20,8 @@ class RegisterUserAction
      * Handle the registration process for a new user.
      *
      * @param CreateUserDto $data The data transfer object containing user information.
+     * @param Request $request The request
      * @return User|null Returns the registered user object or null if an error occurs.
-     * @throws \Throwable Throws an exception if a transactional operation fails.
      */
     public static function handle(CreateUserDto $createUserDto, Request $request)
     {
@@ -37,15 +37,10 @@ class RegisterUserAction
                 'referred_by_user_id' => $createUserDto->referral_code ? UserService::get_user_by_ref_code($createUserDto->referral_code, 'id') : null,
             ]);
 
-            $user->generate_referral_code();
-            $user->save_country_from_ip($request);
+            //$user->generate_referral_code(); TO BE CALLED AFTER UPDATING PROFILE
+            //$user->save_country_from_ip(); TO BE CALLED AT LOGIN
 
-            event(new UserCreatedEvent(CompleteUserRegistrationDto::from(['user' => $user])));
-
-            /* --------------------------- Notify the Referrer -------------------------- */
-
-            //Dispatcha job to handle avatar to cloudinay and the call notification
-            // $user->notify(new NewUserRegistered($user));
+            event(new UserCreatedEvent($user));
 
             Log::channel('daily')->info('REGISTER: END', [
                 "uid" => $createUserDto->request_uuid,

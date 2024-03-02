@@ -7,7 +7,7 @@ use App\Dtos\User\CreateUserDto;
 use App\Helpers\TransactX;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RegisterUserRequest;
-use App\Http\Resources\UserResource;
+use App\Http\Resources\User\CreateUserResource;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -24,7 +24,7 @@ class RegisterController extends Controller
 
             $data = RegisterUserAction::handle($user_data, $request);
 
-            return TransactX::response(new UserResource($data), 201);
+            return TransactX::response(new CreateUserResource($data), 201);
         } catch (Exception $e) {
             Log::error('REGISTER USER: Error Encountered: ' . $e->getMessage());
 

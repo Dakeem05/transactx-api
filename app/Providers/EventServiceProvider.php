@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Events\User\UserCreatedEvent;
+use App\Listeners\Referral\SendNewReferralNotificationListener;
 use App\Listeners\User\CreateDefaultUserAvatarListener;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
@@ -22,6 +23,7 @@ class EventServiceProvider extends ServiceProvider
         ],
         UserCreatedEvent::class => [
             CreateDefaultUserAvatarListener::class,
+            SendNewReferralNotificationListener::class,
         ],
     ];
 

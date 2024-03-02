@@ -30,6 +30,12 @@ class UserService
     {
         return is_array($column) ?
             User::select($column)->where('referral_code', $referral_code)->first() :
-            User::select($column)->where('referral_code', $referral_code)->first()->$column;
+            User::select($column)->where('referral_code', $referral_code)->first()?->$column;
+    }
+
+
+    public function get_user_by_id(string $user_id): ?User
+    {
+        return User::findOrFail($user_id)->first();
     }
 }

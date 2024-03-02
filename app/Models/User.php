@@ -4,7 +4,6 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
-use App\Enums\UserStatusEnum;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -39,7 +38,9 @@ class User extends Authenticatable
         'kyc_status',
         'password',
         'email_verified_at',
-        'transaction_pin_updated_at'
+        'transaction_pin_updated_at',
+        'push_in_app_notifications',
+        'push_email_notifications'
     ];
 
     /**
@@ -64,7 +65,7 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
-    protected $appends = ['first_name', 'last_name', 'other_name'];
+    protected $appends = ['last_name', 'first_name', 'other_name'];
 
 
     public function role(): HasOne

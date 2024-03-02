@@ -27,6 +27,8 @@ return new class extends Migration
             $table->string('transaction_pin')->index()->nullable();
             $table->enum('kyc_status', UserKYCStatusEnum::toArray())->index()->nullable();
             $table->timestamp('email_verified_at')->nullable();
+            $table->boolean('push_in_app_notifications')->default(true);
+            $table->boolean('push_email_notifications')->default(true);
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();

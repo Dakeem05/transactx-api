@@ -4,6 +4,7 @@ namespace App\Listeners\User;
 
 use App\Events\User\UserCreatedEvent;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Http\Request;
 use Illuminate\Queue\InteractsWithQueue;
 
 class CreateDefaultUserAvatarListener implements ShouldQueue
@@ -21,7 +22,7 @@ class CreateDefaultUserAvatarListener implements ShouldQueue
      */
     public function handle(UserCreatedEvent $event): void
     {
-        $user = $event->completeUserRegistrationDto->user;
+        $user = $event->user;
         $user->avatar = cloudinary()->upload($user->create_avatar())->getSecurePath();
         $user->save();
     }

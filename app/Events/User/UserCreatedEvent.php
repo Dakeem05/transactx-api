@@ -2,7 +2,7 @@
 
 namespace App\Events\User;
 
-use App\Dtos\User\CompleteUserRegistrationDto;
+use App\Models\User;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
@@ -19,7 +19,7 @@ class UserCreatedEvent
      * Create a new event instance.
      */
     public function __construct(
-        public CompleteUserRegistrationDto $completeUserRegistrationDto
+        public User $user,
     ) {
     }
 
