@@ -37,6 +37,7 @@ class LoginUserAction
                 return TransactX::response(['message' => 'The provided credentials are incorrect.'], 401);
             }
 
+            // Force delete old tokens
             $user->tokens()->delete();
 
             $token = $user->createToken('UserToken')->plainTextToken;
@@ -51,6 +52,8 @@ class LoginUserAction
 
             $user_agent = $request->header('User-Agent');
 
+            $user->update_last_logged_in_device($user_agent);
+
             // event(new UserLoggedInEvent($user, $ip_address, $user_agent));
 
             Log::channel('daily')->info('LOGIN: END', [
@@ -60,7 +63,7 @@ class LoginUserAction
                 ],
             ]);
 
-            return [$user, $token];
+            return ['user' => $user, 'token' => $token];
         });
     }
 }

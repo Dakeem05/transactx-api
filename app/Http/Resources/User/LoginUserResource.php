@@ -15,12 +15,12 @@ class LoginUserResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-
-        $data = parent::toArray($request);
-        unset($data['referred_by_user_id']);
-
-        return array_merge($data, [
-            'role' => Role::find($this->role_id)->name,
-        ]);
+        return  [
+            'username' => $this->user->username,
+            'email' => $this->user->email,
+            'status' => $this->user->status,
+            'role' => Role::find($this->user->role_id)->name,
+            'token' => $this->token,
+        ];
     }
 }
