@@ -22,7 +22,7 @@ class RegisterController extends Controller
         try {
             $user_data = CreateUserDto::from($request->validated());
 
-            $data = RegisterUserAction::handle($user_data);
+            $data = RegisterUserAction::handle($user_data, $request);
 
             return TransactX::response(new UserResource($data), 201);
         } catch (Exception $e) {
