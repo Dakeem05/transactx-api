@@ -89,6 +89,8 @@ class User extends Authenticatable
      */
     public function getLastNameAttribute()
     {
+        if (is_null($this->name))
+            return null;
         return explode(' ', $this->name)[0] ?? null;
     }
 
