@@ -6,13 +6,13 @@ use App\Actions\Auth\RegisterUserAction;
 use App\Dtos\User\CreateUserDto;
 use App\Helpers\TransactX;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\User\RegisterUserRequest;
+use App\Http\Requests\RegisterUserRequest;
 use App\Http\Resources\User\CreateUserResource;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
-class RegisterController extends Controller
+class LoginController extends Controller
 {
     /**
      * Handle the incoming request.

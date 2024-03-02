@@ -29,6 +29,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->boolean('push_in_app_notifications')->default(true);
             $table->boolean('push_email_notifications')->default(true);
+            $table->string('fcm_device_token')->index()->nullable();
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();

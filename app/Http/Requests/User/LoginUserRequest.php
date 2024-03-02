@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\User;
 
 use App\Helpers\TransactX;
 use App\Rules\ValidReferralCodeRule;
@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 
-class RegisterUserRequest extends FormRequest
+class LoginUserRequest extends FormRequest
 {
 
     private string $request_uuid;
@@ -34,8 +34,8 @@ class RegisterUserRequest extends FormRequest
         $this->request_uuid = Str::uuid()->toString();
 
         Log::channel('daily')->info(
-            'REGISTER USER: START',
-            ["uid" => $this->request_uuid, "request" => $this->except(['password', 'password_confirmation'])]
+            'LOGIN USER: START',
+            ["uid" => $this->request_uuid, "request" => $this->all()]
         );
     }
 
@@ -47,16 +47,12 @@ class RegisterUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'username' => ['bail', 'required', 'string', 'unique:users'],
-            'email' => ['bail', 'required', 'email', 'unique:users'],
+            'username' => ['bail', 'required', 'string'],
             'password' => [
                 'bail',
                 'required',
-                'confirmed',
-                // Password::min(8)->numbers()->symbols()->letters()->mixedCase()->uncompromised(),
-                Password::min(8)->numbers()->symbols()->letters()->mixedCase(),
             ],
-            'referral_code' => ['bail', 'sometimes', 'nullable', 'string', new ValidReferralCodeRule($this->request_uuid)],
+            // 'fcm_token' => ['bail', 'sometimes', 'nullable', 'string'],
         ];
     }
 
