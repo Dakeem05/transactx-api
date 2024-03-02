@@ -17,13 +17,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/me', function (Request $request) {
-    // return Role::user_role_id();
-    return UserService::get_user_by_ref_code("NW2euf", ['id', 'email']);
-})->middleware('throttle:login');
-
-
 /* -------------------------- Authentication Routes ------------------------- */
+
 Route::middleware('checkApplicationCredentials')->prefix('auth')->group(function () {
     // Register a new user
     Route::post('register', RegisterController::class)->name('auth.register');

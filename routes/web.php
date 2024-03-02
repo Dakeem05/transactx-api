@@ -19,4 +19,4 @@ Route::get('/', function () {
         "version" => "0.0.1 alpha",
         "disclaimer" => "This application is a property of TrackVault Limited"
     ]);
-});
+})->name('home');
