@@ -163,6 +163,18 @@ class User extends Authenticatable
     }
 
     /**
+     * Updates the last logged in device for a user
+     * @param string $device
+     * @return void
+     */
+    public function update_last_logged_in_device(string $device)
+    {
+        $this->update([
+            'last_logged_in_device' => $device
+        ]);
+    }
+
+    /**
      * Route notifications for the mail channel.
      *
      * @return  array<string, string>|string
