@@ -7,6 +7,7 @@ use App\Dtos\User\CompleteUserRegistrationDto;
 use App\Dtos\User\LoginUserDto;
 use App\Enums\UserStatusEnum;
 use App\Events\User\UserCreatedEvent;
+use App\Events\User\UserLoggedInEvent;
 use App\Helpers\TransactX;
 use App\Jobs\User\CompleteUserRegistration;
 use App\Models\Role;
@@ -54,7 +55,7 @@ class LoginUserAction
 
             $user->update_last_logged_in_device($user_agent);
 
-            // event(new UserLoggedInEvent($user, $ip_address, $user_agent));
+            event(new UserLoggedInEvent($user, $ip_address, $user_agent));
 
             Log::channel('daily')->info('LOGIN: END', [
                 "uid" => $loginUserDto->request_uuid,
