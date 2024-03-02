@@ -64,7 +64,7 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
-    protected $appends = ['first_name', 'last_name'];
+    protected $appends = ['first_name', 'last_name', 'other_name'];
 
 
     public function role(): HasOne
