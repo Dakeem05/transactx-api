@@ -4,9 +4,9 @@ namespace App\Enums;
 
 enum RoleEnum: string
 {
-    case USER = 'user';
-    case ADMIN = 'admin';
-    case SUB_USER = 'sub_user';
+    case USER = 'USER';
+    case ADMIN = 'ADMIN';
+    case SUB_USER = 'SUB_USER';
 
     public static function toArray(): array
     {
