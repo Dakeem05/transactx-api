@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Notifications\Referral;
+namespace App\Notifications\User;
 
 use App\Models\User;
 use Illuminate\Bus\Queueable;
@@ -8,16 +8,15 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class NewReferralNotification extends Notification implements ShouldQueue
+class WelcomeOnboardNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(
-        protected User $referred_user
-    ) {
+    public function __construct()
+    {
         //
     }
 
@@ -40,10 +39,10 @@ class NewReferralNotification extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)->subject('Yay! Someone joined TransactX 🫶')
+        return (new MailMessage)->subject('Ping! Welcome to TransactX 🫶')
             ->markdown(
-                'email.referral.new-referral',
-                ['user' => $notifiable, 'referred_user' => $this->referred_user]
+                'email.user.welcome-onboard',
+                ['user' => $notifiable]
             );
     }
 
@@ -55,7 +54,7 @@ class NewReferralNotification extends Notification implements ShouldQueue
      */
     public function databaseType(object $notifiable): string
     {
-        return 'new-referral';
+        return 'welcome-onboard';
     }
 
 
@@ -67,12 +66,12 @@ class NewReferralNotification extends Notification implements ShouldQueue
     public function toArray(object $notifiable): array
     {
         return [
-            'title' => 'New Referral',
-            'message' => "Yay! Someone joined TransactX using your referral code 🫶.",
+            'title' => 'Welcome to TransactX 🫶',
+            'message' => "We're thrilled to have you onboard. Complete the next steps to unlock the full capabilities of TransactX.",
             'data' => [
-                'email' => $this->referred_user->email,
-                'username' => $this->referred_user->username,
-                'joined_at' => $this->referred_user->created_at,
+                'email' => $notifiable->email,
+                'username' => $notifiable->username,
+                'joined_at' => $notifiable->created_at,
             ]
         ];
     }

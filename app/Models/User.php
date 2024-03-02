@@ -12,6 +12,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Facades\Laravolt\Avatar\Avatar;
 use Illuminate\Http\Request;
+use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -153,5 +154,16 @@ class User extends Authenticatable
         } catch (\Exception $e) {
             Log::error('User.getCountryFromIp(): Error Encountered when fetching user country from ip: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Route notifications for the mail channel.
+     *
+     * @return  array<string, string>|string
+     */
+    public function routeNotificationForMail(Notification $notification): array|string
+    {
+        // Return email address and name...
+        return [$this->email => $this->name ?? null];
     }
 }
