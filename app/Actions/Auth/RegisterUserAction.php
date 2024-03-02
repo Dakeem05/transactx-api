@@ -2,11 +2,14 @@
 
 namespace App\Actions\Auth;
 
-use App\Dtos\CreateUserDto;
+use App\Dtos\User\CreateUserDto;
+use App\Dtos\User\CompleteUserRegistrationDto;
 use App\Enums\UserStatusEnum;
+use App\Events\User\UserCreatedEvent;
+use App\Jobs\User\CompleteUserRegistration;
 use App\Models\Role;
 use App\Models\User;
-use App\Services\UserService;
+use Facades\App\Services\UserService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -33,6 +36,8 @@ class RegisterUserAction
                 'status' => UserStatusEnum::NEW,
                 'referred_by_user_id' => $createUserDto->referral_code ? UserService::get_user_by_ref_code($createUserDto->referral_code, 'id') : null,
             ]);
+
+            event(new UserCreatedEvent(CompleteUserRegistrationDto::from(['user' => $user])));
 
             /* --------------------------- Notify the Referrer -------------------------- */
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Dtos;
+namespace App\Dtos\Referral;
 
 use Spatie\LaravelData\Data;
 

@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Dtos;
+namespace App\Dtos\User;
 
 use Spatie\LaravelData\Data;
+use Spatie\LaravelData\Optional;
 
 class CreateUserDto extends Data
 {

@@ -3,13 +3,23 @@
 namespace App\Rules;
 
 use App\Actions\Auth\ValidateReferralCodeAction;
-use App\Dtos\UpdateReferralDto;
+use App\Dtos\Referral\UpdateReferralDto;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Support\Facades\Log;
 
 class ValidReferralCodeRule implements ValidationRule
 {
+    /**
+     * Create a new rule instance.
+     *
+     * @return void
+     */
+    public function __construct(private ?string $uuid = null)
+    {
+        //
+    }
+
     /**
      * Run the validation rule.
      *

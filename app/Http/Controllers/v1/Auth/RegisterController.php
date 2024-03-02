@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\v1\Auth;
 
 use App\Actions\Auth\RegisterUserAction;
-use App\Dtos\CreateUserDto;
+use App\Dtos\User\CreateUserDto;
 use App\Helpers\TransactX;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RegisterUserRequest;

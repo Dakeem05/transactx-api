@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\UserKYCStatusEnum;
 use App\Enums\UserStatusEnum;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -16,11 +17,15 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('role_id')->nullable()->references('id')->on('roles')->onDelete('set null');
             $table->foreignUuid('referred_by_user_id')->nullable()->references('id')->on('users')->onDelete('set null');
-            $table->string('email')->nullable();
-            $table->string('username')->unique();
+            $table->string('name')->index()->nullable();
+            $table->string('email')->index()->nullable();
+            $table->string('username')->index()->unique();
             $table->enum('status', UserStatusEnum::toArray())->nullable();
-            $table->string('avatar')->nullable();
-            $table->string('referral_code')->nullable();
+            $table->string('avatar')->index()->nullable();
+            $table->string('country')->index()->nullable();
+            $table->string('referral_code')->index()->nullable();
+            $table->string('transaction_pin')->index()->nullable();
+            $table->enum('kyc_status', UserKYCStatusEnum::toArray())->index()->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();

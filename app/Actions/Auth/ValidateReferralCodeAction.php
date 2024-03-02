@@ -2,7 +2,7 @@
 
 namespace App\Actions\Auth;
 
-use App\Dtos\UpdateReferralDto;
+use App\Dtos\Referral\UpdateReferralDto;
 use App\Models\User;
 
 class ValidateReferralCodeAction
