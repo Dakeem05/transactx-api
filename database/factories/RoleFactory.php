@@ -30,11 +30,11 @@ class RoleFactory extends Factory
     private function getUserRole($name)
     {
         switch ($name) {
-            case 'user':
+            case 'USER':
                 return 'Regular User';
-            case 'admin':
+            case 'ADMIN':
                 return 'Administrator';
-            case 'sub_user':
+            case 'SUB_USER':
                 return 'Sub User';
             default:
                 return 'Unknown Role';

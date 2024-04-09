@@ -141,7 +141,7 @@ class User extends Authenticatable
      * @param Request $request
      * @return void
      */
-    public function save_country_from_ip(Request $request)
+    public function saveCountryFromIP(Request $request)
     {
         if ($this->country)
             return;
@@ -167,7 +167,7 @@ class User extends Authenticatable
      * @param string $device
      * @return void
      */
-    public function update_last_logged_in_device(string $device)
+    public function updateLastLoggedInDevice(string $device)
     {
         $this->update([
             'last_logged_in_device' => $device

@@ -33,7 +33,7 @@ class SendNewReferralNotificationListener implements ShouldQueue
             return;
         }
 
-        $referrer_user = $this->userService->get_user_by_id($referred_by_user_id);
+        $referrer_user = $this->userService->getUserById($referred_by_user_id);
         $referrer_user->notify(new NewReferralNotification($referred_user));
     }
 }

@@ -15,8 +15,8 @@ class TransactX
     static function response(mixed $data, int $code): JsonResponse
     {
         return response()->json([
-            'tx_code' => TransactXService::get_tx_code_and_message($code)['code'],
-            'tx_message' => TransactXService::get_tx_code_and_message($code)['message'],
+            'tx_code' => TransactXService::getCodeAndMessage($code)['code'],
+            'tx_message' => TransactXService::getCodeAndMessage($code)['message'],
             'data' => $data
         ], $code);
     }

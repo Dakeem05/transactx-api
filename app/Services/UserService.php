@@ -26,7 +26,7 @@ class UserService
      * @param string $referral_code
      * @param mixed $column
      */
-    public function get_user_by_ref_code(string $referral_code, $column)
+    public function getUserByRefCode(string $referral_code, $column)
     {
         return is_array($column) ?
             User::select($column)->where('referral_code', $referral_code)->first() :
@@ -34,7 +34,7 @@ class UserService
     }
 
 
-    public function get_user_by_id(string $user_id): ?User
+    public function getUserById(string $user_id): ?User
     {
         return User::findOrFail($user_id)->first();
     }

@@ -3,10 +3,8 @@
 namespace App\Actions\Auth;
 
 use App\Dtos\User\CreateUserDto;
-use App\Dtos\User\CompleteUserRegistrationDto;
 use App\Enums\UserStatusEnum;
 use App\Events\User\UserCreatedEvent;
-use App\Jobs\User\CompleteUserRegistration;
 use App\Models\Role;
 use App\Models\User;
 use Facades\App\Services\UserService;
@@ -32,13 +30,13 @@ class RegisterUserAction
                 'username' => $createUserDto->username,
                 'email' => $createUserDto->email,
                 'password' => $createUserDto->password,
-                'role_id' => Role::user_role_id(),
+                'role_id' => Role::getUserRoleId(),
                 'status' => UserStatusEnum::NEW,
-                'referred_by_user_id' => $createUserDto->referral_code ? UserService::get_user_by_ref_code($createUserDto->referral_code, 'id') : null,
+                'referred_by_user_id' => $createUserDto->referral_code ? UserService::getUserByRefCode($createUserDto->referral_code, 'id') : null,
             ]);
 
             //$user->generate_referral_code(); TO BE CALLED AFTER UPDATING PROFILE
-            //$user->save_country_from_ip(); TO BE CALLED AT LOGIN
+            //$user->saveCountryFromIP(); TO BE CALLED AT LOGIN
 
             event(new UserCreatedEvent($user));
 

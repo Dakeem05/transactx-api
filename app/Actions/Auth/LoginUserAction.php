@@ -2,17 +2,10 @@
 
 namespace App\Actions\Auth;
 
-use App\Dtos\User\CreateUserDto;
-use App\Dtos\User\CompleteUserRegistrationDto;
 use App\Dtos\User\LoginUserDto;
-use App\Enums\UserStatusEnum;
-use App\Events\User\UserCreatedEvent;
 use App\Events\User\UserLoggedInEvent;
 use App\Helpers\TransactX;
-use App\Jobs\User\CompleteUserRegistration;
-use App\Models\Role;
 use App\Models\User;
-use Facades\App\Services\UserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -45,7 +38,7 @@ class LoginUserAction
 
             //CREATE FCM TOKEN
 
-            if (!$user->country) $user->save_country_from_ip($request);
+            if (!$user->country) $user->saveCountryFromIP($request);
 
             //$user->generate_referral_code(); TO BE CALLED AFTER UPDATING PROFILE
 
@@ -53,7 +46,7 @@ class LoginUserAction
 
             $user_agent = $request->header('User-Agent');
 
-            $user->update_last_logged_in_device($user_agent);
+            $user->updateLastLoggedInDevice($user_agent);
 
             event(new UserLoggedInEvent($user, $ip_address, $user_agent));
 

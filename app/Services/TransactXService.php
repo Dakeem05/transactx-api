@@ -9,7 +9,7 @@ class TransactXService
      * @param int $status_code
      * @return array
      */
-    public static function get_tx_code_and_message(int $status_code): array
+    public static function getCodeAndMessage(int $status_code): array
     {
         $codeMap = [
             200 => [900, 'operation_successful'],
