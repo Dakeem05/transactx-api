@@ -35,6 +35,6 @@ class IsRolePermitted
      */
     private function userHasAnyRole($roles): bool
     {
-        return in_array(auth()->user()->role, $roles);
+        return in_array(auth()->user()->role->name, $roles);
     }
 }

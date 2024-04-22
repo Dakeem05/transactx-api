@@ -31,7 +31,7 @@ Route::middleware('checkApplicationCredentials')->prefix('auth')->group(function
 
 /* -------------------------- User Routes ------------------------- */
 
-Route::middleware('sanctum')->prefix('user')->group(function () {
+Route::middleware(['sanctum', 'checkApplicationCredentials'])->prefix('user')->group(function () {
     Route::prefix('subscription-model')->group(function () {
         Route::get('/', [UserSubscriptionModelController::class, 'index'])->name('user.sub-model.list');
         Route::get('/{id}', [UserSubscriptionModelController::class, 'show'])->name('user.sub-model.show');
@@ -44,7 +44,7 @@ Route::middleware('sanctum')->prefix('user')->group(function () {
 
 /* -------------------------- Admin Routes ------------------------- */
 
-Route::middleware('sanctum')->prefix('admin')->group(function () {
+Route::middleware(['sanctum', 'checkApplicationCredentials', 'isRolePermitted:ADMIN'])->prefix('admin')->group(function () {
     Route::prefix('subscription-model')->group(function () {
         Route::get('/', [AdminSubscriptionModelController::class, 'index'])->name('admin.sub-model.list');
         Route::get('/{id}', [AdminSubscriptionModelController::class, 'show'])->name('admin.sub-model.show');
