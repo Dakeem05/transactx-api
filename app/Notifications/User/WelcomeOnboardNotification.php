@@ -27,11 +27,15 @@ class WelcomeOnboardNotification extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        if ($notifiable->push_in_app_notifications && $notifiable->push_email_notifications) {
-            return ['mail', 'database'];
+        $pushNotification = $notifiable->push_in_app_notifications;
+
+        $channels = ['mail', 'database'];
+
+        if ($pushNotification) {
+            // $channels[] = FCMChannel::class;
         }
 
-        return $notifiable->push_in_app_notifications ? ['mail', 'database'] : ($notifiable->push_email_notifications ? ['mail'] : ['mail', 'database']);
+        return $channels;
     }
 
     /**

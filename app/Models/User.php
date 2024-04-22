@@ -41,7 +41,6 @@ class User extends Authenticatable
         'email_verified_at',
         'transaction_pin_updated_at',
         'push_in_app_notifications',
-        'push_email_notifications',
         'fcm_device_token',
         'last_logged_in_device'
     ];
