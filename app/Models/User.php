@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Kreait\Firebase\Messaging\MessageTarget;
 
 class User extends Authenticatable
 {
@@ -41,7 +42,6 @@ class User extends Authenticatable
         'email_verified_at',
         'transaction_pin_updated_at',
         'push_in_app_notifications',
-        'fcm_device_token',
         'last_logged_in_device'
     ];
 
@@ -54,7 +54,6 @@ class User extends Authenticatable
         'password',
         'transaction_pin',
         'remember_token',
-        'fcm_device_token',
     ];
 
     /**
@@ -81,7 +80,7 @@ class User extends Authenticatable
      * Creates an avatar using user's email
      * @return mixed
      */
-    public function create_avatar()
+    public function createAvatar()
     {
         return Avatar::create($this->email)->toBase64();
     }
@@ -123,7 +122,7 @@ class User extends Authenticatable
      * Generate referral code for a user
      * @return void
      */
-    public function generate_referral_code(): void
+    public function generateReferralCode(): void
     {
         if ($this->referral_code)
             return;
@@ -182,5 +181,36 @@ class User extends Authenticatable
     {
         // Return email address and name...
         return [$this->email => $this->name ?? null];
+    }
+
+
+    /**
+     * Route notifications for the fcm channel.
+     *
+     * @return  array<string, string>|string
+     */
+    public function routeNotificationForFCM($notification)
+    {
+        return $this->deviceTokens->whereStatus('ACTIVE')->pluck('token')->toArray();
+    }
+
+    /**
+     * Optional method to determine which message target to use
+     * We will use TOKEN type when not specified
+     *
+     * @see MessageTarget::TYPES
+     */
+    public function routeNotificationForFCMTargetType($notification)
+    {
+        return MessageTarget::TOKEN;
+    }
+
+    /**
+     * Optional method to determine which Firebase project to use
+     * We will use default project when not specified
+     */
+    public function routeNotificationForFCMProject($notification)
+    {
+        return config('firebase.default');
     }
 }

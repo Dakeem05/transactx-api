@@ -8,10 +8,14 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Kreait\Firebase\Messaging\CloudMessage;
+use NotificationChannels\FCM\FCMChannel;
 
 class UserLoginNotification extends Notification implements ShouldQueue
 {
     use Queueable;
+
+    public $currentDateTime;
 
     /**
      * Create a new notification instance.
@@ -20,7 +24,7 @@ class UserLoginNotification extends Notification implements ShouldQueue
         protected string $ip_address,
         protected string $user_agent
     ) {
-        //
+        $this->currentDateTime = Carbon::now()->format('l, F j, Y \a\t g:i A');
     }
 
     /**
@@ -35,7 +39,7 @@ class UserLoginNotification extends Notification implements ShouldQueue
         $channels = ['mail', 'database'];
 
         if ($pushNotification) {
-            // $channels[] = FCMChannel::class;
+            $channels[] = FCMChannel::class;
         }
 
         return $channels;
@@ -46,7 +50,7 @@ class UserLoginNotification extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)->subject('TransactX Account Login Notification 🫶')
+        return (new MailMessage)->subject('TransactX Account Login Notification 🔔')
             ->markdown(
                 'email.user.user-login',
                 ['user' => $notifiable, 'user_agent' => $this->user_agent, 'ip_address' => $this->ip_address]
@@ -66,6 +70,27 @@ class UserLoginNotification extends Notification implements ShouldQueue
 
 
     /**
+     * Get the in-app representation of the notification.
+     */
+    public function toFCM(object $notifiable): CloudMessage
+    {
+        $title = "TransactX Account Login Notification 🔔";
+
+        $body = "You accessed your TransactX mobile profile with $this->user_agent [$this->ip_address] at $this->currentDateTime";
+
+        return CloudMessage::new()
+            ->withDefaultSounds()
+            ->withNotification([
+                'title' => $title,
+                'body' => $body,
+            ])
+            ->withData([
+                'notification_key' => 'user_login',
+            ]);
+    }
+
+
+    /**
      * Get the array representation of the notification.
      *
      * @return array<string, mixed>
@@ -73,14 +98,14 @@ class UserLoginNotification extends Notification implements ShouldQueue
     public function toArray(object $notifiable): array
     {
         return [
-            'title' => 'You logged in to TransactX 🫶',
-            'message' => "You accessed your TransactX mobile profile with " . $this->user_agent . " [" . $this->ip_address . "] " . " at " . Carbon::now(),
+            'title' => 'You logged in to TransactX 🔔',
+            'message' => "You accessed your TransactX mobile profile with $this->user_agent $this->ip_address at $this->currentDateTime",
             'data' => [
                 'username' => $notifiable->username,
                 'email' => $notifiable->email,
                 'ip_address' => $this->ip_address,
                 'user_agent' => $this->user_agent,
-                'logged_in_at' => Carbon::now(),
+                'event_at' => $this->currentDateTime,
             ]
         ];
     }

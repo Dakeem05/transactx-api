@@ -7,6 +7,8 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Kreait\Firebase\Messaging\CloudMessage;
+use NotificationChannels\FCM\FCMChannel;
 
 class NewReferralNotification extends Notification implements ShouldQueue
 {
@@ -33,7 +35,7 @@ class NewReferralNotification extends Notification implements ShouldQueue
         $channels = ['mail', 'database'];
 
         if ($pushNotification) {
-            // $channels[] = FCMChannel::class;
+            $channels[] = FCMChannel::class;
         }
 
         return $channels;
@@ -60,6 +62,27 @@ class NewReferralNotification extends Notification implements ShouldQueue
     public function databaseType(object $notifiable): string
     {
         return 'new-referral';
+    }
+
+
+    /**
+     * Get the in-app representation of the notification.
+     */
+    public function toFCM(object $notifiable): CloudMessage
+    {
+        $title = "New Referral 🫶";
+
+        $body = "Yay! Someone joined TransactX using your referral code.";
+
+        return CloudMessage::new()
+            ->withDefaultSounds()
+            ->withNotification([
+                'title' => $title,
+                'body' => $body,
+            ])
+            ->withData([
+                'notification_key' => 'new-referral',
+            ]);
     }
 
 

@@ -7,6 +7,8 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Kreait\Firebase\Messaging\CloudMessage;
+use NotificationChannels\FCM\FCMChannel;
 
 class WelcomeOnboardNotification extends Notification implements ShouldQueue
 {
@@ -32,7 +34,7 @@ class WelcomeOnboardNotification extends Notification implements ShouldQueue
         $channels = ['mail', 'database'];
 
         if ($pushNotification) {
-            // $channels[] = FCMChannel::class;
+            $channels[] = FCMChannel::class;
         }
 
         return $channels;
@@ -59,6 +61,27 @@ class WelcomeOnboardNotification extends Notification implements ShouldQueue
     public function databaseType(object $notifiable): string
     {
         return 'welcome-onboard';
+    }
+
+
+    /**
+     * Get the in-app representation of the notification.
+     */
+    public function toFCM(object $notifiable): CloudMessage
+    {
+        $title = "Ping! Welcome to TransactX 🫶";
+
+        $body = "We're thrilled to have you onboard. Complete the next steps to unlock the full capabilities of TransactX.";
+
+        return CloudMessage::new()
+            ->withDefaultSounds()
+            ->withNotification([
+                'title' => $title,
+                'body' => $body,
+            ])
+            ->withData([
+                'notification_key' => 'welcome-onboard',
+            ]);
     }
 
 

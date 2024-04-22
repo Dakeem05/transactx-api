@@ -10,7 +10,7 @@ class UserService
      * Generates a 6 character code
      * @return string $random_code
      */
-    public function generate_random_code(): string
+    public function generateRandomCode(): string
     {
         $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $charactersLength = strlen($characters);

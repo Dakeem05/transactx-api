@@ -46,7 +46,7 @@ class LoginUserRequest extends FormRequest
         return [
             'username' => ['bail', 'required', 'string'],
             'password' => ['bail', 'required'],
-            // 'fcm_token' => ['bail', 'sometimes', 'nullable', 'string'],
+            'fcm_token' => ['bail', 'sometimes', 'nullable', 'string'],
         ];
     }
 
@@ -63,7 +63,6 @@ class LoginUserRequest extends FormRequest
 
         return array_merge($data, [
             'request_uuid' => $this->request_uuid,
-            // 'fcm_device_token' => //Create it here
         ]);
     }
 

@@ -23,7 +23,7 @@ class CreateDefaultUserAvatarListener implements ShouldQueue
     public function handle(UserCreatedEvent $event): void
     {
         $user = $event->user;
-        $user->avatar = cloudinary()->upload($user->create_avatar())->getSecurePath();
+        $user->avatar = cloudinary()->upload($user->createAvatar())->getSecurePath();
         $user->save();
     }
 }

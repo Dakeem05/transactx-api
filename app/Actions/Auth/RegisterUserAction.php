@@ -36,7 +36,6 @@ class RegisterUserAction
             ]);
 
             //$user->generate_referral_code(); TO BE CALLED AFTER UPDATING PROFILE
-            //$user->saveCountryFromIP(); TO BE CALLED AT LOGIN
 
             event(new UserCreatedEvent($user));
 

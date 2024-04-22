@@ -36,8 +36,6 @@ class LoginUserAction
 
             $token = $user->createToken('UserToken')->plainTextToken;
 
-            //CREATE FCM TOKEN
-
             if (!$user->country) $user->saveCountryFromIP($request);
 
             //$user->generate_referral_code(); TO BE CALLED AFTER UPDATING PROFILE
