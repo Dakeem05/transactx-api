@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\External;
 
 use Exception;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
-use App\Contracts\Payment\PaymentGateway;
+use App\Contracts\PaymentGateway;
 use Illuminate\Http\Client\Response;
 
 /**

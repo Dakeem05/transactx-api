@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Contracts\Payment;
+namespace App\Contracts;
 
 use Illuminate\Http\Client\Response;
 
