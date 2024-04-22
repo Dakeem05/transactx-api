@@ -6,6 +6,7 @@ use App\Dtos\User\LoginUserDto;
 use App\Events\User\UserLoggedInEvent;
 use App\Helpers\TransactX;
 use App\Models\User;
+use App\Services\User\DeviceTokenService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -27,7 +28,7 @@ class LoginUserAction
 
             $user = User::where('username', $loginUserDto->username)->first();
 
-            if (!$user || !Hash::check($request->password, $user->password)) {
+            if (!$user || !Hash::check($loginUserDto->password, $user->password)) {
                 return TransactX::response(['message' => 'The provided credentials are incorrect.'], 401);
             }
 
@@ -37,6 +38,12 @@ class LoginUserAction
             $token = $user->createToken('UserToken')->plainTextToken;
 
             if (!$user->country) $user->saveCountryFromIP($request);
+
+            // Save User Device Token
+            if (!is_null($loginUserDto->fcm_device_token)) {
+                $deviceTokenService = resolve(DeviceTokenService::class);
+                $deviceTokenService->saveDistinctTokenForUser($user, $loginUserDto->fcm_device_token);
+            }
 
             //$user->generate_referral_code(); TO BE CALLED AFTER UPDATING PROFILE
 

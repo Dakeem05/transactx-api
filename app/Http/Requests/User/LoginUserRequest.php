@@ -46,7 +46,7 @@ class LoginUserRequest extends FormRequest
         return [
             'username' => ['bail', 'required', 'string'],
             'password' => ['bail', 'required'],
-            'fcm_token' => ['bail', 'sometimes', 'nullable', 'string'],
+            'fcm_device_token' => ['bail', 'sometimes', 'nullable', 'string'],
         ];
     }
 
