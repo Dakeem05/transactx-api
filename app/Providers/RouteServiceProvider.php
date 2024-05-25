@@ -56,7 +56,7 @@ class RouteServiceProvider extends ServiceProvider
 
         RateLimiter::for('login', function (Request $request) {
             $correctCredentials = $this->checkUserCredentials($request->input('username'), $request->input('password'));
-
+            return [];
             return $correctCredentials ?
                 [
                     Limit::perMinute(5)->by($request->input('username'))->response(function (Request $request) {
@@ -83,6 +83,8 @@ class RouteServiceProvider extends ServiceProvider
             $longerTermLimit = Limit::perDay(30)->by($request->ip() . '|day')->response(function (Request $request) {
                 return TransactX::response('You have exceeded your limit. Please try again after 24 hours!', 429);
             });
+
+            return [];
 
             return [
                 $shortTermLimit,
