@@ -16,6 +16,7 @@
         "laravel/tinker": "^2.8",
         "laravolt/avatar": "^5.0",
         "predis/predis": "^2.2",
+        "propaganistas/laravel-phone": "^5.3",
         "spatie/laravel-data": "^4.1"
     },
     "require-dev": {

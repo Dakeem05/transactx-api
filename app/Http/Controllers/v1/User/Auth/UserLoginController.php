@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\v1\Auth;
+namespace App\Http\Controllers\v1\User\Auth;
 
 use App\Actions\Auth\LoginUserAction;
 use App\Dtos\User\LoginUserDto;
@@ -12,7 +12,7 @@ use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 
-class LoginController extends Controller
+class UserLoginController extends Controller
 {
     /**
      * Handle the incoming request.

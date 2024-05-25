@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\v1\Auth;
+namespace App\Http\Controllers\v1\User\Auth;
 
 use App\Actions\Auth\RegisterUserAction;
 use App\Dtos\User\CreateUserDto;
@@ -12,7 +12,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
-class RegisterController extends Controller
+class UserRegisterController extends Controller
 {
     /**
      * Handle the incoming request.

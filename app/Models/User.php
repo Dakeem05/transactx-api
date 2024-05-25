@@ -29,10 +29,9 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'role_id',
-        'referred_by_user_id',
         'name',
         'email',
+        'phone_number',
         'username',
         'status',
         'avatar',
@@ -42,6 +41,8 @@ class User extends Authenticatable
         'kyc_status',
         'password',
         'email_verified_at',
+        'role_id',
+        'referred_by_user_id',
         'transaction_pin_updated_at',
         'push_in_app_notifications',
         'last_logged_in_device'
@@ -53,6 +54,7 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $hidden = [
+        'role_id',
         'password',
         'transaction_pin',
         'remember_token',
@@ -68,6 +70,8 @@ class User extends Authenticatable
         'transaction_pin_updated_at' => 'datetime',
         'password' => 'hashed',
         'transaction_pin' => 'hashed',
+        'push_in_app_notifications' => 'boolean',
+        'push_email_notifications' => 'boolean',
     ];
 
     protected $appends = ['last_name', 'first_name', 'other_name'];
@@ -140,6 +144,13 @@ class User extends Authenticatable
 
         $this->save();
     }
+
+
+    public function kycVerified(): bool
+    {
+        return $this->kyc_status === 'SUCCESSFUL';
+    }
+
 
     /**
      * Get's and saves the country from the IP address

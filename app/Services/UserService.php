@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\User;
+use Illuminate\Contracts\Auth\Authenticatable;
 
 class UserService
 {
@@ -34,8 +35,33 @@ class UserService
     }
 
 
-    public function getUserById(string $user_id): ?User
+    /**
+     * Find user by id
+     * 
+     * @param string $user_id
+     * @return User|null
+     */
+    public function getUserById($user_id)
     {
-        return User::findOrFail($user_id)->first();
+        return User::find($user_id)->first();
+    }
+
+
+    /**
+     * Update user account
+     * 
+     * @param User|Authenticatable $user
+     * @param array $attributes
+     * @return User
+     */
+    public function updateUserAccount($user, $attributes)
+    {
+        $user->update([
+            'name' => $attributes['name'] ?? $user->name,
+            'phone_number' => $attributes['phone_number'] ?? $user->phone_number,
+            'username' => $attributes['username'] ?? $user->username,
+        ]);
+
+        return $user->refresh();
     }
 }

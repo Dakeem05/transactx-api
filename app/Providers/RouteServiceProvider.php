@@ -63,7 +63,32 @@ class RouteServiceProvider extends ServiceProvider
                         return TransactX::response('Rate limit exceeded. Please try again later!', 429);
                     }),
                 ]
-                : [];
+                : [
+                    Limit::perMinute(5)->by($request->ip)->response(function (Request $request) {
+                        return TransactX::response('Rate limit exceeded. Please try again later!', 429);
+                    }),
+                ];
+        });
+
+        RateLimiter::for('otp', function (Request $request) {
+
+            $shortTermLimit = Limit::perMinute(5)->by($request->ip() . '|minute')->response(function (Request $request) {
+                return TransactX::response('You have exceeded your limit. Please try again after 60 seconds!', 429);
+            });
+
+            $longTermLimit = Limit::perHour(10)->by($request->ip() . '|hour')->response(function (Request $request) {
+                return TransactX::response('You have exceeded your limit. Please try again after 60 minutes!', 429);
+            });
+
+            $longerTermLimit = Limit::perDay(30)->by($request->ip() . '|day')->response(function (Request $request) {
+                return TransactX::response('You have exceeded your limit. Please try again after 24 hours!', 429);
+            });
+
+            return [
+                $shortTermLimit,
+                $longTermLimit,
+                $longerTermLimit,
+            ];
         });
     }
 
