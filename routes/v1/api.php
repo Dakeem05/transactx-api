@@ -6,6 +6,7 @@ use App\Http\Controllers\v1\Auth\RegisterController;
 use App\Http\Controllers\v1\User\Account\UserAccountController;
 use App\Http\Controllers\v1\User\Auth\UserLoginController;
 use App\Http\Controllers\v1\User\Auth\UserRegisterController;
+use App\Http\Controllers\v1\User\Auth\ValidateUserEmailController;
 use App\Http\Controllers\v1\User\Otp\UserOtpController;
 use App\Http\Controllers\v1\User\UserSubscriptionModelController;
 use Illuminate\Support\Facades\Route;
@@ -14,6 +15,7 @@ use Illuminate\Support\Facades\Route;
 /* -------------------------- Authentication Routes ------------------------- */
 
 Route::middleware('checkApplicationCredentials')->prefix('auth')->group(function () {
+    Route::middleware('throttle:5,1')->post('/validate-email', ValidateUserEmailController::class)->name('auth.validate.email');
     Route::middleware('throttle:login')->post('/register', UserRegisterController::class)->name('auth.register');
     Route::middleware('throttle:login')->post('/login', UserLoginController::class)->name('auth.login');
 
