@@ -2,12 +2,8 @@
 
 namespace App\Http\Controllers\v1\User\Auth;
 
-use App\Actions\Auth\RegisterUserAction;
-use App\Dtos\User\CreateUserDto;
 use App\Helpers\TransactX;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\User\RegisterUserRequest;
-use App\Http\Resources\User\CreateUserResource;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
