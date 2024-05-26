@@ -36,7 +36,7 @@ class OTPService
 
         if ($count > 5) {
             logger()->info("$count OTP requests in the last 48 hours from IP $user_ip.. possible spam");
-            throw new InvalidArgumentException("You have reached the maximum number of OTP requests for this IP address.");
+            throw new InvalidArgumentException("You have reached the maximum number of OTP requests for this device.");
         }
     }
 
@@ -58,7 +58,7 @@ class OTPService
 
         $user_ip = request()->ip();
 
-        $this->runSecurityChecks($phone, $email);
+        // $this->runSecurityChecks($phone, $email);
 
         VerificationCode::create([
             'identifier' => $identifier,
