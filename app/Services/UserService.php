@@ -44,7 +44,7 @@ class UserService
      */
     public function getUserById($user_id)
     {
-        return User::find($user_id)->first();
+        return User::find($user_id);
     }
 
 
