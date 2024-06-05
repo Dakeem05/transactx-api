@@ -31,4 +31,17 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Payment Gateway Configuration
+    |--------------------------------------------------------------------------
+    |
+    | These configuration options are used by the payment gateway
+    |
+    */
+    'paystack' => [
+        'base_url' => env('PAYSTACK_BASE_URL', 'https://api.paystack.co'),
+    ],
+
 ];

@@ -3,13 +3,19 @@
 use App\Http\Controllers\v1\Admin\AdminSubscriptionModelController;
 use App\Http\Controllers\v1\Auth\LoginController;
 use App\Http\Controllers\v1\Auth\RegisterController;
+use App\Http\Controllers\v1\Partner\PaystackController;
 use App\Http\Controllers\v1\User\Account\UserAccountController;
 use App\Http\Controllers\v1\User\Auth\UserLoginController;
 use App\Http\Controllers\v1\User\Auth\UserRegisterController;
 use App\Http\Controllers\v1\User\Auth\ValidateUserEmailController;
 use App\Http\Controllers\v1\User\Otp\UserOtpController;
 use App\Http\Controllers\v1\User\UserSubscriptionModelController;
+use App\Http\Controllers\v1\User\Wallet\UserWalletController;
 use Illuminate\Support\Facades\Route;
+
+
+
+Route::post('/webhooks/paystack', [PaystackController::class, 'handleWebhook']);
 
 
 /* -------------------------- Authentication Routes ------------------------- */
@@ -28,7 +34,7 @@ Route::middleware('checkApplicationCredentials')->prefix('auth')->group(function
 
 /* -------------------------- User Routes ------------------------- */
 
-Route::middleware(['auth:sanctum', 'checkApplicationCredentials'])->prefix('user')->group(function () {
+Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.active'])->prefix('user')->group(function () {
     Route::prefix('subscription-model')->group(function () {
         Route::get('/', [UserSubscriptionModelController::class, 'index'])->name('user.list.sub-model');
         Route::get('/{id}', [UserSubscriptionModelController::class, 'show'])->name('user.show.sub-model');
@@ -38,6 +44,13 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials'])->prefix('user
     Route::prefix('account')->group(function () {
         Route::get('/', [UserAccountController::class, 'show'])->name('user.show.account');
         Route::put('{id}/update', [UserAccountController::class, 'update'])->name('user.update.account');
+        Route::post('bvn/validate', [UserAccountController::class, 'validateBVN'])->name('user.validate.bvn');
+    });
+
+
+    Route::prefix('wallet')->group(function () {
+        Route::post('/', [UserWalletController::class, 'store'])->name('user.create.wallet');
+        Route::get('/', [UserWalletController::class, 'index'])->name('user.get.wallet');
     });
 });
 

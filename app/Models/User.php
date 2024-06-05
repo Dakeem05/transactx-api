@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 use App\Models\User\DeviceToken;
+use App\Models\User\Wallet;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -40,8 +41,12 @@ class User extends Authenticatable
         'transaction_pin',
         'kyc_status',
         'password',
+        'customer_code',
         'email_verified_at',
         'role_id',
+        'is_active',
+        'bvn',
+        'bvn_status',
         'referred_by_user_id',
         'transaction_pin_updated_at',
         'push_in_app_notifications',
@@ -72,9 +77,10 @@ class User extends Authenticatable
         'transaction_pin' => 'hashed',
         'push_in_app_notifications' => 'boolean',
         'push_email_notifications' => 'boolean',
+        'is_active' => 'boolean'
     ];
 
-    protected $appends = ['last_name', 'first_name', 'other_name'];
+    protected $appends = ['last_name', 'first_name', 'middle_name'];
 
 
     public function role(): HasOne
@@ -85,6 +91,11 @@ class User extends Authenticatable
     public function deviceTokens(): HasMany
     {
         return $this->hasMany(DeviceToken::class);
+    }
+
+    public function wallet(): HasOne
+    {
+        return $this->hasOne(Wallet::class);
     }
 
     /**
@@ -102,9 +113,13 @@ class User extends Authenticatable
      */
     public function getLastNameAttribute()
     {
-        if (is_null($this->name))
-            return null;
-        return explode(' ', $this->name)[0] ?? null;
+        $parts = explode(' ', $this->name);
+
+        if (count($parts) > 1) {
+            return end($parts);
+        }
+
+        return null;
     }
 
     /**
@@ -113,20 +128,23 @@ class User extends Authenticatable
      */
     public function getFirstNameAttribute()
     {
-        return explode(' ', $this->name)[1] ?? null;
+        return explode(' ', $this->name)[0] ?? null;
     }
 
     /**
-     * Returns the user's other name
+     * Returns the user's middle name
      * @return string|null
      */
-    public function getOtherNameAttribute()
+    public function getMiddleNameAttribute()
     {
         $parts = explode(' ', $this->name);
 
-        $other_name = count($parts) > 2 ? end($parts) : null;
+        if (count($parts) > 2) {
+            // Return all parts except the first and last
+            return implode(' ', array_slice($parts, 1, -1));
+        }
 
-        return $other_name;
+        return null;
     }
 
     /**
@@ -145,10 +163,34 @@ class User extends Authenticatable
         $this->save();
     }
 
+    public function suspend()
+    {
+        $this->is_active = false;
+        $this->save();
+    }
+
+    public function activate()
+    {
+        $this->is_active = true;
+        $this->save();
+    }
+
 
     public function kycVerified(): bool
     {
         return $this->kyc_status === 'SUCCESSFUL';
+    }
+
+
+    public function hasPhoneNumber(): bool
+    {
+        return !is_null($this->phone_number);
+    }
+
+
+    public function hasCustomerCode(): bool
+    {
+        return !is_null($this->customer_code);
     }
 
 

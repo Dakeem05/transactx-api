@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\User\UserAccountUpdated;
 use App\Models\User;
 use Illuminate\Contracts\Auth\Authenticatable;
 
@@ -60,8 +61,15 @@ class UserService
             'name' => $attributes['name'] ?? $user->name,
             'phone_number' => $attributes['phone_number'] ?? $user->phone_number,
             'username' => $attributes['username'] ?? $user->username,
+            'customer_code' => $attributes['customer_code'] ?? $user->customer_code,
+            'bvn' => $attributes['bvn'] ?? $user->bvn,
+            'bvn_status' => $attributes['bvn_status'] ?? $user->bvn_status,
         ]);
 
-        return $user->refresh();
+        $user->refresh();
+
+        event(new UserAccountUpdated($user));
+
+        return $user;
     }
 }

@@ -169,6 +169,12 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         CloudinaryLabs\CloudinaryLaravel\CloudinaryServiceProvider::class,
+
+        /*
+         * Custom Service Providers
+         */
+        App\Providers\PaystackServiceProvider::class,
+        App\Providers\PaystackHttpMacroServiceProvider::class,
     ])->toArray(),
 
     /*

@@ -9,7 +9,7 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
-class UpdateUserAccountRequest extends FormRequest
+class ValidateUserBVNRequest extends FormRequest
 {
 
     private string $request_uuid;
@@ -31,7 +31,7 @@ class UpdateUserAccountRequest extends FormRequest
         $this->request_uuid = Str::uuid()->toString();
 
         Log::channel('daily')->info(
-            'UPDATE USER ACCOUNT: START',
+            'VALIDATE USER BVN: START',
             ["uid" => $this->request_uuid, "request" => $this->all()]
         );
     }
@@ -43,12 +43,11 @@ class UpdateUserAccountRequest extends FormRequest
      */
     public function rules(): array
     {
-        $userId = $this->user()->id;
-
         return [
-            'name' => ['bail', 'nullable', 'string'],
-            'phone_number' => ['bail', 'nullable', 'sometimes', 'phone', 'unique:users,phone_number,' . $userId],
-            'username' => ['bail', 'nullable', 'sometimes', 'string', 'unique:users,username,' . $userId],
+            'account_number' => ['bail', 'required', 'string'],
+            // 'bvn' => ['bail', 'required', 'string', 'size:11'],
+            'bvn' => ['bail', 'required', 'string'],
+            'bank_code' => ['bail', 'required', 'string'],
         ];
     }
 
@@ -76,23 +75,10 @@ class UpdateUserAccountRequest extends FormRequest
     public function failedValidation(Validator $validator): void
     {
         Log::channel('daily')->info(
-            'UPDATE USER ACCOUNT: VALIDATION',
+            'VALIDATE USER BVN: VALIDATION',
             ["uid" => $this->request_uuid, "response" => ['errors' => $validator->errors()]]
         );
 
         throw new HttpResponseException(TransactX::response($validator->errors(), 422));
-    }
-
-
-    /**
-     * Get the error messages for the defined validation rules.
-     *
-     * @return array<string, string>
-     */
-    public function messages(): array
-    {
-        return [
-            'phone' => 'The supplied phone number is invalid.',
-        ];
     }
 }

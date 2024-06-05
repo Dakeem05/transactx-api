@@ -2,10 +2,12 @@
 
 namespace App\Providers;
 
+use App\Events\User\UserAccountUpdated;
 use App\Events\User\UserCreatedEvent;
 use App\Events\User\UserLoggedInEvent;
 use App\Listeners\Referral\SendNewReferralNotificationListener;
 use App\Listeners\User\CreateDefaultUserAvatarListener;
+use App\Listeners\User\CreateUserAsCustomerOnPaystack;
 use App\Listeners\User\SendUserLoginNotificationListener;
 use App\Listeners\User\SendWelcomeOnboardNotificationListener;
 use Illuminate\Auth\Events\Registered;
@@ -28,6 +30,9 @@ class EventServiceProvider extends ServiceProvider
             SendWelcomeOnboardNotificationListener::class,
             CreateDefaultUserAvatarListener::class,
             SendNewReferralNotificationListener::class,
+        ],
+        UserAccountUpdated::class => [
+            CreateUserAsCustomerOnPaystack::class
         ],
         UserLoggedInEvent::class => [
             SendUserLoginNotificationListener::class,
