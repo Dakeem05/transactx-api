@@ -251,7 +251,7 @@ class User extends Authenticatable
      */
     public function routeNotificationForFCM($notification)
     {
-        return $this->deviceTokens->whereStatus('ACTIVE')->pluck('token')->toArray();
+        return $this->deviceTokens()->whereStatus('ACTIVE')->pluck('token')->toArray();
     }
 
     /**
