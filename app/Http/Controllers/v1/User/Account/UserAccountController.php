@@ -50,7 +50,7 @@ class UserAccountController extends Controller
     /**
      * Update user account (profile)
      */
-    public function update(UpdateUserAccountRequest $request, string $userId): JsonResponse
+    public function update(UpdateUserAccountRequest $request): JsonResponse
     {
         try {
             $validatedData = $request->validated();
