@@ -51,7 +51,7 @@ class UserWalletController extends Controller
 
             $userId = $user->id;
 
-            if ($user->bvnVerified()) {
+            if (!$user->bvnVerified()) {
                 throw new InvalidArgumentException('You need to verify your BVN before you can create a wallet.');
             }
 
