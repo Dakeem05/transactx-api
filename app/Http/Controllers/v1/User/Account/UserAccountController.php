@@ -98,9 +98,9 @@ class UserAccountController extends Controller
             // }
 
             // Ensure user already has a customer code
-            // if (!$user->hasCustomerCode()) {
-            //     throw new InvalidArgumentException('Cannot proceed to validate BVN. Ensure your mobile number is updated.');
-            // }
+            if (!$user->hasCustomerCode()) {
+                throw new InvalidArgumentException('Cannot proceed to validate BVN. Ensure your mobile number is updated.');
+            }
 
             $paystackService = resolve(PaystackService::class);
 

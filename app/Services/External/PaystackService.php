@@ -287,6 +287,8 @@ class PaystackService implements PaymentGateway
             $data = [
                 'country' => 'NG',
                 'type' => 'bank_account',
+                // 'first_name' => $firstName,
+                // 'last_name' => $lastName,
                 'first_name' => 'Uchenna',
                 'last_name' => 'Okoro',
                 'account_number' => $accountNumber,
