@@ -31,7 +31,7 @@ class UserWalletController extends Controller
 
         $userId = $user->id;
 
-        $wallet = $this->walletService->getUserWallet($userId);
+        $wallet = $this->walletService->getUserWalletDeep($userId);
 
         return TransactX::response([
             'message' => 'Wallet retrieved successfully.',
@@ -50,6 +50,10 @@ class UserWalletController extends Controller
             $user = auth()->user();
 
             $userId = $user->id;
+
+            if ($user->bvnVerified()) {
+                throw new InvalidArgumentException('You need to verify your BVN before you can create a wallet.');
+            }
 
             if ($this->walletService->getUserWallet($userId)) {
                 throw new InvalidArgumentException('User already has a wallet.');

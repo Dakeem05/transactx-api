@@ -44,7 +44,7 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
     Route::prefix('account')->group(function () {
         Route::get('/', [UserAccountController::class, 'show'])->name('user.show.account');
         Route::put('/update', [UserAccountController::class, 'update'])->name('user.update.account');
-        Route::post('bvn/validate', [UserAccountController::class, 'validateBVN'])->name('user.validate.bvn');
+        Route::post('bvn/verification', [UserAccountController::class, 'verifyBVN'])->name('user.validate.bvn');
     });
 
 

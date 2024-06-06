@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Events\User\UserAccountUpdated;
 use App\Models\User;
+use App\Notifications\User\BVNVerificationStatusNotification;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Support\Facades\Log;
 
 class UserService
 {
@@ -49,6 +51,18 @@ class UserService
 
 
     /**
+     * Find user by customer code
+     * 
+     * @param string $customer_code
+     * @return User|null
+     */
+    public function getUserByCustomerCode($customer_code)
+    {
+        return User::where('customer_code', $customer_code)->first();
+    }
+
+
+    /**
      * Update user account
      * 
      * @param User|Authenticatable $user
@@ -71,5 +85,34 @@ class UserService
         event(new UserAccountUpdated($user));
 
         return $user;
+    }
+
+
+
+    /**
+     * This is used to set the bvn_status of a user based off the data from Paystack
+     * 
+     */
+    public function processCustomerIdentification(string $status, array $payload)
+    {
+        Log::channel('daily')->info('processCustomerIdentification: START', ['string' => $status, 'payload' => $payload]);
+
+        $customer_code = $payload['data']['customer_code'];
+
+        $bvn_status = match ($status) {
+            'failed' => 'FAILED',
+            'success' => 'SUCCESSFUL',
+            default => 'PENDING',
+        };
+
+        $user = $this->getUserByCustomerCode($customer_code);
+
+        $this->updateUserAccount($user, [
+            'bvn_status' => $bvn_status
+        ]);
+
+        $user->notify(new BVNVerificationStatusNotification($bvn_status, $payload));
+
+        Log::channel('daily')->info('processCustomerIdentification: END');
     }
 }

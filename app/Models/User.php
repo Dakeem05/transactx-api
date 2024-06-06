@@ -181,6 +181,10 @@ class User extends Authenticatable
         return $this->kyc_status === 'SUCCESSFUL';
     }
 
+    public function bvnVerified(): bool
+    {
+        return $this->bvn_status === 'SUCCESSFUL';
+    }
 
     public function hasPhoneNumber(): bool
     {

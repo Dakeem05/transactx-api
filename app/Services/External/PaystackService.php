@@ -314,7 +314,7 @@ class PaystackService implements PaymentGateway
     {
         try {
             // Get DVA_DEFAULT_BANK from .env
-            $dvaDefaultBank = env('DVA_DEFAULT_BANK') == 'WEMA' ? 'wema-bank' : 'access-bank';
+            $dvaDefaultBank = env('DVA_DEFAULT_BANK') == 'WEMA' ? 'wema-bank' : 'titan-paystack';
 
             // Apply additional condition for 'sk_test'
             $dvaDefaultBank = substr(env('PAYSTACK_SECRET_KEY'), 0, 7) == 'sk_test' ? 'test-bank' : $dvaDefaultBank;

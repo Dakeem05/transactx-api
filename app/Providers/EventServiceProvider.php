@@ -37,6 +37,9 @@ class EventServiceProvider extends ServiceProvider
         UserLoggedInEvent::class => [
             SendUserLoginNotificationListener::class,
         ],
+        UserWalletCreated::class => [
+            CreateVirtualBankAccountListener::class
+        ]
     ];
 
     /**

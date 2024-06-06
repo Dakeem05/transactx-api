@@ -4,6 +4,7 @@ namespace App\Http\Controllers\v1\Partner;
 
 use App\Enums\PartnersEnum;
 use App\Http\Controllers\Controller;
+use App\Services\UserService;
 use App\Services\WebhookService;
 use Exception;
 use Illuminate\Http\Request;
@@ -12,10 +13,12 @@ use Illuminate\Support\Facades\Log;
 
 class PaystackController extends Controller
 {
+    public $userService;
 
     public function __construct(
         public WebhookService $webhookService
     ) {
+        $this->userService = resolve(UserService::class);
     }
 
     public function handleWebhook(Request $request)
@@ -48,14 +51,15 @@ class PaystackController extends Controller
             $responseData = ['message' => 'Webhook received!'];
             $ipAddress = $request->ip();
 
-            $event = json_decode($input, true);
-            $event_type = $event['event'];
-
             $this->webhookService->recordIncomingWebhook(PartnersEnum::PAYSTACK->value, $payload, $responseData, Response::HTTP_OK, $ipAddress);
-            $this->webhookService->recordIncomingWebhook('eventtt', $event, $responseData, Response::HTTP_OK, $ipAddress);
 
-            Log::info($event);
-            Log::info($payload);
+            $event_type = $payload['event'];
+
+            if (in_array($event_type, ['customeridentification.success', 'customeridentification.failed'])) {
+                $status = explode('.', $event_type)[1];
+                $this->userService->processCustomerIdentification($status, $payload);
+            }
+
 
             return response()->json($responseData, Response::HTTP_OK);
 

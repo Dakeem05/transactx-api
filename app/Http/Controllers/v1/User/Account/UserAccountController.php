@@ -5,7 +5,7 @@ namespace App\Http\Controllers\v1\User\Account;
 use App\Helpers\TransactX;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\Account\UpdateUserAccountRequest;
-use App\Http\Requests\User\Account\ValidateUserBVNRequest;
+use App\Http\Requests\User\Account\VerifyUserBVNRequest;
 use App\Models\User;
 use App\Services\External\PaystackService;
 use App\Services\UserService;
@@ -79,9 +79,9 @@ class UserAccountController extends Controller
 
 
     /**
-     * Validate User BVN
+     * Verify a User BVN
      */
-    public function validateBVN(ValidateUserBVNRequest $request): JsonResponse
+    public function verifyBVN(VerifyUserBVNRequest $request): JsonResponse
     {
         try {
             $validatedData = $request->validated();
@@ -104,7 +104,7 @@ class UserAccountController extends Controller
 
             $paystackService = resolve(PaystackService::class);
 
-            $test = $paystackService->validateCustomer($customer_code, $user->first_name, $user->last_name, $account_number, $bvn, $bank_code);
+            $paystackService->validateCustomer($customer_code, $user->first_name, $user->last_name, $account_number, $bvn, $bank_code);
 
             $user = $this->userService->updateUserAccount($user, [
                 'bvn' => $bvn,
@@ -113,13 +113,12 @@ class UserAccountController extends Controller
 
             return TransactX::response([
                 'message' => 'BVN Verification submitted successfully.',
-                'test' => $test
             ], 200);
         } catch (InvalidArgumentException $e) {
-            Log::error('VALIDATE USER BVN: Error Encountered: ' . $e->getMessage());
+            Log::error('VERIFY USER BVN: Error Encountered: ' . $e->getMessage());
             return TransactX::response(['message' => $e->getMessage()], 400);
         } catch (Exception $e) {
-            Log::error('VALIDATE USER BVN: Error Encountered: ' . $e->getMessage());
+            Log::error('VERIFY USER BVN: Error Encountered: ' . $e->getMessage());
             return TransactX::response(['message' => 'Failed to validate user bvn'], 500);
         }
     }

@@ -9,7 +9,7 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
-class ValidateUserBVNRequest extends FormRequest
+class VerifyUserBVNRequest extends FormRequest
 {
 
     private string $request_uuid;
@@ -31,7 +31,7 @@ class ValidateUserBVNRequest extends FormRequest
         $this->request_uuid = Str::uuid()->toString();
 
         Log::channel('daily')->info(
-            'VALIDATE USER BVN: START',
+            'VERIFY USER BVN: START',
             ["uid" => $this->request_uuid, "request" => $this->all()]
         );
     }
@@ -75,7 +75,7 @@ class ValidateUserBVNRequest extends FormRequest
     public function failedValidation(Validator $validator): void
     {
         Log::channel('daily')->info(
-            'VALIDATE USER BVN: VALIDATION',
+            'VERIFY USER BVN: VALIDATION',
             ["uid" => $this->request_uuid, "response" => ['errors' => $validator->errors()]]
         );
 

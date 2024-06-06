@@ -4,6 +4,7 @@ namespace App\Models\User;
 
 use App\Casts\TXAmountCast;
 use App\Models\User;
+use App\Models\VirtualBankAccount;
 use App\Traits\UUID;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -25,5 +26,11 @@ class Wallet extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+
+    public function VirtualBankAccount()
+    {
+        return $this->hasOne(VirtualBankAccount::class);
     }
 }

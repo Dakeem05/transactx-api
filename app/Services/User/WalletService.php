@@ -37,6 +37,21 @@ class WalletService
 
 
     /**
+     * Get the user's wallet and additional info
+     *
+     * @param string $userId
+     * @param string $currency
+     * @return Wallet|null
+     */
+    public function getUserWalletDeep($userId, $currency = 'NGN'): ?Wallet
+    {
+        return Wallet::with('virtualBankAccount')->whereUserId($userId)
+            ->whereCurrency($currency)
+            ->first();
+    }
+
+
+    /**
      * Create a wallet for the user.
      *
      * @param string $userId
