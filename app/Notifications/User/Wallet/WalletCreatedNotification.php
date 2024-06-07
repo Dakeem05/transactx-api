@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Notifications\User;
+namespace App\Notifications\User\Wallet;
 
-use App\Models\User;
+use App\Models\User\Wallet;
+use App\Models\VirtualBankAccount;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -11,7 +12,7 @@ use Illuminate\Notifications\Notification;
 use Kreait\Firebase\Messaging\CloudMessage;
 use NotificationChannels\FCM\FCMChannel;
 
-class UserLoginNotification extends Notification implements ShouldQueue
+class WalletCreatedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -21,8 +22,8 @@ class UserLoginNotification extends Notification implements ShouldQueue
      * Create a new notification instance.
      */
     public function __construct(
-        protected string $ip_address,
-        protected string $user_agent
+        protected Wallet $wallet,
+        protected ?VirtualBankAccount $virtualBankAccount
     ) {
         $this->currentDateTime = Carbon::now()->format('l, F j, Y \a\t g:i A');
     }
@@ -50,10 +51,10 @@ class UserLoginNotification extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)->subject('TransactX Account Login Notification 🔔')
+        return (new MailMessage)->subject('Wallet Created Successfully 💼')
             ->markdown(
-                'email.user.user-login',
-                ['user' => $notifiable, 'user_agent' => $this->user_agent, 'ip_address' => $this->ip_address]
+                'email.user.wallet.wallet-created',
+                ['user' => $notifiable, 'wallet' => $this->wallet, 'virtualBankAccount' => $this->virtualBankAccount]
             );
     }
 
@@ -65,7 +66,7 @@ class UserLoginNotification extends Notification implements ShouldQueue
      */
     public function databaseType(object $notifiable): string
     {
-        return 'user-login';
+        return 'wallet-created';
     }
 
 
@@ -74,9 +75,9 @@ class UserLoginNotification extends Notification implements ShouldQueue
      */
     public function toFCM(object $notifiable): CloudMessage
     {
-        $title = "TransactX Account Login Notification 🔔";
-
-        $body = "You accessed your TransactX mobile profile with $this->user_agent [$this->ip_address] at $this->currentDateTime";
+        $title = "Wallet Created Successfully 💼";
+        $currency = $this->wallet->currency;
+        $body = "Your $currency wallet has been created successfully.";
 
         return CloudMessage::new()
             ->withDefaultSounds()
@@ -85,7 +86,7 @@ class UserLoginNotification extends Notification implements ShouldQueue
                 'body' => $body,
             ])
             ->withData([
-                'notification_key' => 'user-login',
+                'notification_key' => 'wallet-created',
             ]);
     }
 
@@ -97,15 +98,14 @@ class UserLoginNotification extends Notification implements ShouldQueue
      */
     public function toArray(object $notifiable): array
     {
+        $currency = $this->wallet->currency;
         return [
-            'title' => 'You logged in to TransactX 🔔',
-            'message' => "You accessed your TransactX mobile profile with $this->user_agent $this->ip_address at $this->currentDateTime",
+            'title' => 'Wallet Created Successfully 💼',
+            'message' => "Your $currency wallet has been created successfully.",
             'data' => [
-                'username' => $notifiable->username,
                 'email' => $notifiable->email,
-                'ip_address' => $this->ip_address,
-                'user_agent' => $this->user_agent,
-                'event_at' => $this->currentDateTime,
+                'wallet' => $this->wallet,
+                'virtual_bank_account' => $this->virtualBankAccount,
             ]
         ];
     }

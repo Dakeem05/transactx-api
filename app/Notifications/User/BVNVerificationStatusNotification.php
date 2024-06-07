@@ -87,7 +87,7 @@ class BVNVerificationStatusNotification extends Notification implements ShouldQu
                 'body' => $body,
             ])
             ->withData([
-                'notification_key' => 'user_login',
+                'notification_key' => 'bvn-verification',
             ]);
     }
 

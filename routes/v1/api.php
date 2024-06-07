@@ -41,6 +41,12 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
     });
 
 
+    Route::prefix('paystack')->group(function () {
+        Route::get('/banks', [PaystackController::class, 'getBanks'])->name('user.paystack.list.banks');
+        Route::post('/resolve-account', [PaystackController::class, 'resolveAccount'])->name('user.paystack.resolve.account');
+    });
+
+
     Route::prefix('account')->group(function () {
         Route::get('/', [UserAccountController::class, 'show'])->name('user.show.account');
         Route::put('/update', [UserAccountController::class, 'update'])->name('user.update.account');

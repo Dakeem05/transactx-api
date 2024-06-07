@@ -29,7 +29,7 @@ class Wallet extends Model
     }
 
 
-    public function VirtualBankAccount()
+    public function virtualBankAccount()
     {
         return $this->hasOne(VirtualBankAccount::class);
     }

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\User\VirtualBankAccount\VirtualBankAccountCreated;
 use App\Models\User;
 use App\Models\VirtualBankAccount;
 use App\Services\External\PaystackService;
@@ -88,6 +89,7 @@ class VirtualBankAccountService
     {
         if ($provider == 'PAYSTACK') {
             $virtualBankAccount = $this->createVirtualBankAccountViaPaystack($user, $currency, $walletId, $provider);
+            event(new VirtualBankAccountCreated($virtualBankAccount));
             return $virtualBankAccount;
         } else {
             throw new Exception('Invalid provider supplied. Provider' . $provider);
@@ -122,7 +124,7 @@ class VirtualBankAccountService
         $accountNumber = $data['account_number'];
         $accountName = $data['account_name'];
         $bankName = $data['bank']['name'];
-        $bankCode = $data['bank']['id'];
+        $bankCode = null;
 
         return VirtualBankAccount::create([
             'wallet_id' => $walletId,

@@ -3,23 +3,71 @@
 namespace App\Http\Controllers\v1\Partner;
 
 use App\Enums\PartnersEnum;
+use App\Helpers\TransactX;
 use App\Http\Controllers\Controller;
+use App\Services\External\PaystackService;
 use App\Services\UserService;
 use App\Services\WebhookService;
 use Exception;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class PaystackController extends Controller
 {
     public $userService;
+    public $paystackService;
 
     public function __construct(
         public WebhookService $webhookService
     ) {
         $this->userService = resolve(UserService::class);
+        $this->paystackService = resolve(PaystackService::class);
     }
+
+
+    public function getBanks()
+    {
+        try {
+            $banks = $this->paystackService->getBanks();
+
+            return TransactX::response([
+                'message' => 'Banks retrieved successfully.',
+                'banks' => $banks
+            ], 200);
+        } catch (Exception $e) {
+            Log::error('get Banks: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(['message' => $e->getMessage()], 500);
+        }
+    }
+
+
+    public function resolveAccount(Request $request): JsonResponse
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'account_number' => ['bail', 'required', 'string'],
+                'bank_code' => ['bail', 'required', 'string'],
+            ]);
+
+            if ($validator->fails()) {
+                return TransactX::response($validator->errors(), 422);
+            }
+
+            $account_number = $request->account_number;
+            $bank_code = $request->bank_code;
+
+            $account = $this->paystackService->resolveAccount($account_number, $bank_code);
+
+            return TransactX::response(['message' => 'Account resolved successfully!', 'account' => $account['data']], 200);
+        } catch (Exception $e) {
+            Log::error('Resolve Account: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(['message' => $e->getMessage()], 500);
+        }
+    }
+
 
     public function handleWebhook(Request $request)
     {

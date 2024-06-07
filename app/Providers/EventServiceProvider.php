@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Events\User\UserAccountUpdated;
 use App\Events\User\UserCreatedEvent;
 use App\Events\User\UserLoggedInEvent;
+use App\Events\User\VirtualBankAccount\VirtualBankAccountCreated;
 use App\Events\User\Wallet\UserWalletCreated;
 use App\Listeners\Referral\SendNewReferralNotificationListener;
 use App\Listeners\User\CreateDefaultUserAvatarListener;
@@ -12,6 +13,7 @@ use App\Listeners\User\CreateUserAsCustomerOnPaystack;
 use App\Listeners\User\SendUserLoginNotificationListener;
 use App\Listeners\User\SendWelcomeOnboardNotificationListener;
 use App\Listeners\User\VirtualBankAccount\CreateVirtualBankAccountListener;
+use App\Listeners\User\Wallet\SendWalletCreatedNotificationListener;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -40,7 +42,10 @@ class EventServiceProvider extends ServiceProvider
             SendUserLoginNotificationListener::class,
         ],
         UserWalletCreated::class => [
-            CreateVirtualBankAccountListener::class
+            CreateVirtualBankAccountListener::class //This creates a VBA and fires VirtualBankAccountCreated which sends notification to user about wallet and VBA
+        ],
+        VirtualBankAccountCreated::class => [
+            SendWalletCreatedNotificationListener::class
         ]
     ];
 
