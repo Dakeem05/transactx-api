@@ -98,6 +98,11 @@ class User extends Authenticatable
         return $this->hasOne(Wallet::class);
     }
 
+    public function Transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
     /**
      * Creates an avatar using user's email
      * @return mixed

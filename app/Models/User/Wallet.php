@@ -3,7 +3,9 @@
 namespace App\Models\User;
 
 use App\Casts\TXAmountCast;
+use App\Models\Transaction;
 use App\Models\User;
+use App\Models\User\Wallet\WalletTransaction;
 use App\Models\VirtualBankAccount;
 use App\Traits\UUID;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -32,5 +34,16 @@ class Wallet extends Model
     public function virtualBankAccount()
     {
         return $this->hasOne(VirtualBankAccount::class);
+    }
+
+
+    public function Transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
+    public function walletTransactions()
+    {
+        return $this->hasMany(WalletTransaction::class);
     }
 }
