@@ -19,6 +19,7 @@ return new class extends Migration
             $table->foreignUuid('wallet_transaction_id')->nullable()->index()->references('id')->on('wallet_transactions')->onDelete('no action');
 
             $table->string('type')->index()->nullable();
+            $table->string('description')->index()->nullable();
             $table->bigInteger('amount')->default(0);
             $table->string('currency')->index()->nullable();
             $table->string('reference')->index()->nullable();

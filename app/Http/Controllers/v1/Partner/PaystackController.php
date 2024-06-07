@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\v1\Partner;
 
 use App\Enums\PartnersEnum;
+use App\Events\User\Wallet\WalletTransactionReceived;
 use App\Helpers\TransactX;
 use App\Http\Controllers\Controller;
 use App\Services\External\PaystackService;
@@ -103,17 +104,28 @@ class PaystackController extends Controller
 
             $event_type = $payload['event'];
 
+            // Customer Identification Webhook
             if (in_array($event_type, ['customeridentification.success', 'customeridentification.failed'])) {
                 $status = explode('.', $event_type)[1];
                 $this->userService->processCustomerIdentification($status, $payload);
+                return;
             }
 
+            // Virtual Account Collection Webhook
+            if (in_array($event_type, ['charge.success']) && $payload['data']['channel'] === 'dedicated_nuban') {
+                $external_transaction_reference = $payload['data']['reference'];
+                $account_number = $payload['data']['metadata']['receiver_account_number'];
+                $amount = floor($payload['data']['amount'] / 100);
+                $currency = 'NGN';
+                event(new WalletTransactionReceived($account_number, $amount, $currency, $external_transaction_reference));
+                return;
+            }
 
             return response()->json($responseData, Response::HTTP_OK);
 
             // 
-        } catch (\Exception $e) {
-            Log::error('Paystack webhook Error: ', ["error" => $e->getMessage()]);
+        } catch (Exception $e) {
+            Log::error('Paystack Webhook Error: ', ["error" => $e->getMessage()]);
             return response()->json(['message' => 'Error occurred'], 500);
         }
     }

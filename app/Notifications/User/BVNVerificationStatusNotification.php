@@ -107,8 +107,7 @@ class BVNVerificationStatusNotification extends Notification implements ShouldQu
             'title' => $title,
             'message' => $body,
             'data' => [
-                'username' => $notifiable->username,
-                'email' => $notifiable->email,
+                'user_id' => $notifiable->id,
                 'bvn_status' => $this->status,
                 'payload' => $this->payload,
                 'event_at' => $this->currentDateTime,

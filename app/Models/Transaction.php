@@ -20,6 +20,7 @@ class Transaction extends Model
         'wallet_id',
         'wallet_transaction_id',
         'type',
+        'description',
         'amount',
         'currency',
         'reference',

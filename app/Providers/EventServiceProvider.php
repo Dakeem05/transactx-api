@@ -6,7 +6,9 @@ use App\Events\User\UserAccountUpdated;
 use App\Events\User\UserCreatedEvent;
 use App\Events\User\UserLoggedInEvent;
 use App\Events\User\VirtualBankAccount\VirtualBankAccountCreated;
+use App\Events\User\Wallet\FundWalletSuccessful;
 use App\Events\User\Wallet\UserWalletCreated;
+use App\Events\User\Wallet\WalletTransactionReceived;
 use App\Listeners\Referral\SendNewReferralNotificationListener;
 use App\Listeners\User\CreateDefaultUserAvatarListener;
 use App\Listeners\User\CreateUserAsCustomerOnPaystack;
@@ -14,6 +16,8 @@ use App\Listeners\User\SendUserLoginNotificationListener;
 use App\Listeners\User\SendWelcomeOnboardNotificationListener;
 use App\Listeners\User\VirtualBankAccount\CreateVirtualBankAccountListener;
 use App\Listeners\User\Wallet\SendWalletCreatedNotificationListener;
+use App\Listeners\User\Wallet\SendWalletFundingSuccessfulNotificationListener;
+use App\Listeners\User\Wallet\UpdateUserWalletWithTransactionListener;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -46,6 +50,12 @@ class EventServiceProvider extends ServiceProvider
         ],
         VirtualBankAccountCreated::class => [
             SendWalletCreatedNotificationListener::class
+        ],
+        WalletTransactionReceived::class => [
+            UpdateUserWalletWithTransactionListener::class
+        ],
+        FundWalletSuccessful::class => [
+            SendWalletFundingSuccessfulNotificationListener::class
         ]
     ];
 

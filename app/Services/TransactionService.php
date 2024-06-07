@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\User\Wallet\FundWalletSuccessful;
 use App\Models\User;
 use App\Models\Transaction;
 use App\Models\User\Wallet;
@@ -10,6 +11,16 @@ use App\Models\User\Wallet\WalletTransaction;
 
 class TransactionService
 {
+
+
+    public function getTransactionDescription(string $type, string $currency): ?string
+    {
+        return match ($type) {
+            'SEND_MONEY' => "Sent $currency",
+            'FUND_WALLET' => "Funded $currency wallet",
+            default => null,
+        };
+    }
 
     /**
      * Create and return a new pending transaction
@@ -30,6 +41,8 @@ class TransactionService
         $userIp = null,
     ) {
 
+        $description = $this->getTransactionDescription($type, $currency);
+
         return Transaction::create([
             "user_id" => $user->id,
             "currency" => $currency,
@@ -37,6 +50,7 @@ class TransactionService
             "reference" => Str::uuid(),
             "status" => "PENDING",
             "type" => $type,
+            "description" => $description,
             "user_ip" => $userIp,
         ]);
     }
@@ -50,7 +64,7 @@ class TransactionService
      * @param string $currency
      * @param string $type
      * @param string $wallet_id
-     * @param ?string $wallet_id
+     * @param ?string $userIp
      * @param ?string $external_transaction_reference
      * 
      * @return Transaction
@@ -65,6 +79,8 @@ class TransactionService
         $external_transaction_reference = null
     ) {
 
+        $description = $this->getTransactionDescription($type, $currency);
+
         $transaction = Transaction::create([
             "user_id" => $user->id,
             "wallet_id" => $wallet_id,
@@ -74,11 +90,12 @@ class TransactionService
             "external_transaction_reference" => $external_transaction_reference,
             "status" => "SUCCESSFUL",
             "type" => $type,
+            "description" => $description,
             "user_ip" => $userIp,
         ]);
 
         if ($transaction->isFundWalletTransaction()) {
-            // Event
+            event(new FundWalletSuccessful($transaction));
         }
 
         if ($transaction->isSendMoneyTransaction()) {
@@ -139,8 +156,10 @@ class TransactionService
             'external_transaction_reference' => $data['external_transaction_reference'] ?? $transaction->external_transaction_reference,
             'reference' => $data['reference'] ?? $transaction->reference,
             'wallet_id' => $data['wallet_id'] ?? $transaction->wallet_id,
+            'description' => $data['description'] ?? $transaction->description,
             'wallet_transaction_id' => $data['wallet_transaction_id'] ?? $transaction->wallet_transaction_id,
         ]);
+
         if ($status !== null) {
             $this->updateTransactionStatus($transaction, $status);
         }
@@ -172,6 +191,13 @@ class TransactionService
 
         if ($status === "SUCCESSFUL" && $oldTransactionStatus !== "SUCCESSFUL") {
             // transaction state is changing to successful
+            if ($transaction->isFundWalletTransaction()) {
+                // Event
+            }
+
+            if ($transaction->isSendMoneyTransaction()) {
+                // Event
+            }
         }
 
         return $transaction;

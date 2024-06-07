@@ -2,8 +2,8 @@
 
 namespace App\Notifications\User\Wallet;
 
+use App\Models\Transaction;
 use App\Models\User\Wallet;
-use App\Models\VirtualBankAccount;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -12,20 +12,27 @@ use Illuminate\Notifications\Notification;
 use Kreait\Firebase\Messaging\CloudMessage;
 use NotificationChannels\FCM\FCMChannel;
 
-class WalletCreatedNotification extends Notification implements ShouldQueue
+class WalletFundingSuccessfulNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
     public $currentDateTime;
+    protected float $transactionAmount;
+    protected string $transactionCurrency;
+    protected float $walletAmount;
 
     /**
      * Create a new notification instance.
      */
     public function __construct(
-        protected Wallet $wallet,
-        protected ?VirtualBankAccount $virtualBankAccount
+        public Transaction $transaction,
+        public Wallet $wallet,
     ) {
         $this->currentDateTime = Carbon::now()->format('l, F j, Y \a\t g:i A');
+
+        $this->transactionAmount = $this->transaction->amount->getAmount()->toFloat();
+        $this->transactionCurrency = $this->transaction->sender_local_currency;
+        $this->walletAmount = $this->wallet->amount->getAmount()->toFloat();
     }
 
     /**
@@ -51,10 +58,10 @@ class WalletCreatedNotification extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)->subject('Wallet Created Successfully 💼')
+        return (new MailMessage)->subject('Wallet Funding Successful 💸')
             ->markdown(
-                'email.user.wallet.wallet-created',
-                ['user' => $notifiable, 'wallet' => $this->wallet, 'virtualBankAccount' => $this->virtualBankAccount]
+                'email.user.wallet.funding-successful',
+                ['user' => $notifiable, 'wallet' => $this->wallet, 'transaction' => $this->transaction]
             );
     }
 
@@ -66,7 +73,7 @@ class WalletCreatedNotification extends Notification implements ShouldQueue
      */
     public function databaseType(object $notifiable): string
     {
-        return 'wallet-created';
+        return 'fund-wallet-successful';
     }
 
 
@@ -75,9 +82,9 @@ class WalletCreatedNotification extends Notification implements ShouldQueue
      */
     public function toFCM(object $notifiable): CloudMessage
     {
-        $title = "Wallet Created Successfully 💼";
-        $currency = $this->wallet->currency;
-        $body = "Your $currency wallet has been created successfully.";
+        $title = "Wallet Funding Successful 💸";
+
+        $body = "Funding of $this->transactionCurrency $this->transactionAmount successful 💸.";
 
         return CloudMessage::new()
             ->withDefaultSounds()
@@ -86,7 +93,7 @@ class WalletCreatedNotification extends Notification implements ShouldQueue
                 'body' => $body,
             ])
             ->withData([
-                'notification_key' => 'wallet-created',
+                'notification_key' => 'fund-wallet-successful',
             ]);
     }
 
@@ -98,14 +105,14 @@ class WalletCreatedNotification extends Notification implements ShouldQueue
      */
     public function toArray(object $notifiable): array
     {
-        $currency = $this->wallet->currency;
         return [
-            'title' => 'Wallet Created Successfully 💼',
-            'message' => "Your $currency wallet has been created successfully.",
+            'title' => 'Wallet Funding Successful 💸',
+            'message' => "Funding of $this->transactionCurrency $this->transactionAmount successful 💸.",
             'data' => [
                 'user_id' => $notifiable->id,
+                'transaction' => $this->transaction,
                 'wallet' => $this->wallet,
-                'virtual_bank_account' => $this->virtualBankAccount,
+                'event_at' => $this->currentDateTime,
             ]
         ];
     }
