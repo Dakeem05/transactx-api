@@ -1,0 +1,86 @@
+name: Deploy Laravel Project To Kachim
+on:
+  push:
+    branches:
+      - main
+jobs:
+  web-deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:5.7
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.DB_DATABASE }}
+          MYSQL_USER: ${{ secrets.DB_USERNAME }}
+          MYSQL_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+    steps:
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+          tools: composer
+      - name: Get the latest code
+        uses: actions/checkout@v2.3.2
+      - name: Copy .env
+        run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+
+      - name: Add Environment Variables to .env
+        run: |
+          echo "" >> .env  # Add a newline to avoid concatenation
+          echo "MAIL_MAILER=${{ vars.MAIL_MAILER }}" >> .env
+          echo "MAIL_HOST=${{ secrets.MAIL_HOST }}" >> .env
+          echo "MAIL_PORT=${{ vars.MAIL_PORT }}" >> .env
+          echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> .env
+          echo 'MAIL_PASSWORD="${{ secrets.MAIL_PASSWORD }}"' >> .env
+          echo "MAIL_ENCRYPTION=${{ vars.MAIL_ENCRYPTION }}" >> .env
+          echo 'MAIL_FROM_ADDRESS=${{ secrets.MAIL_FROM_ADDRESS }}' >> .env
+          echo "MAIL_FROM_NAME=${{ vars.MAIL_FROM_NAME }}" >> .env
+          echo "" >> .env  # Add a newline to avoid concatenation
+          echo "DB_CONNECTION=${{ vars.DB_CONNECTION }}" >> .env
+          echo "DB_HOST=${{ vars.DB_HOST }}" >> .env
+          echo 'DB_PORT=${{ vars.DB_PORT }}' >> .env
+          echo "DB_DATABASE=${{ secrets.DB_DATABASE }}" >> .env
+          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+          echo "" >> .env  # Add a newline to avoid concatenation
+          echo "PAYSTACK_PUBLIC_KEY=${{ secrets.PAYSTACK_PUBLIC_KEY }}" >> .env
+          echo "PAYSTACK_SECRET_KEY=${{ secrets.PAYSTACK_SECRET_KEY }}" >> .env
+          echo "PAYSTACK_CURRENCY_CODE=${{ vars.PAYSTACK_CURRENCY_CODE }}" >> .env
+          echo "MERCHANT_EMAIL=${{ secrets.PAYSTACK_MERCHANT_EMAIL }}" >> .env
+          echo "" >> .env  # Add a newline to avoid concatenation
+          echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
+          echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
+          echo "" >> .env  # Add a newline to avoid concatenation
+          echo "FACEBOOK_CLIENT_ID=${{ secrets.FACEBOOK_CLIENT_ID }}" >> .env
+          echo "FACEBOOK_CLIENT_SECRET=${{ secrets.FACEBOOK_CLIENT_SECRET }}" >> .env
+          echo "" >> .env  # Add a newline to avoid concatenation
+          echo "DELLYMAN_MODE=${{ vars.DELLYMAN_MODE }}" >> .env
+          echo "DELLYMAN_TEST_TRACKING_URL=${{ vars.DELLYMAN_TEST_TRACKING_URL }}" >> .env
+          echo "DELLYMAN_TRACKING_URL=${{ vars.DELLYMAN_TRACKING_URL }}" >> .env
+          echo "DELLYMAN_TEST_API_URL=${{ vars.DELLYMAN_TEST_API_URL }}" >> .env
+          echo "DELLYMAN_API_URL=${{ vars.DELLYMAN_API_URL }}" >> .env
+          echo "DELLYMAN_API_ID=${{ secrets.DELLYMAN_API_ID }}" >> .env
+          echo "DELLYMAN_API_SECRET=${{ secrets.DELLYMAN_API_SECRET }}" >> .env
+      - name: Install Dependencies
+        run: composer install --ignore-platform-reqs
+      - name: Generate key
+        run: php artisan key:generate
+      - name: Generate storage link
+        run: php artisan storage:link
+      - name: Install node_modules
+        run: npm install
+      - name: Build blade frontend
+        run: npm run build
+      - name: Directory Permissions
+        run: chmod -R 777 storage bootstrap/cache
+      - name: 📂 Sync files
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{secrets.FTP_SERVER}}
+          username: ${{secrets.FTP_USERNAME}}
+          password: ${{secrets.FTP_PASSWORD}}
