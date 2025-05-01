@@ -13,16 +13,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Step 1: Create the users table without the self-referential foreign key
         Schema::create('users', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('role_id')->nullable()->references('id')->on('roles')->onDelete('set null');
-            $table->foreignUuid('referred_by_user_id')
-            ->nullable()
-            ->constrained(
-                table: 'users',
-                column: 'id',
-                indexName: 'users_referred_by_user_id_foreign'
-            )->onDelete('set null');  
+            $table->uuid('referred_by_user_id')->nullable(); // Define the column without the foreign key constraint
             $table->string('name')->index()->nullable();
             $table->string('email')->index()->nullable();
             $table->string('username')->index()->unique();
@@ -38,6 +33,15 @@ return new class extends Migration
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();
+        });
+
+        // Step 2: Add the self-referential foreign key
+        Schema::table('users', function (Blueprint $table) {
+            $table->foreign('referred_by_user_id')
+                  ->references('id')
+                  ->on('users')
+                  ->onDelete('set null')
+                  ->name('users_referred_by_user_id_foreign');
         });
     }
 
