@@ -16,7 +16,13 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('role_id')->nullable()->references('id')->on('roles')->onDelete('set null');
-            $table->foreignUuid('referred_by_user_id')->nullable()->references('id')->on('users')->onDelete('set null');
+            $table->foreignUuid('referred_by_user_id')
+            ->nullable()
+            ->constrained(
+                table: 'users',
+                column: 'id',
+                indexName: 'users_referred_by_user_id_foreign'
+            )->onDelete('set null');  
             $table->string('name')->index()->nullable();
             $table->string('email')->index()->nullable();
             $table->string('username')->index()->unique();
