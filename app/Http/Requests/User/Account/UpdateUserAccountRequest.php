@@ -3,6 +3,7 @@
 namespace App\Http\Requests\User\Account;
 
 use App\Helpers\TransactX;
+use App\Rules\FullnameRule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -46,8 +47,8 @@ class UpdateUserAccountRequest extends FormRequest
         $userId = $this->user()->id;
 
         return [
-            'name' => ['bail', 'nullable', 'string'],
-            'phone_number' => ['bail', 'nullable', 'sometimes', 'phone', 'unique:users,phone_number,' . $userId],
+            'name' => ['bail', 'nullable', 'string', new FullnameRule()],
+            'phone_number' => ['bail', 'nullable', 'sometimes', 'digits:11', 'unique:users,phone_number,' . $userId],
             'username' => ['bail', 'nullable', 'sometimes', 'string', 'unique:users,username,' . $userId],
         ];
     }
@@ -80,7 +81,7 @@ class UpdateUserAccountRequest extends FormRequest
             ["uid" => $this->request_uuid, "response" => ['errors' => $validator->errors()]]
         );
 
-        throw new HttpResponseException(TransactX::response($validator->errors(), 422));
+        throw new HttpResponseException(TransactX::response(false, "Validation error", 422, $validator->errors()));
     }
 
 

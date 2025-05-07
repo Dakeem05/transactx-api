@@ -43,17 +43,14 @@ class UserOtpController extends Controller
                 $expiryMinutes
             );
 
-            return TransactX::response([
-                'message' => 'Verification code sent.',
-                'expires_at' => $expiry
-            ], 200);
+            return TransactX::response(true, 'Verification code sent.', 200, (object)['expires_at' => $expiry]);
             // 
         } catch (InvalidArgumentException $e) {
             Log::error('SEND VERIFICATION CODE: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(['message' => $e->getMessage()], 400);
+            return TransactX::response(false, $e->getMessage(), 400);
         } catch (Exception $e) {
             Log::error('SEND VERIFICATION CODE: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(['message' => 'Failed to send verification code'], 500);
+            return TransactX::response(false, 'Failed to send verification code', 500);
         }
     }
 
@@ -81,17 +78,14 @@ class UserOtpController extends Controller
                 $otp_identifier
             );
 
-            return TransactX::response([
-                'message' => 'Code valid',
-                'otp_identifier' => $otp_identifier
-            ], 200);
+            return TransactX::response(true, 'Code valid', 200, (object)['otp_identifier' => $otp_identifier]);
             // 
         } catch (ModelNotFoundException $e) {
             Log::error('VERIFY VERIFICATION CODE: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(['message' => $e->getMessage()], 400);
+            return TransactX::response(false, $e->getMessage(), 400);
         } catch (Exception $e) {
             Log::error('VERIFY VERIFICATION CODE: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(['message' => 'Failed to verify verification code'], 500);
+            return TransactX::response(false, 'Failed to verify verification code', 500);
         }
     }
 }

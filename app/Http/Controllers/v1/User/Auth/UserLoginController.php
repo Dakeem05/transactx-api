@@ -28,11 +28,11 @@ class UserLoginController extends Controller
                 return $data;
             }
 
-            return TransactX::response(new LoginUserResource($data), 200);
+            return TransactX::response(true, 'Login successful', 200, new LoginUserResource($data));
         } catch (Exception $e) {
             Log::error('LOGIN USER: Error Encountered: ' . $e->getMessage());
 
-            return TransactX::response(['message' => $e->getMessage()], 500);
+            return TransactX::response(false, $e->getMessage(), 500);
         }
     }
 }

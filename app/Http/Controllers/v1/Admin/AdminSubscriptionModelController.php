@@ -37,7 +37,7 @@ class AdminSubscriptionModelController extends Controller
             return TransactX::response($models, 200);
         } catch (Exception $e) {
             Log::error('ADMIN: LIST SUBSCRIPTION MODELS: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(['message' => $e->getMessage()], 500);
+            return TransactX::response(false, $e->getMessage(), 500);
         }
     }
 
@@ -57,7 +57,7 @@ class AdminSubscriptionModelController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return TransactX::response($validator->errors(), 422);
+            return TransactX::response(false,  'Validation error', 422, $validator->errors());
         }
 
         $payload = $request->validated();
@@ -74,7 +74,7 @@ class AdminSubscriptionModelController extends Controller
             return TransactX::response($model, 201);
         } catch (Exception $e) {
             Log::error('ADMIN: CREATE SUBSCRIPTION MODEL: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(['message' => $e->getMessage()], 500);
+            return TransactX::response(false, $e->getMessage(), 500);
         }
     }
 
@@ -94,7 +94,7 @@ class AdminSubscriptionModelController extends Controller
             return TransactX::response(['message' => 'Cannot find Subscription Model'], 404);
         } catch (Exception $e) {
             Log::error('ADMIN: SHOW SUBSCRIPTION MODEL: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(['message' => $e->getMessage()], 500);
+            return TransactX::response(false, $e->getMessage(), 500);
         }
     }
 }

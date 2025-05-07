@@ -44,8 +44,9 @@ class User extends Authenticatable
         'customer_code',
         'email_verified_at',
         'role_id',
+        'account_type',
+        'main_account_id',
         'is_active',
-        'bvn',
         'bvn_status',
         'referred_by_user_id',
         'transaction_pin_updated_at',
@@ -80,7 +81,7 @@ class User extends Authenticatable
         'is_active' => 'boolean'
     ];
 
-    protected $appends = ['last_name', 'first_name', 'middle_name'];
+    protected $appends = ['last_name', 'first_name'];
 
 
     public function role(): HasOne
@@ -137,22 +138,6 @@ class User extends Authenticatable
     }
 
     /**
-     * Returns the user's middle name
-     * @return string|null
-     */
-    public function getMiddleNameAttribute()
-    {
-        $parts = explode(' ', $this->name);
-
-        if (count($parts) > 2) {
-            // Return all parts except the first and last
-            return implode(' ', array_slice($parts, 1, -1));
-        }
-
-        return null;
-    }
-
-    /**
      * Generate referral code for a user
      * @return void
      */
@@ -180,6 +165,10 @@ class User extends Authenticatable
         $this->save();
     }
 
+    public function isMainAccount(): bool
+    {
+        return $this->account_type === 'main';
+    }
 
     public function kycVerified(): bool
     {
@@ -196,10 +185,19 @@ class User extends Authenticatable
         return !is_null($this->phone_number);
     }
 
-
     public function hasCustomerCode(): bool
     {
         return !is_null($this->customer_code);
+    }
+
+    public function subAccounts()
+    {
+        return $this->hasMany(User::class, 'main_account_id');
+    }
+
+    public function mainAccount()
+    {
+        return $this->belongsTo(User::class, 'main_account_id');
     }
 
 

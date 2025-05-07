@@ -7,7 +7,9 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use App\Contracts\PaymentGateway;
+use App\Services\UserService;
 use Illuminate\Http\Client\Response;
+use InvalidArgumentException;
 
 /**
  * Class PaystackService
@@ -264,6 +266,30 @@ class PaystackService implements PaymentGateway
         } catch (Exception $e) {
             Log::error('Error Encountered at Create Customer method in Paystack Service: ' . $e->getMessage());
             throw $e;
+        }
+    }
+
+    public function verifyBVN (object $verification_data)
+    {
+        try {
+            // Ensure user already has a customer code
+            if (!$verification_data->user->hasCustomerCode()) {
+                throw new InvalidArgumentException('Cannot proceed to validate BVN. Ensure your mobile number is updated.');
+            }
+            
+            $paystackService = resolve(PaystackService::class);
+            
+            $paystackService->validateCustomer($verification_data->user->customer_code, $verification_data->user->first_name, $verification_data->user->last_name, $verification_data->account_number, $verification_data->bvn, $verification_data->bank_code);
+            
+            $userService = resolve(UserService::class);
+            $user = $userService->updateUserAccount($verification_data->user, [
+                'bvn_status' => 'PENDING',
+                'kyc_status' => 'PENDING'
+            ]);
+            
+            return 'BVN Verification submitted successfully.';
+        } catch (Exception $e) {
+            Log::error('VERIFY USER BVN: Error Encountered: ' . $e->getMessage());
         }
     }
 

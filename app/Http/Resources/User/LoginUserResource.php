@@ -19,6 +19,7 @@ class LoginUserResource extends JsonResource
             'username' => $this['user']->username,
             'email' => $this['user']->email,
             'status' => $this['user']->status,
+            'account_type' => $this['user']->account_type,
             'role' => Role::find($this['user']->role_id)->name,
             'token' => $this['token'],
         ];

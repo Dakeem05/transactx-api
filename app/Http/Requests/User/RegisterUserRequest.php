@@ -47,7 +47,8 @@ class RegisterUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['bail', 'required', 'string', 'max:255'],
+            'first_name' => ['bail', 'required', 'string', 'max:255'],
+            'last_name' => ['bail', 'required', 'string', 'max:255'],
             'username' => ['bail', 'required', 'string', 'unique:users'],
             'email' => ['bail', 'required', 'email', 'unique:users'],
             'password' => [
@@ -90,6 +91,6 @@ class RegisterUserRequest extends FormRequest
             ["uid" => $this->request_uuid, "response" => ['errors' => $validator->errors()]]
         );
 
-        throw new HttpResponseException(TransactX::response($validator->errors(), 422));
+        throw new HttpResponseException(TransactX::response(false, "Validation error", 422, $validator->errors()));
     }
 }

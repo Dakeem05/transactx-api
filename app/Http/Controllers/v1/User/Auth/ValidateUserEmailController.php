@@ -23,16 +23,14 @@ class ValidateUserEmailController extends Controller
             ]);
 
             if ($validator->fails()) {
-                return TransactX::response($validator->errors(), 422);
+                return TransactX::response(false, 'Validation error', 422, $validator->errors());
             }
 
-            return TransactX::response([
-                'message' => 'Email address is available.'
-            ], 200);
+            return TransactX::response(true, 'Email address is available.', 200);
         } catch (Exception $e) {
             Log::error('VALIDATE USER EMAIL: Error Encountered: ' . $e->getMessage());
 
-            return TransactX::response(['message' => $e->getMessage()], 500);
+            return TransactX::response(false, $e->getMessage(), 500);
         }
     }
 }

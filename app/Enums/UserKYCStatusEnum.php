@@ -5,7 +5,7 @@ namespace App\Enums;
 enum UserKYCStatusEnum: string
 {
     case INPROGRESS = 'IN_PROGRESS';
-    case SUCCESS = 'SUCCESS';
+    case SUCCESSFUL = 'SUCCESSFUL';
     case FAILED = 'FAILED';
     case PENDING = 'PENDING';
     case BLOCKED = 'BLOCKED';

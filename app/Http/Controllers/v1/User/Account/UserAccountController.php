@@ -7,8 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\User\Account\UpdateUserAccountRequest;
 use App\Http\Requests\User\Account\VerifyUserBVNRequest;
 use App\Models\User;
-use App\Services\External\PaystackService;
 use App\Services\UserService;
+use App\Services\Utilities\PaymentService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
@@ -36,17 +36,14 @@ class UserAccountController extends Controller
 
             $user = $this->userService->getUserById($user->id);
 
-            return TransactX::response([
-                'message' => 'User account retrieved successfully',
-                'user' => $user
-            ], 200);
+            return TransactX::response(true, 'User account retrieved successfully', 200, (object) ["user" => $user]);
         } catch (Exception $e) {
             Log::error('GET USER ACCOUNT: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(['message' => $e->getMessage()], 500);
+            return TransactX::response(false, $e->getMessage(), 500);
         }
     }
-
-
+    
+    
     /**
      * Update user account (profile)
      */
@@ -54,30 +51,27 @@ class UserAccountController extends Controller
     {
         try {
             $validatedData = $request->validated();
-
+            
             $user = auth()->user();
-
+            
             // Names can only change if user is not verified
             if (isset($validatedData['name']) && $user->name !== $validatedData['name'] && $user->kycVerified()) {
-                throw new InvalidArgumentException("Name cannot be changed");
+                throw new InvalidArgumentException("Name cannot be changed after KYC verification");
             }
-
+            
             $user = $this->userService->updateUserAccount($user, $validatedData);
-
-            return TransactX::response([
-                'message' => 'User account updated successfully',
-                'user' => $user
-            ], 200);
+            
+            return TransactX::response(true, 'User account updated successfully', 200, (object) ["user" => $user]);
         } catch (InvalidArgumentException $e) {
             Log::error('UPDATE USER ACCOUNT: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(['message' => $e->getMessage()], 400);
+            return TransactX::response(false, $e->getMessage(), 400);
         } catch (Exception $e) {
             Log::error('UPDATE USER ACCOUNT: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(['message' => 'Failed to update user account'], 500);
+            return TransactX::response(false, 'Failed to update user account', 500);
         }
     }
-
-
+    
+    
     /**
      * Verify a User BVN
      */
@@ -87,39 +81,33 @@ class UserAccountController extends Controller
             $validatedData = $request->validated();
             $user = auth()->user();
             $bvn = $validatedData['bvn'];
-            $bank_code = $validatedData['bank_code'];
-            $account_number = $validatedData['account_number'];
-            $customer_code = $user->customer_code;
+            $nin = $validatedData['nin'];
+            $bank_code = $validatedData['bank_code'] ?? null;
+            $account_number = $validatedData['account_number'] ?? null;
 
-            // Suspend user if attempting to use an already used BVN
-            // if (User::where('bvn', $bvn)->exists()) {
-            //     $user->suspend();
-            //     throw new InvalidArgumentException('Your account has been suspended.');
-            // }
-
-            // Ensure user already has a customer code
-            if (!$user->hasCustomerCode()) {
-                throw new InvalidArgumentException('Cannot proceed to validate BVN. Ensure your mobile number is updated.');
+            if ($user->bvnVerified()) {
+                throw new InvalidArgumentException("BVN has already been verified");
             }
 
-            $paystackService = resolve(PaystackService::class);
-
-            $paystackService->validateCustomer($customer_code, $user->first_name, $user->last_name, $account_number, $bvn, $bank_code);
-
-            $user = $this->userService->updateUserAccount($user, [
+            $verification_data = (object) [
+                'user' => $user,
                 'bvn' => $bvn,
-                'bvn_status' => 'PENDING'
-            ]);
+                'nin' => $nin,
+                'account_number' => $account_number,
+                'bank_code' => $bank_code,
+            ];
 
-            return TransactX::response([
-                'message' => 'BVN Verification submitted successfully.',
-            ], 200);
+            $paymentService = resolve(PaymentService::class);
+            $verification_response = $paymentService->verifyBVN($verification_data);
+                
+            return TransactX::response(true, $verification_response, 200);
         } catch (InvalidArgumentException $e) {
             Log::error('VERIFY USER BVN: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(['message' => $e->getMessage()], 400);
+            return TransactX::response(false, $e->getMessage(), 400);
         } catch (Exception $e) {
             Log::error('VERIFY USER BVN: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(['message' => 'Failed to validate user bvn'], 500);
+            return TransactX::response(false, 'Failed to validate user bvn', 500);
+
         }
     }
 }

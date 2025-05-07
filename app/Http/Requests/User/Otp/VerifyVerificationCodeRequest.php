@@ -95,6 +95,6 @@ class VerifyVerificationCodeRequest extends FormRequest
             ["uid" => $this->request_uuid, "response" => ['errors' => $validator->errors()]]
         );
 
-        throw new HttpResponseException(TransactX::response($validator->errors(), 422));
+        throw new HttpResponseException(TransactX::response(false, "Validation error", 422, $validator->errors()));
     }
 }

@@ -67,5 +67,6 @@ class Kernel extends HttpKernel
         'checkApplicationCredentials' => \App\Http\Middleware\CheckApplicationCredentials::class,
         'isRolePermitted' => \App\Http\Middleware\IsRolePermitted::class,
         'user.is.active' => \App\Http\Middleware\UserIsActive::class,
+        'user.is.verified' => \App\Http\Middleware\UserIsVerified::class,
     ];
 }

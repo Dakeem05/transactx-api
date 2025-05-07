@@ -39,7 +39,7 @@ class UserSubscriptionModelController extends Controller
         } catch (Exception $e) {
             Log::error('USER: LIST SUBSCRIPTION MODELS: Error Encountered: ' . $e->getMessage());
 
-            return TransactX::response(['message' => $e->getMessage()], 500);
+            return TransactX::response(false, $e->getMessage(), 500);
         }
     }
 
@@ -62,7 +62,7 @@ class UserSubscriptionModelController extends Controller
             return TransactX::response(['message' => 'Cannot find Subscription Model'], 404);
         } catch (Exception $e) {
             Log::error('USER: SHOW SUBSCRIPTION MODEL: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(['message' => $e->getMessage()], 500);
+            return TransactX::response(false, $e->getMessage(), 500);
         }
     }
 }

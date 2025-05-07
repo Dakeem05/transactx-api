@@ -19,7 +19,8 @@ class CreateUserDto extends Data
      */
     public function __construct(
         public readonly string $request_uuid,
-        public readonly string $name,
+        public readonly string $first_name,
+        public readonly string $last_name,
         public readonly string $username,
         public readonly string $email,
         public readonly string $password,

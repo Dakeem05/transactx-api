@@ -34,13 +34,10 @@ class PaystackController extends Controller
         try {
             $banks = $this->paystackService->getBanks();
 
-            return TransactX::response([
-                'message' => 'Banks retrieved successfully.',
-                'banks' => $banks
-            ], 200);
+            return TransactX::response(true, 'Banks retrieved successfully.', 200, (object)['banks' => $banks]);
         } catch (Exception $e) {
             Log::error('get Banks: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(['message' => $e->getMessage()], 500);
+            return TransactX::response(false, $e->getMessage(), 500);
         }
     }
 
@@ -54,7 +51,7 @@ class PaystackController extends Controller
             ]);
 
             if ($validator->fails()) {
-                return TransactX::response($validator->errors(), 422);
+                return TransactX::response(false,  'Validation error', 422, $validator->errors());
             }
 
             $account_number = $request->account_number;
@@ -62,10 +59,10 @@ class PaystackController extends Controller
 
             $account = $this->paystackService->resolveAccount($account_number, $bank_code);
 
-            return TransactX::response(['message' => 'Account resolved successfully!', 'account' => $account['data']], 200);
+            return TransactX::response(true, 'Account resolved successfully!', 200, (object)['account' => $account['data']]);
         } catch (Exception $e) {
             Log::error('Resolve Account: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(['message' => $e->getMessage()], 500);
+            return TransactX::response(false, $e->getMessage(), 500);
         }
     }
 

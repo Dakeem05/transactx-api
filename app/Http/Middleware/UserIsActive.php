@@ -17,9 +17,14 @@ class UserIsActive
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
+        
+        if (!$user) {
+            return TransactX::response(false, 'Unauthenticated', 401);
+        }
+        // Check if the user is active
 
         if (!$user->is_active) {
-            return TransactX::response('Your account has been temporarily suspended.', 403);
+            return TransactX::response(false, 'Your account has been temporarily suspended.', 403);
         }
 
         return $next($request);

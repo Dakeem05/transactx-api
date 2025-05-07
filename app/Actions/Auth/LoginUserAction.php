@@ -3,6 +3,7 @@
 namespace App\Actions\Auth;
 
 use App\Dtos\User\LoginUserDto;
+use App\Events\User\SubAccountLoggedInEvent;
 use App\Events\User\UserLoggedInEvent;
 use App\Helpers\TransactX;
 use App\Models\User;
@@ -26,10 +27,10 @@ class LoginUserAction
     {
         return DB::transaction(function () use ($loginUserDto, $request) {
 
-            $user = User::where('username', $loginUserDto->username)->first();
+            $user = User::where('username', $loginUserDto->username)->orWhere('email', $loginUserDto->username)->first();
 
             if (!$user || !Hash::check($loginUserDto->password, $user->password)) {
-                return TransactX::response(['message' => 'The provided credentials are incorrect.'], 401);
+                return TransactX::response(false, 'The provided credentials are incorrect.', 401);
             }
 
             // Force delete old tokens
@@ -53,7 +54,12 @@ class LoginUserAction
 
             $user->updateLastLoggedInDevice($user_agent);
 
-            event(new UserLoggedInEvent($user, $ip_address, $user_agent));
+            if ($user->isMainAccount()) {
+                event(new UserLoggedInEvent($user, $ip_address, $user_agent));
+            } else {
+                $main_account = $user->mainAccount;
+                event(new SubAccountLoggedInEvent($user, $main_account, $ip_address, $user_agent));
+            }
 
             Log::channel('daily')->info('LOGIN: END', [
                 "uid" => $loginUserDto->request_uuid,

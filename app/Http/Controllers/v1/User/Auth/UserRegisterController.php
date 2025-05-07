@@ -28,11 +28,11 @@ class UserRegisterController extends Controller
                 return $data;
             }
 
-            return TransactX::response(new CreateUserResource($data), 201);
+            return TransactX::response(true, 'Registration successful', 201, new CreateUserResource($data));
         } catch (Exception $e) {
             Log::error('REGISTER USER: Error Encountered: ' . $e->getMessage());
 
-            return TransactX::response(['message' => $e->getMessage()], 500);
+            return TransactX::response(false, $e->getMessage(), 500);
         }
     }
 }

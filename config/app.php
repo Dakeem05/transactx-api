@@ -173,8 +173,10 @@ return [
         /*
          * Custom Service Providers
          */
-        App\Providers\PaystackServiceProvider::class,
-        App\Providers\PaystackHttpMacroServiceProvider::class,
+        App\Providers\CustomProviders\PaymentProviders\PaystackServiceProvider::class,
+        App\Providers\CustomProviders\PaymentProviders\PaystackHttpMacroServiceProvider::class,
+        App\Providers\CustomProviders\PaymentProviders\FlutterwaveServiceProvider::class,
+        App\Providers\CustomProviders\PaymentProviders\FlutterwaveHttpMacroServiceProvider::class,
     ])->toArray(),
 
     /*

@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Providers;
+namespace App\Providers\CustomProviders\PaymentProviders;
 
-use App\Services\External\PaystackService;
+use App\Services\External\FlutterwaveService;
 use Illuminate\Support\ServiceProvider;
 
 
-class PaystackServiceProvider extends ServiceProvider
+class FlutterwaveServiceProvider extends ServiceProvider
 {
     /**
      * Register services.
@@ -15,8 +15,8 @@ class PaystackServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->singleton(PaystackService::class, function () {
-            return new PaystackService(self::resolveBaseurl());
+        $this->app->singleton(FlutterwaveService::class, function () {
+            return new FlutterwaveService(self::resolveBaseurl());
         });
     }
 
@@ -38,6 +38,6 @@ class PaystackServiceProvider extends ServiceProvider
      */
     private function resolveBaseurl(): string
     {
-        return config('services.paystack.base_url');
+        return config('services.flutterwave.base_url');
     }
 }

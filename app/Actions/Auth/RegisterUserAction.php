@@ -27,7 +27,7 @@ class RegisterUserAction
 
             // Create user
             $user = User::create([
-                'name' => $createUserDto->name,
+                'name' => $createUserDto->first_name . ' ' . $createUserDto->last_name,
                 'username' => $createUserDto->username,
                 'email' => $createUserDto->email,
                 'password' => $createUserDto->password,

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Providers;
+namespace App\Providers\CustomProviders\PaymentProviders;
 
 use App\Http\PaystackHttpMacro;
 use Exception;

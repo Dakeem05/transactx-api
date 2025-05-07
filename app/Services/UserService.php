@@ -76,8 +76,8 @@ class UserService
             'phone_number' => $attributes['phone_number'] ?? $user->phone_number,
             'username' => $attributes['username'] ?? $user->username,
             'customer_code' => $attributes['customer_code'] ?? $user->customer_code,
-            'bvn' => $attributes['bvn'] ?? $user->bvn,
             'bvn_status' => $attributes['bvn_status'] ?? $user->bvn_status,
+            'kyc_status' => $attributes['kyc_status'] ?? $user->kyc_status,
         ]);
 
         $user->refresh();
@@ -86,7 +86,6 @@ class UserService
 
         return $user;
     }
-
 
 
     /**
@@ -115,4 +114,10 @@ class UserService
 
         Log::channel('daily')->info('processCustomerIdentification: END');
     }
+
+    public function getSubAccounts($user)
+    {
+        return User::where('main_account_id', $user->id)->get();
+    }
+
 }

@@ -44,10 +44,10 @@ class VerifyUserBVNRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'account_number' => ['bail', 'required', 'string'],
-            // 'bvn' => ['bail', 'required', 'string', 'size:11'],
-            'bvn' => ['bail', 'required', 'string'],
-            'bank_code' => ['bail', 'required', 'string'],
+            'account_number' => ['bail', 'optional', 'digits:10'],
+            'nin' => ['bail', 'required', 'string'],
+            'bvn' => ['bail', 'required', 'digits:11'],
+            'bank_code' => ['bail', 'optional', 'string'],
         ];
     }
 
@@ -79,6 +79,6 @@ class VerifyUserBVNRequest extends FormRequest
             ["uid" => $this->request_uuid, "response" => ['errors' => $validator->errors()]]
         );
 
-        throw new HttpResponseException(TransactX::response($validator->errors(), 422));
+        throw new HttpResponseException(TransactX::response(false, "Validation error", 422, $validator->errors()));
     }
 }
