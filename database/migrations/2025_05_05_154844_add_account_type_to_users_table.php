@@ -31,7 +31,6 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->dropColumn('account_type');
-            $table->dropForeign('users_main_account_id_foreign');
             $table->dropColumn('main_account_id');
         });
     }
