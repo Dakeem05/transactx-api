@@ -2,6 +2,7 @@
 
 namespace App\Casts;
 
+use App\Models\Settings;
 use Brick\Money\Money;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Illuminate\Database\Eloquent\Model;
@@ -15,7 +16,7 @@ class TXAmountCast implements CastsAttributes
      */
     public function get(Model $model, string $key, mixed $value, array $attributes): mixed
     {
-        return Money::ofMinor($value, 'NGN');
+        return Money::ofMinor($value, Settings::where('name', 'currency')->first()->value);
     }
 
     /**
@@ -29,7 +30,7 @@ class TXAmountCast implements CastsAttributes
             return $value->getMinorAmount()->toInt();
         }
 
-        return Money::of($value, 'NGN')->getMinorAmount()->toInt();
+        return Money::of($value, Settings::where('name', 'currency')->first()->value)->getMinorAmount()->toInt();
     }
 
 

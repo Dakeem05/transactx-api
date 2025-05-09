@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 
-class CreateSubAccountRequest extends FormRequest
+class UpdateSubAccountRequest extends FormRequest
 {
 
     private string $request_uuid;
@@ -33,7 +33,7 @@ class CreateSubAccountRequest extends FormRequest
         $this->request_uuid = Str::uuid()->toString();
 
         Log::channel('daily')->info(
-            'CREATE SUB ACCOUNT: START',
+            'UPDATE SUB ACCOUNT: START',
             ["uid" => $this->request_uuid, "request" => $this->all()]
         );
     }
@@ -46,11 +46,12 @@ class CreateSubAccountRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['bail', 'required', 'string', new FullnameRule()],
-            'username' => ['bail', 'required', 'string', 'unique:users,username'],
+            'name' => ['bail', 'nullable', 'string', new FullnameRule()],
+            'username' => ['bail', 'nullable', 'sometimes', 'string', 'unique:users,username'],
             'password' => [
                 'bail',
-                'required',
+                'nullable',
+                'sometimes',
                 Password::min(8)->numbers()->symbols()->letters()->mixedCase(),
             ],
         ];
@@ -80,7 +81,7 @@ class CreateSubAccountRequest extends FormRequest
     public function failedValidation(Validator $validator): void
     {
         Log::channel('daily')->info(
-            'CREATE SUB ACCOUNT: VALIDATION',
+            'UPDATE SUB ACCOUNT: VALIDATION',
             ["uid" => $this->request_uuid, "response" => ['errors' => $validator->errors()]]
         );
 

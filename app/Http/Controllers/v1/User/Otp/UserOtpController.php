@@ -5,8 +5,10 @@ namespace App\Http\Controllers\v1\User\Otp;
 use App\Helpers\TransactX;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\Otp\SendVerificationCodeRequest;
+use App\Http\Requests\User\Otp\VerifyAppliedVerificationCodeRequest;
 use App\Http\Requests\User\Otp\VerifyVerificationCodeRequest;
 use App\Services\OTPService;
+use Error;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
@@ -54,6 +56,32 @@ class UserOtpController extends Controller
         }
     }
 
+    /**
+     * This handles generation and sending of otp for applied verifications
+     */
+    public function sendForVerification($email, $phone = null, $purpose = null)
+    {
+        try {
+            $expiryMinutes = 10;
+
+            $expiry = now()->addMinutes($expiryMinutes);
+
+            $this->otpService->generateAndSendOTP(
+                $phone ?? null,
+                $email ?? null,
+                $expiryMinutes,
+                $purpose = $purpose ?? 'verification',
+            );
+
+            return (object)[
+                'status' => true,
+                'expires_at' => $expiry
+            ];
+            // 
+        } catch (Exception $e) {
+            throw new Exception('Failed to send verification code');
+        }
+    }
 
 
     /**
@@ -78,7 +106,7 @@ class UserOtpController extends Controller
                 $otp_identifier
             );
 
-            return TransactX::response(true, 'Code valid', 200, (object)['otp_identifier' => $otp_identifier]);
+            return TransactX::response(true, 'Otp verified', 200);
             // 
         } catch (ModelNotFoundException $e) {
             Log::error('VERIFY VERIFICATION CODE: Error Encountered: ' . $e->getMessage());
@@ -86,6 +114,39 @@ class UserOtpController extends Controller
         } catch (Exception $e) {
             Log::error('VERIFY VERIFICATION CODE: Error Encountered: ' . $e->getMessage());
             return TransactX::response(false, 'Failed to verify verification code', 500);
+        }
+    }
+
+    /**
+     * This handles validation of otp
+     */
+    public function verifyAppliedCode($email, $code, $phone = null, $purpose = null)
+    {
+        try {
+            $otp_identifier = $this->otpService->getVerificationCodeIdentifier(
+                $phone ?? null,
+                $email ?? null,
+                $code
+            );
+
+            $verification_code = $this->otpService->verifyOTP(
+                $phone ?? null,
+                $email ?? null,
+                $code,
+                $otp_identifier
+            );
+
+            if ($verification_code->purpose !== $purpose) {
+                throw new InvalidArgumentException('Verification code does not match the purpose');
+            }
+
+            return (object)[
+                'status' => true,
+                'verification_code' => $verification_code
+            ];
+            // 
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage());
         }
     }
 }

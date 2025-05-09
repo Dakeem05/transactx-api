@@ -3,9 +3,12 @@
 namespace App\Services\User;
 
 use App\Events\User\Wallet\UserWalletCreated;
+use App\Models\Settings;
 use App\Models\User\Wallet;
 use App\Models\User\Wallet\WalletTransaction;
+use App\Services\VirtualBankAccountService;
 use Brick\Money\Money;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -162,7 +165,6 @@ class WalletService
 
 
 
-
     /**
      * Deposit money into the wallet.
      *
@@ -201,5 +203,23 @@ class WalletService
                 'amount_change' => $amount
             ]);
         });
+    }
+
+    public function destroy(Wallet $wallet)
+    {
+        $wallet = Wallet::find($wallet->id);
+
+        if (is_null($wallet)) {
+            return;
+        }
+
+        $virtualBankAccount = $wallet->virtualBankAccount;
+
+        if (!is_null($virtualBankAccount)) {
+            $virtualBankAccountService = resolve(VirtualBankAccountService::class);
+            $virtualBankAccountService->destroy($virtualBankAccount);
+        }
+
+        return $wallet->delete();
     }
 }

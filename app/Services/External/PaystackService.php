@@ -7,6 +7,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use App\Contracts\PaymentGateway;
+use App\Models\Settings;
 use App\Services\UserService;
 use Illuminate\Http\Client\Response;
 use InvalidArgumentException;
@@ -311,7 +312,7 @@ class PaystackService implements PaymentGateway
             $url = self::$baseUrl . '/customer/' . $customerCode . '/identification';
 
             $data = [
-                'country' => 'NG',
+                'country' => Settings::where('name', 'country')->first()->value,
                 'type' => 'bank_account',
                 // 'first_name' => $firstName,
                 // 'last_name' => $lastName,
@@ -385,6 +386,20 @@ class PaystackService implements PaymentGateway
             return $response;
         } catch (Exception $e) {
             Log::error('Error Encountered at Requery DVA method in Paystack Service: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    public function deleteDVA(string $dedicated_account_id): array
+    {
+        try {
+            $url = self::$baseUrl . '/dedicated_account/' . $dedicated_account_id;
+
+            $response = Http::talkToPaystack($url, 'DELETE');
+
+            return $response;
+        } catch (Exception $e) {
+            Log::error('Error Encountered at Delete DVA method in Paystack Service: ' . $e->getMessage());
             throw $e;
         }
     }

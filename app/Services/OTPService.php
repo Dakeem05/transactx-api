@@ -50,8 +50,15 @@ class OTPService
      * @param int $expiryMinutes
      * @return string
      */
-    public function generateAndSendOTP($phone = null, $email = null, $expiryMinutes = 10)
+    public function generateAndSendOTP($phone = null, $email = null, $expiryMinutes = 10, $purpose = 'verification')
     {
+        if (is_null($phone) && is_null($email)) {
+            throw new InvalidArgumentException("Either phone or email must be provided.");
+        }
+        if (is_null($email)) {
+            throw new InvalidArgumentException("An email address must be provided.");
+        }
+
         $code = rand(100000, 999999); // Generate a random 6-digit OTP
 
         $identifier = (string) Str::uuid();
@@ -65,6 +72,7 @@ class OTPService
             'phone' => $phone,
             'email' => $email,
             'code' => $code,
+            'purpose' => $purpose,
             'user_ip' => $user_ip,
             'expires_at' => now()->addMinutes($expiryMinutes),
         ]);
@@ -130,7 +138,7 @@ class OTPService
      * @param string $identifier
      * @return void
      */
-    public function verifyOTP($phone = null, $email = null, $code, $identifier)
+    public function verifyOTP($phone = null, $email = null, $code, $identifier): VerificationCode
     {
         $id = $this->getVerificationCodeIdentifier($phone, $email, $code);
 
@@ -138,7 +146,14 @@ class OTPService
             throw new InvalidArgumentException("Invalid verification code identifier.");
         }
 
-        VerificationCode::where('identifier', $identifier)
-            ->update(['expires_at' => now()]);
+        $verification_code = VerificationCode::where('identifier', $identifier)->first();
+
+        $verification_code->update(['expires_at' => now(), 'is_verified' => true]);
+
+        if (!$verification_code) {
+            throw new ModelNotFoundException("Verification code not found.");
+        }
+       
+        return $verification_code;
     }
 }

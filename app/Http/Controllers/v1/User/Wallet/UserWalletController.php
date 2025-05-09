@@ -4,6 +4,7 @@ namespace App\Http\Controllers\v1\User\Wallet;
 
 use App\Helpers\TransactX;
 use App\Http\Controllers\Controller;
+use App\Models\Settings;
 use App\Services\User\WalletService;
 use Exception;
 use Illuminate\Http\JsonResponse;
@@ -28,15 +29,12 @@ class UserWalletController extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = auth()->user();
-
+        
         $userId = $user->id;
 
         $wallet = $this->walletService->getUserWalletDeep($userId);
 
-        return TransactX::response([
-            'message' => 'Wallet retrieved successfully.',
-            'wallet' => $wallet
-        ], 200);
+        return TransactX::response(true, 'Wallet retrieved successfully', 200, $wallet);
     }
 
 
@@ -61,17 +59,14 @@ class UserWalletController extends Controller
 
             $wallet = $this->walletService->createWallet($userId);
 
-            return TransactX::response([
-                'message' => 'Wallet created successfully.',
-                'wallet' => $wallet
-            ], 201);
+            return TransactX::response(true, 'Wallet created successfully.', 201, $wallet);
             // 
         } catch (InvalidArgumentException $e) {
             Log::error('CREATE WALLET: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(['message' => $e->getMessage()], 400);
+            return TransactX::response(false,  $e->getMessage(), 400);
         } catch (Exception $e) {
             Log::error('CREATE WALLET: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(['message' => 'Failed to create wallet.'], 500);
+            return TransactX::response(false, 'Failed to create wallet.'.$e->getMessage(), 500);
         }
     }
 }

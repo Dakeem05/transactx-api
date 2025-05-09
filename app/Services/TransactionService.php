@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Events\User\Wallet\FundWalletSuccessful;
+use App\Models\Settings;
 use App\Models\User;
 use App\Models\Transaction;
 use App\Models\User\Wallet;

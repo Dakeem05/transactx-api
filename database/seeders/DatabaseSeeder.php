@@ -14,11 +14,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        \App\Models\Role::factory(3)->create();
+        // \App\Models\Role::factory(3)->create();
 
         $this->call([
-            ServicesSeeder::class,
-            ServiceProvidersSeeder::class
+            // ServicesSeeder::class,
+            // ServiceProvidersSeeder::class,
+            SettingsSeeder::class,
         ]);
     }
 }

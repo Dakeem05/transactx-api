@@ -1,17 +1,15 @@
 <?php
 
-namespace App\Http\Requests\User\Account;
+namespace App\Http\Requests\User\Otp;
 
 use App\Helpers\TransactX;
-use App\Rules\FullnameRule;
-use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rules\Password;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
-class CreateSubAccountRequest extends FormRequest
+class VerifyAppliedVerificationCodeRequest extends FormRequest
 {
 
     private string $request_uuid;
@@ -25,18 +23,16 @@ class CreateSubAccountRequest extends FormRequest
     }
 
 
-    /**
-     * @return void
-     */
     public function prepareForValidation(): void
     {
         $this->request_uuid = Str::uuid()->toString();
 
         Log::channel('daily')->info(
-            'CREATE SUB ACCOUNT: START',
+            'VERIFY VERIFICATION CODE: START',
             ["uid" => $this->request_uuid, "request" => $this->all()]
         );
     }
+
 
     /**
      * Get the validation rules that apply to the request.
@@ -46,30 +42,8 @@ class CreateSubAccountRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['bail', 'required', 'string', new FullnameRule()],
-            'username' => ['bail', 'required', 'string', 'unique:users,username'],
-            'password' => [
-                'bail',
-                'required',
-                Password::min(8)->numbers()->symbols()->letters()->mixedCase(),
-            ],
+            'verification_code' => 'required|string'
         ];
-    }
-
-
-    /**
-     * @param $key
-     * @param $default
-     *
-     * @return array
-     */
-    public function validated($key = null, $default = null): array
-    {
-        $data = parent::validated($key, $default);
-
-        return array_merge($data, [
-            'request_uuid' => $this->request_uuid,
-        ]);
     }
 
     /**
@@ -80,7 +54,7 @@ class CreateSubAccountRequest extends FormRequest
     public function failedValidation(Validator $validator): void
     {
         Log::channel('daily')->info(
-            'CREATE SUB ACCOUNT: VALIDATION',
+            'VERIFY VERIFICATION CODE: VALIDATION',
             ["uid" => $this->request_uuid, "response" => ['errors' => $validator->errors()]]
         );
 

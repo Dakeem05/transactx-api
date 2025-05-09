@@ -19,6 +19,9 @@ class VirtualBankAccount extends Model
         'bank_name',
         'bank_code',
         'provider',
+        'country',
+        'account_reference',
+        'barter_id',
     ];
 
     public function wallet()

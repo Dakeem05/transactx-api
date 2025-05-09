@@ -1,17 +1,18 @@
 <?php
 
-namespace App\Http\Requests\User\Account;
+namespace App\Http\Requests\User;
 
 use App\Helpers\TransactX;
-use App\Rules\FullnameRule;
+use App\Rules\ValidReferralCodeRule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 
-class CreateSubAccountRequest extends FormRequest
+class ResetPasswordRequest extends FormRequest
 {
 
     private string $request_uuid;
@@ -33,8 +34,8 @@ class CreateSubAccountRequest extends FormRequest
         $this->request_uuid = Str::uuid()->toString();
 
         Log::channel('daily')->info(
-            'CREATE SUB ACCOUNT: START',
-            ["uid" => $this->request_uuid, "request" => $this->all()]
+            'RESET PASSWORD: START',
+            ["uid" => $this->request_uuid, "request" => $this->except(['password', 'password_confirmation'])]
         );
     }
 
@@ -46,11 +47,11 @@ class CreateSubAccountRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['bail', 'required', 'string', new FullnameRule()],
-            'username' => ['bail', 'required', 'string', 'unique:users,username'],
+            'email' => ['bail', 'required', 'email'],
             'password' => [
                 'bail',
                 'required',
+                'confirmed',
                 Password::min(8)->numbers()->symbols()->letters()->mixedCase(),
             ],
         ];
@@ -69,6 +70,7 @@ class CreateSubAccountRequest extends FormRequest
 
         return array_merge($data, [
             'request_uuid' => $this->request_uuid,
+            'password' => Hash::make($data['password']),
         ]);
     }
 
@@ -80,7 +82,7 @@ class CreateSubAccountRequest extends FormRequest
     public function failedValidation(Validator $validator): void
     {
         Log::channel('daily')->info(
-            'CREATE SUB ACCOUNT: VALIDATION',
+            'RESET PASSWORD: VALIDATION',
             ["uid" => $this->request_uuid, "response" => ['errors' => $validator->errors()]]
         );
 

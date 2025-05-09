@@ -10,8 +10,10 @@ use App\Http\Controllers\v1\User\Account\SubAccount\SubAccountController;
 use App\Http\Controllers\v1\User\Account\UserAccountController;
 use App\Http\Controllers\v1\User\Auth\UserLoginController;
 use App\Http\Controllers\v1\User\Auth\UserRegisterController;
+use App\Http\Controllers\v1\User\Auth\UserResetPasswordController;
 use App\Http\Controllers\v1\User\Auth\ValidateUserEmailController;
 use App\Http\Controllers\v1\User\Otp\UserOtpController;
+use App\Http\Controllers\v1\User\Transaction\TransactionPinController;
 use App\Http\Controllers\v1\User\UserSubscriptionModelController;
 use App\Http\Controllers\v1\User\Wallet\UserWalletController;
 use App\Http\Controllers\v1\Utilities\PaymentController;
@@ -32,6 +34,7 @@ Route::middleware('checkApplicationCredentials')->prefix('auth')->group(function
 
     Route::middleware('throttle:otp')->post('/send-code', [UserOtpController::class, 'send'])->name('auth.send.otp');
     Route::middleware('throttle:otp')->post('/verify-code', [UserOtpController::class, 'verify'])->name('auth.verify.otp');
+    Route::middleware('throttle:login')->post('/reset-password', UserResetPasswordController::class)->name('auth.reset.password');
 });
 
 
@@ -43,29 +46,40 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
     
     Route::prefix('account')->group(function () {
         Route::get('/', [UserAccountController::class, 'show'])->name('user.show.account');
-        Route::put('/update', [UserAccountController::class, 'update'])->name('user.update.account');
-        Route::post('bvn/verification', [UserAccountController::class, 'verifyBVN'])->name('user.validate.bvn');
+        Route::middleware('user.is.main.account')->put('/update', [UserAccountController::class, 'update'])->name('user.update.account');
+        Route::middleware('user.is.main.account')->post('bvn/verification', [UserAccountController::class, 'verifyBVN'])->name('user.validate.bvn');
+        Route::middleware('user.is.main.account')->delete('/', [UserAccountController::class, 'destroy'])->name('user.delete.account');
+        Route::middleware('user.is.main.account')->post('/delete-account', [UserAccountController::class, 'verifyOtpAndDeleteAccount'])->name('user.verify.otp.and.delete.account');
     });
     
-
-    
-    Route::prefix('sub-account')->group(function () {
-        Route::post('/', CreateSubAccountController::class)->name('user.create.sub-account');
-        Route::get('/', [SubAccountController::class, 'show'])->name('user.sub-accounts');
-        // Route::put('/{id}', [UserAccountController::class, 'updateSubAccount'])->name('user.update.sub-account');
-        // Route::delete('/{id}', [UserAccountController::class, 'deleteSubAccount'])->name('user.delete.sub-account');
+    Route::middleware('user.is.main.account')->prefix('security')->group(function () {
+        Route::prefix('transaction-pin')->group(function () {
+            Route::post('/set', [TransactionPinController::class, 'setTransactionPin'])->name('user.set.transaction.pin');
+            Route::get('/change', [TransactionPinController::class, 'changeTransactionPin'])->name('user.change.transaction.pin');
+            Route::post('/verify-otp', [TransactionPinController::class, 'verifyTransactionPinOtp'])->name('user.verify.otp.transaction.pin');
+            Route::get('/resend-otp', [TransactionPinController::class, 'resendTransactionPinOtp'])->name('user.resend.otp.transaction.pin');
+            Route::post('/update', [TransactionPinController::class, 'updateTransactionPin'])->name('user.update.transaction.pin');
+            Route::post('/verify', [TransactionPinController::class, 'verifyTransactionPin'])->name('user.verify.transaction.pin');
+        });
+        Route::post('/change-password', [UserAccountController::class, 'changePassword'])->name('user.change.password');
     });
     /* -------------------------- Verified User Routes ------------------------- */
-    Route::middleware('user.is.verified')->group(function () {
+    Route::middleware('user.is.verified')->group(function () {   
+        Route::middleware('user.is.main.account')->prefix('sub-account')->group(function () {
+            Route::post('/', CreateSubAccountController::class)->name('user.create.sub-account');
+            Route::get('/', [SubAccountController::class, 'show'])->name('user.sub-accounts');
+            Route::put('/{id}', [SubAccountController::class, 'update'])->name('user.update.sub-account');
+            Route::delete('/{id}', [SubAccountController::class, 'destroy'])->name('user.delete.sub-account');
+        });
 
+        Route::prefix('wallet')->group(function () {
+            Route::get('/', [UserWalletController::class, 'index'])->name('user.get.wallet');
+            Route::middleware('user.is.main.account')->post('/', [UserWalletController::class, 'store'])->name('user.create.wallet');
+        });
+        
         Route::prefix('subscription-model')->group(function () {
             Route::get('/', [UserSubscriptionModelController::class, 'index'])->name('user.list.sub-model');
             Route::get('/{id}', [UserSubscriptionModelController::class, 'show'])->name('user.show.sub-model');
-        });
-        
-        Route::prefix('wallet')->group(function () {
-            Route::post('/', [UserWalletController::class, 'store'])->name('user.create.wallet');
-            Route::get('/', [UserWalletController::class, 'index'])->name('user.get.wallet');
         });
 
         Route::prefix('payment')->group(function () {

@@ -78,6 +78,8 @@ class UserService
             'customer_code' => $attributes['customer_code'] ?? $user->customer_code,
             'bvn_status' => $attributes['bvn_status'] ?? $user->bvn_status,
             'kyc_status' => $attributes['kyc_status'] ?? $user->kyc_status,
+            'transaction_pin' => $attributes['transaction_pin'] ?? $user->transaction_pin,
+            'password' => $attributes['password'] ?? $user->password,
         ]);
 
         $user->refresh();
@@ -120,4 +122,37 @@ class UserService
         return User::where('main_account_id', $user->id)->get();
     }
 
+    /**
+     * Update sub account
+     * 
+     * @param User|Authenticatable $user
+     * @param array $attributes
+     * @return User
+     */
+    public function updateSubAccount($user, $attributes)
+    {
+        $user->update([
+            'name' => $attributes['name'] ?? $user->name,
+            'username' => $attributes['username'] ?? $user->username,
+            'password' => $attributes['password'] ?? $user->password,
+        ]);
+
+        $user->refresh();
+
+        // event(new UserAccountUpdated($user));
+
+        return $user;
+    }
+
+    /**
+     * delete sub account
+     * 
+     * @param User|Authenticatable $user
+     * @param array $attributes
+     * @return bool
+     */
+    public function deleteSubAccount($user)
+    {
+        return $user->delete();
+    }
 }

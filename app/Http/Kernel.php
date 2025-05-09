@@ -68,5 +68,6 @@ class Kernel extends HttpKernel
         'isRolePermitted' => \App\Http\Middleware\IsRolePermitted::class,
         'user.is.active' => \App\Http\Middleware\UserIsActive::class,
         'user.is.verified' => \App\Http\Middleware\UserIsVerified::class,
+        'user.is.main.account' => \App\Http\Middleware\UserIsMainAccount::class,
     ];
 }

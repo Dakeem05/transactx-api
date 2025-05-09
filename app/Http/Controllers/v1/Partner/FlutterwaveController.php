@@ -6,6 +6,7 @@ use App\Enums\PartnersEnum;
 use App\Events\User\Wallet\WalletTransactionReceived;
 use App\Helpers\TransactX;
 use App\Http\Controllers\Controller;
+use App\Models\Settings;
 use App\Services\External\FlutterwaveService;
 use App\Services\UserService;
 use App\Services\WebhookService;
@@ -113,7 +114,7 @@ class FlutterwaveController extends Controller
                 $external_transaction_reference = $payload['data']['reference'];
                 $account_number = $payload['data']['metadata']['receiver_account_number'];
                 $amount = floor($payload['data']['amount'] / 100);
-                $currency = 'NGN';
+                $currency = Settings::where('name', 'currency')->first()->value;
                 event(new WalletTransactionReceived($account_number, $amount, $currency, $external_transaction_reference));
                 return;
             }

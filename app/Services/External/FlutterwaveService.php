@@ -7,6 +7,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use App\Contracts\PaymentGateway;
+use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Http\Client\Response;
 
@@ -79,7 +80,7 @@ class FlutterwaveService
             ];
 
             $response = Http::talkToFlutterwave($url, 'POST', $data);
-            // dd($response);
+            
             if ($response['status'] !== 'success') {
                 throw new Exception('Error verifying BVN: ' . $response['message']);
             }
@@ -95,8 +96,7 @@ class FlutterwaveService
             $verification_url = self::$baseUrl . '/bvn/verifications/' . $reference;
             
             $verification_response = Http::talkToFlutterwave($verification_url, 'GET');
-            
-            // dd($verification_response);
+
             if ($verification_response['status'] !== 'success') {
                 throw new Exception('Error verifying BVN: ' . $verification_response['message']);
             }
@@ -124,6 +124,51 @@ class FlutterwaveService
             return 'BVN verified successfully';
         } catch (Exception $e) {
             Log::error('Error Encountered at Verify BVN method in Flutterwave Service: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * Create a Payout SubAccount using the Paystack API.
+     *
+     * @param User $user
+     * @param string $country
+     * @return array
+     * @throws Exception
+     */
+    public function createPSA(User $user, string $country): array
+    {
+        try {
+
+            $url = self::$baseUrl . '/payout-subaccounts';
+
+            $data = [
+                'account_name' => $user->name,
+                'email' => $user->email,
+                'mobilenumber' => $user->phone_number,
+                'country' => $country,
+            ];
+
+            $response = Http::talkToFlutterwave($url, 'POST', $data);
+
+            return $response;
+        } catch (Exception $e) {
+            Log::error('Error Encountered at Create PSA method in Flutterwave Service: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    public function deletePSA(string $account_reference): array
+    {
+        try {
+
+            $url = self::$baseUrl . '/payout-subaccounts/' . $account_reference;
+
+            $response = Http::talkToFlutterwave($url, 'DELETE');
+
+            return $response;
+        } catch (Exception $e) {
+            Log::error('Error Encountered at delete PSA method in Flutterwave Service: ' . $e->getMessage());
             throw $e;
         }
     }

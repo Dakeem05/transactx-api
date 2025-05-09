@@ -3,6 +3,7 @@
 namespace App\Services\Business;
 
 use App\Models\Business\SubscriptionModel;
+use App\Models\Settings;
 use Brick\Money\Money;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -41,7 +42,7 @@ class SubscriptionModelService
      */
     public function createModel(string $name, array $features, bool $hasDiscount, int $discount, float $amount)
     {
-        $full_amount = Money::of($amount, 'NGN');
+        $full_amount = Money::of($amount, Settings::where('name', 'currency')->first()->value);
         $discount_amount = 0;
         $new_amount = $full_amount;
 

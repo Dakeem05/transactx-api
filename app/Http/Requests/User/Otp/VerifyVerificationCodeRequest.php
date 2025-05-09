@@ -43,7 +43,7 @@ class VerifyVerificationCodeRequest extends FormRequest
     {
         return [
             'verification_code' => 'required|string',
-            'email' => 'nullable|required_without:phone|email',
+            'email' => 'nullable|required_without:phone|email|exists:users,email',
             'phone' => 'nullable|required_without:email|phone',
         ];
     }

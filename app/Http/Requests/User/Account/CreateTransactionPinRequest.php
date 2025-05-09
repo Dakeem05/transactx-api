@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 
-class CreateSubAccountRequest extends FormRequest
+class CreateTransactionPinRequest extends FormRequest
 {
 
     private string $request_uuid;
@@ -33,7 +33,7 @@ class CreateSubAccountRequest extends FormRequest
         $this->request_uuid = Str::uuid()->toString();
 
         Log::channel('daily')->info(
-            'CREATE SUB ACCOUNT: START',
+            'CREATE TRANSACTION PIN: START',
             ["uid" => $this->request_uuid, "request" => $this->all()]
         );
     }
@@ -46,12 +46,10 @@ class CreateSubAccountRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['bail', 'required', 'string', new FullnameRule()],
-            'username' => ['bail', 'required', 'string', 'unique:users,username'],
-            'password' => [
+            'pin' => [
                 'bail',
                 'required',
-                Password::min(8)->numbers()->symbols()->letters()->mixedCase(),
+                'digits:4',
             ],
         ];
     }
@@ -80,7 +78,7 @@ class CreateSubAccountRequest extends FormRequest
     public function failedValidation(Validator $validator): void
     {
         Log::channel('daily')->info(
-            'CREATE SUB ACCOUNT: VALIDATION',
+            'CREATE TRANSACTION PIN: VALIDATION',
             ["uid" => $this->request_uuid, "response" => ['errors' => $validator->errors()]]
         );
 
