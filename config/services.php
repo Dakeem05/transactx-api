@@ -45,6 +45,7 @@ return [
     ],
     'flutterwave' => [
         'base_url' => env('FLUTTERWAVE_BASE_URL', 'https://api.flutterwave.com/v3'),
+        'webhook_hash' => env('FLUTTERWAVE_WEBHOOK_HASH')
     ],
 
 ];

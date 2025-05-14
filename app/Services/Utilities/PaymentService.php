@@ -77,6 +77,26 @@ class PaymentService
         }
     }
 
+    public function resolveAccount(string $account_number, string $bank_code)
+    {
+        $provider = $this->getPaymentServiceProvider();
+        
+        if ($provider->name === 'flutterwave') {
+            if (!$this->flutterwaveService) {
+                throw new Exception('Flutterwave service not found');
+            }
+
+            return $this->flutterwaveService->resolveAccount($account_number, $bank_code);
+        }
+        if ($provider->name === 'paystack') {
+            if (!$this->paystackService) {
+                throw new Exception('Paystack service not found');
+            }
+
+            return $this->paystackService->resolveAccount($account_number, $bank_code);
+        }
+    }
+
     public function verifyBVN (object $verification_data)
     {
         $provider = $this->getPaymentServiceProvider();
@@ -96,4 +116,26 @@ class PaymentService
             return $this->paystackService->verifyBVN($verification_data);
         }
     }
+
+    public function transfer (array $transfer_data)
+    {
+        $provider = $this->getPaymentServiceProvider();
+
+        if ($provider->name === 'flutterwave') {
+            if (!$this->flutterwaveService) {
+                throw new Exception('Flutterwave service not found');
+            }
+
+            return $this->flutterwaveService->transfer($transfer_data);
+        }
+        if ($provider->name === 'paystack') {
+            if (!$this->paystackService) {
+                throw new Exception('Paystack service not found');
+            }
+
+            // return $this->paystackService->transfer($transfer_data);
+        }
+    }
+
+
 }

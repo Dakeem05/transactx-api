@@ -80,6 +80,7 @@ class UserService
             'kyc_status' => $attributes['kyc_status'] ?? $user->kyc_status,
             'transaction_pin' => $attributes['transaction_pin'] ?? $user->transaction_pin,
             'password' => $attributes['password'] ?? $user->password,
+            'avatar' => $attributes['avatar'] ?? $user->avatar,
         ]);
 
         $user->refresh();

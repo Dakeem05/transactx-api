@@ -27,6 +27,7 @@ class FlutterwaveService
      * @var string
      */
     private static $baseUrl;
+    private static $callbackUrl;
 
     /**
      * FlutterwaveService constructor.
@@ -36,6 +37,7 @@ class FlutterwaveService
     public function __construct(string $baseUrl)
     {
         self::$baseUrl = $baseUrl;
+        self::$callbackUrl = env('APP_URL') . '/api/v1/webhooks/flutterwave';
     }
 
     /**
@@ -66,6 +68,26 @@ class FlutterwaveService
         }
     }
 
+    public function resolveAccount(string $account_number, string $account_bank): array
+    {
+        try {
+
+            $url = self::$baseUrl . '/accounts/resolve';
+
+            $data = [
+                'account_number' => $account_number,
+                'account_bank' => $account_bank,
+            ];
+
+            $response = Http::talkToFlutterwave($url, 'POST', $data);
+
+            return $response;
+        } catch (Exception $e) {
+            Log::error('Error Encountered at Resolve Account method in Flutterwave Service: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
     public function verifyBVN (object $verification_data)
     {
         try {
@@ -76,7 +98,7 @@ class FlutterwaveService
                 'bvn' => $verification_data->bvn,
                 'firstname' => $verification_data->user->first_name,
                 'lastname' => $verification_data->user->last_name,
-                'callback_url' => config('app.url') . '/api/v1/webhooks/flutterwave',
+                'callback_url' => self::$callbackUrl,
             ];
 
             $response = Http::talkToFlutterwave($url, 'POST', $data);
@@ -114,7 +136,7 @@ class FlutterwaveService
             if ($response_data['nin'] !== $verification_data->nin) {
                 throw new Exception('Error verifying BVN: NIN mismatch');
             }
-
+            
             $userService = resolve(UserService::class);
             $userService->updateUserAccount($verification_data->user, [
                 'bvn_status' => 'SUCCESSFUL',
@@ -154,6 +176,48 @@ class FlutterwaveService
             return $response;
         } catch (Exception $e) {
             Log::error('Error Encountered at Create PSA method in Flutterwave Service: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+    
+    public function transfer(array $data): array
+    {
+        try {
+
+            $url = self::$baseUrl . '/transfers';
+
+            $data = [
+                'account_bank' => $data['bank_code'],
+                'account_number' => $data['account_number'],
+                'amount' => $data['amount'],
+                'currency' => $data['currency'],
+                'debit_subaccount' => $data['account_reference'],
+                'reference' => $data['reference'],
+                'debit_currency' => $data['currency'],
+                'narration' => $data['narration'],
+                'callback_url' => self::$callbackUrl
+            ];
+
+            $response = Http::talkToFlutterwave($url, 'POST', $data);
+
+            return $response;
+        } catch (Exception $e) {
+            Log::error('Error Encountered at transfer method in Flutterwave Service: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    public function getPSA(string $account_reference, string $currency): array
+    {
+        try {
+
+            $url = self::$baseUrl . '/payout-subaccounts/' . $account_reference . '/balances?currency=' . $currency;
+
+            $response = Http::talkToFlutterwave($url);
+
+            return $response;
+        } catch (Exception $e) {
+            Log::error('Error Encountered at getting PSA method in Flutterwave Service: ' . $e->getMessage());
             throw $e;
         }
     }

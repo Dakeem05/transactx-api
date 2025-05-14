@@ -14,6 +14,7 @@ use App\Http\Controllers\v1\User\Auth\UserResetPasswordController;
 use App\Http\Controllers\v1\User\Auth\ValidateUserEmailController;
 use App\Http\Controllers\v1\User\Otp\UserOtpController;
 use App\Http\Controllers\v1\User\Transaction\TransactionPinController;
+use App\Http\Controllers\v1\User\Transaction\TransactionsController;
 use App\Http\Controllers\v1\User\UserSubscriptionModelController;
 use App\Http\Controllers\v1\User\Wallet\UserWalletController;
 use App\Http\Controllers\v1\Utilities\PaymentController;
@@ -47,6 +48,7 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
     Route::prefix('account')->group(function () {
         Route::get('/', [UserAccountController::class, 'show'])->name('user.show.account');
         Route::middleware('user.is.main.account')->put('/update', [UserAccountController::class, 'update'])->name('user.update.account');
+        Route::middleware('user.is.main.account')->post('/update-avatar', [UserAccountController::class, 'updateAvatar'])->name('user.update.avatar');
         Route::middleware('user.is.main.account')->post('bvn/verification', [UserAccountController::class, 'verifyBVN'])->name('user.validate.bvn');
         Route::middleware('user.is.main.account')->delete('/', [UserAccountController::class, 'destroy'])->name('user.delete.account');
         Route::middleware('user.is.main.account')->post('/delete-account', [UserAccountController::class, 'verifyOtpAndDeleteAccount'])->name('user.verify.otp.and.delete.account');
@@ -82,11 +84,17 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
             Route::get('/{id}', [UserSubscriptionModelController::class, 'show'])->name('user.show.sub-model');
         });
 
-        Route::prefix('payment')->group(function () {
-            Route::get('/banks', [PaymentController::class, 'getBanks'])->name('user.payment.list.banks');
-            Route::post('/resolve-account', [PaymentController::class, 'resolveAccount'])->name('user.payment.resolve.account');
+        
+        Route::prefix(('transactions'))->group(function () {
+            Route::get('/query-users', [TransactionsController::class, 'queryUsers'])->name('user.transactions.query.username');
+            Route::post('/send-money-to-username', [TransactionsController::class, 'sendMoneyToUsername'])->name('user.transactions.send.money.to.username');
+            Route::post('/send-money-to-email', [TransactionsController::class, 'sendMoneyToEmail'])->name('user.transactions.send.money.to.email');
+            Route::prefix('payment')->group(function () {
+                Route::get('/banks', [PaymentController::class, 'getBanks'])->name('user.transactions.payment.list.banks');
+                Route::post('/resolve-account', [PaymentController::class, 'resolveAccount'])->name('user.transactions.payment.resolve.account');
+                Route::post('/send-money', [TransactionsController::class, 'sendMoney'])->name('user.transactions.payment.send.money');
+            });
         });
-
     });
 });
 

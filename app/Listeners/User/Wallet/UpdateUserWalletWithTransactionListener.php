@@ -3,6 +3,7 @@
 namespace App\Listeners\User\Wallet;
 
 use App\Events\User\Wallet\WalletTransactionReceived;
+use App\Models\Transaction;
 use App\Models\User\Wallet;
 use App\Services\TransactionService;
 use App\Services\User\WalletService;
@@ -36,7 +37,7 @@ class UpdateUserWalletWithTransactionListener implements ShouldQueue
         try {
             DB::beginTransaction();
 
-            $wallet = Wallet::whereHas('virtualBankAccounts', function ($query) use ($account_number, $currency) {
+            $wallet = Wallet::whereHas('virtualBankAccount', function ($query) use ($account_number, $currency) {
                 $query->where([
                     ['account_number', $account_number],
                     ['currency', $currency],

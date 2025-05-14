@@ -10,6 +10,8 @@ use Exception;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Str;
+
 
 class Transaction extends Model
 {
@@ -23,6 +25,8 @@ class Transaction extends Model
         'description',
         'amount',
         'currency',
+        'narration',
+        'payload',
         'reference',
         'external_transaction_reference',
         'status',
@@ -30,7 +34,8 @@ class Transaction extends Model
     ];
 
     protected $casts = [
-        'amount' => TXAmountCast::class
+        'amount' => TXAmountCast::class,
+        'payload' => 'json',
     ];
 
     protected $hidden = [
@@ -46,6 +51,13 @@ class Transaction extends Model
     {
         parent::boot();
 
+        // Generate UUID when creating
+        static::creating(function ($transaction) {
+            if (empty($transaction->{$transaction->getKeyName()})) {
+                $transaction->{$transaction->getKeyName()} = Str::uuid()->toString();
+            }
+        });
+    
         static::updating(function ($transaction) {
             if ($transaction->isDirty('wallet_transaction_id')) {
                 $originalWalletTransactionId = $transaction->getOriginal('wallet_transaction_id');

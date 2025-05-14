@@ -179,6 +179,48 @@ class VirtualBankAccountService
         ]);
     }
 
+    public function getAccount(VirtualBankAccount $virtualBankAccount, $currency)
+    {
+        $virtualBankAccount = VirtualBankAccount::find($virtualBankAccount->id);
+
+        if (is_null($virtualBankAccount)) {
+            return;
+        }
+
+        $paymentService = resolve(PaymentService::class);
+        $provider = $paymentService->getPaymentServiceProvider();
+        
+        if (!$provider instanceof PaymentProviderDto) {
+            $provider = new PaymentProviderDto(
+                name: $provider->name ?? null,
+                description: $provider->description ?? null,
+                status: $provider->status ?? false
+            );
+        }
+
+        $provider = $provider->name;
+
+        if ($provider == 'paystack') {
+            // $this->getVirtualBankAccountViaPaystack($virtualBankAccount->account_reference, $currency);
+            throw new Exception("Getting of paystack balance not integrated.");
+        } else if ($provider == 'flutterwave') {
+            return $this->getVirtualBankAccountViaFlutterwave($virtualBankAccount->account_reference, $currency);
+        }
+    }
+
+    private function getVirtualBankAccountViaFlutterwave(string $account_reference, string $currency)
+    {
+        $flutterwaveService = resolve(FlutterwaveService::class);
+
+        $response = $flutterwaveService->getPSA($account_reference, $currency);
+        if (isset($response['status']) && $response['status'] != 'success') {
+            Log::error('getVirtualBankAccountViaFlutterwave: Failed to get PSA. Reason: ' . $response['message']);
+            return;
+        }
+
+        return $response['data'];
+    }
+
     public function destroy(VirtualBankAccount $virtualBankAccount)
     {
         $virtualBankAccount = VirtualBankAccount::find($virtualBankAccount->id);

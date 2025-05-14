@@ -10,6 +10,7 @@ use App\Services\VirtualBankAccountService;
 use Brick\Money\Money;
 use Exception;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
 
 class WalletService
@@ -51,9 +52,20 @@ class WalletService
      */
     public function getUserWalletDeep($userId, $currency = 'NGN'): ?Wallet
     {
-        return Wallet::with('virtualBankAccount')->whereUserId($userId)
+        $wallet = Wallet::with('virtualBankAccount')->whereUserId($userId)
             ->whereCurrency($currency)
             ->first();
+
+        if (!is_null($wallet)) {
+            $virtualBankAccountService = resolve(VirtualBankAccountService::class);
+            $data = $virtualBankAccountService->getAccount($wallet->virtualBankAccount, $currency);
+
+            $wallet->ledger_balance->plus(Money::of($data['ledger_balance'], $wallet->currency));
+            $wallet->amount->plus(Money::of($data['available_balance'], $wallet->currency));
+            $wallet->refresh();
+        }
+
+        return $wallet;
     }
 
 
@@ -66,16 +78,25 @@ class WalletService
      */
     public function createWallet($userId, $currency = 'NGN'): Wallet
     {
+        try {
+            DB::beginTransaction();
 
-        $wallet = Wallet::create([
-            'user_id' => $userId,
-            'currency' => $currency,
-            'amount' => 0,
-        ]);
+            $wallet = Wallet::create([
+                'user_id' => $userId,
+                'currency' => $currency,
+                'amount' => 0,
+            ]);
+    
+            event(new UserWalletCreated($wallet));
 
-        event(new UserWalletCreated($wallet));
+            DB::commit();
+            return $wallet;
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error('CREATE WALLET: Error Encountered: ' . $e->getMessage());
+            throw new Exception('An error occurred while creating wallet.');
+        }
 
-        return $wallet;
     }
 
 
@@ -116,6 +137,20 @@ class WalletService
         ]);
 
         return $wallet->refresh();
+    }
+
+    public function checkBalance (Wallet $wallet, int $amount): bool
+    {
+        $amount = Money::of($amount, $wallet->currency);
+        $starting_balance = $wallet->amount;
+        $ending_balance = $starting_balance->minus($amount);
+
+        if ($ending_balance->isGreaterThanOrEqualTo(Money::of(0, $wallet->currency)))
+        {
+            return true;
+        }
+
+        return false;
     }
 
 
@@ -164,7 +199,6 @@ class WalletService
     }
 
 
-
     /**
      * Deposit money into the wallet.
      *
@@ -192,6 +226,40 @@ class WalletService
 
             $previous_amount = $wallet->amount;
             $wallet->amount = $wallet->amount->plus($amount);
+            $wallet->save();
+
+            WalletTransaction::create([
+                'wallet_id' => $wallet->id,
+                'currency' => $wallet->currency,
+                'type' => $type,
+                'previous_balance' => $previous_amount,
+                'new_balance' => $wallet->amount,
+                'amount_change' => $amount
+            ]);
+        });
+    }
+
+    
+    public function debit(Wallet $wallet, $amount)
+    {
+        DB::transaction(function () use ($wallet, $amount) {
+
+            $type = 'DEBIT';
+
+            $amount = Money::of($amount, $wallet->currency);
+            
+            $wallet = Wallet::where('id', $wallet->id)->lockForUpdate()->first();
+
+            if (!$wallet) {
+                throw new \Exception("Wallet not found. id: $wallet->id");
+            }
+
+            if ($wallet->amount->getCurrency() !== $amount->getCurrency()) {
+                throw new \Exception("deposit(): The currencies do not match. Wallet currency: {$wallet->amount->getCurrency()}, incoming amount currency: {$amount->getCurrency()}. User ID: {$wallet->user_id}, wallet->currency: {$wallet->currency}");
+            }
+
+            $previous_amount = $wallet->amount;
+            $wallet->amount = $wallet->amount->minus($amount);
             $wallet->save();
 
             WalletTransaction::create([

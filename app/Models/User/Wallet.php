@@ -15,10 +15,11 @@ class Wallet extends Model
 {
     use HasFactory, UUID;
 
-    protected $fillable = ['user_id', 'currency', 'amount', 'is_active'];
+    protected $fillable = ['user_id', 'currency', 'amount', 'ledger_balance',  'is_active'];
 
     protected $casts = [
         'amount' => TXAmountCast::class,
+        'ledger_balance' => TXAmountCast::class,
         'is_active' => 'boolean',
     ];
 

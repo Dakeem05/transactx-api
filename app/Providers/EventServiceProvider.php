@@ -3,6 +3,9 @@
 namespace App\Providers;
 
 use App\Events\User\SubAccountLoggedInEvent;
+use App\Events\User\Transactions\TransferFailed;
+use App\Events\User\Transactions\TransferMoney;
+use App\Events\User\Transactions\TransferSuccessful;
 use App\Events\User\UserAccountUpdated;
 use App\Events\User\UserCreatedEvent;
 use App\Events\User\UserLoggedInEvent;
@@ -16,6 +19,9 @@ use App\Listeners\User\CreateUserAsCustomerOnPaystack;
 use App\Listeners\User\SendSubAccountLoginNotificationListener;
 use App\Listeners\User\SendUserLoginNotificationListener;
 use App\Listeners\User\SendWelcomeOnboardNotificationListener;
+use App\Listeners\User\Transactions\TransferFailedListener;
+use App\Listeners\User\Transactions\TransferMoneyListener;
+use App\Listeners\User\Transactions\TransferSuccessfulListener;
 use App\Listeners\User\VirtualBankAccount\CreateVirtualBankAccountListener;
 use App\Listeners\User\Wallet\SendWalletCreatedNotificationListener;
 use App\Listeners\User\Wallet\SendWalletFundingSuccessfulNotificationListener;
@@ -61,6 +67,15 @@ class EventServiceProvider extends ServiceProvider
         ],
         FundWalletSuccessful::class => [
             SendWalletFundingSuccessfulNotificationListener::class
+        ],
+        TransferMoney::class => [
+            TransferMoneyListener::class
+        ],
+        TransferSuccessful::class => [
+            TransferSuccessfulListener::class
+        ],
+        TransferFailed::class => [
+            TransferFailedListener::class
         ]
     ];
 

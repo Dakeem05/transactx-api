@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\User\Transactions\TransferMoney;
 use App\Events\User\Wallet\FundWalletSuccessful;
 use App\Models\Settings;
 use App\Models\User;
@@ -9,10 +10,158 @@ use App\Models\Transaction;
 use App\Models\User\Wallet;
 use Illuminate\Support\Str;
 use App\Models\User\Wallet\WalletTransaction;
+use App\Models\VirtualBankAccount;
+use App\Services\User\WalletService;
+use App\Services\Utilities\PaymentService;
+use Brick\Money\Money;
+use Exception;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class TransactionService
 {
+    public function queryUsers(string $username, string $id) 
+    {
+        // Get users matching the username search
+        $users = User::where('username', 'LIKE', '%' . $username . '%')->where('id', '!=', $id)->get();
+    
+        // Modify each user's data (e.g., hide sensitive fields or add computed fields)
+        $modifiedUsers = $users->map(function ($user) {
+            return [
+                'username' => $user->username,
+                'email' => $user->email,
+                'avatar' => $user->avatar,
+                'account_number' => isset($user->wallet) ? $user->wallet->virtualBankAccount->account_number : null,
+                'bank_name' => isset($user->wallet) ? $user->wallet->virtualBankAccount->bank_name : null,
+                'account_name' => isset($user->wallet) ? $user->wallet->virtualBankAccount->account_name : null,
+            ];
+        });
+    
+        return $modifiedUsers;
+    }
 
+    public function sendMoneyToUsername(array $data, User $user, string $ip_address) 
+    {
+        $recipient = User::where('username', $data['username'])->first();
+
+        $this->verifyTransaction($data, $user);
+
+        if (is_null($recipient)) {
+            throw new Exception('Recipient not found');
+        }
+        if (!$recipient->kycVerified()) {
+            throw new Exception('Recipient account not verifed');
+        }
+        if (is_null($recipient->wallet)) {
+            throw new Exception('Recipient does not have a wallet');
+        }
+        if (is_null($recipient->wallet->virtualBankAccount)) {
+            throw new Exception('Recipient does not have a virtual bank account');
+        }
+        
+        return $this->transfer($user->wallet->virtualBankAccount, $data['amount'], $recipient->wallet->virtualBankAccount->account_number, $recipient->wallet->virtualBankAccount->bank_code, $data['narration'] ?? null, $ip_address ?? null);
+    }
+
+    public function sendMoneyToEmail(array $data, User $user, string $ip_address) 
+    {
+        $recipient = User::where('email', $data['email'])->first();
+
+        $this->verifyTransaction($data, $user);
+
+        if (is_null($recipient)) {
+            throw new Exception('Recipient not found');
+        }
+        if (!$recipient->kycVerified()) {
+            throw new Exception('Recipient account not verifed');
+        }
+        if (is_null($recipient->wallet)) {
+            throw new Exception('Recipient does not have a wallet');
+        }
+        if (is_null($recipient->wallet->virtualBankAccount)) {
+            throw new Exception('Recipient does not have a virtual bank account');
+        }
+        
+        return $this->transfer($user->wallet->virtualBankAccount, $data['amount'], $recipient->wallet->virtualBankAccount->account_number, $recipient->wallet->virtualBankAccount->bank_code, $data['narration'] ?? null, $ip_address ?? null);
+    }
+
+    public function sendMoney(array $data, User $user, string $ip_address) 
+    {
+        $this->verifyTransaction($data, $user);
+
+        return $this->transfer($user->wallet->virtualBankAccount, $data['amount'], $data['account_number'], $data['bank_code'], $data['narration'] ?? null, $ip_address ?? null, $data['account_name'], $data['bank_name']);
+    }
+
+    private function transfer (VirtualBankAccount $virtualBankAccount, int $amount, string $account_number, string $bank_code, string $narration = null, string $ip_address = null, string $name = null, string $bank_name = null)
+    {
+        try {
+            $reference = uuid_create();
+            $currency = Settings::where('name', 'currency')->first()->value;
+
+            $data = [
+                'account_reference' => $virtualBankAccount->account_reference,
+                'amount' => $amount,
+                'account_number' => $account_number,
+                'bank_code' => $bank_code,
+                'currency' => $currency,
+                'narration' => $narration,
+                'reference' => $reference,
+            ];
+            
+            $paymentService = resolve(PaymentService::class);
+            $response = $paymentService->transfer($data);
+            if (isset($response['status']) && $response['status'] != 'success') {
+                Log::error('transfer: Failed to get Transfer. Reason: ' . $response['message']);
+                return;
+            }
+
+            
+            $recipient_wallet = Wallet::whereHas('virtualBankAccount', function ($query) use ($account_number, $currency) {
+                $query->where([
+                    ['account_number', $account_number],
+                    ['currency', $currency],
+                ]);
+            })->where('currency', $currency)
+            ->first();
+            
+            if (!is_null($recipient_wallet)) {
+                $payload = [
+                    'account_number' => $account_number,
+                    'bank_code' => $bank_code,
+                    'bank_name' => $recipient_wallet->virtualBankAccount->bank_name,
+                    'name' => $recipient_wallet->virtualBankAccount->account_name,
+                ];
+                event(new TransferMoney($virtualBankAccount->wallet, $data['amount'], $data['currency'], $data['reference'], $response['data']['reference'], $data['narration'], $ip_address, $recipient_wallet->virtualBankAccount->account_name, $payload));
+            } else {
+                $payload = [
+                    'account_number' => $account_number,
+                    'bank_code' => $bank_code,
+                    'bank_name' => $bank_name,
+                    'name' => $name,
+                ];
+                event(new TransferMoney($virtualBankAccount->wallet, $data['amount'], $data['currency'], $data['reference'], $response['data']['reference'], $data['narration'], $ip_address, $name, $payload));
+            }
+        } catch (Exception $e) {
+            throw new Exception($e);
+        }
+    }
+
+    private function verifyTransaction (array $data, User $user)
+    {
+        if (is_null($user->wallet)) {
+            throw new Exception('Create and fund your wallet');
+        }
+
+        $min_transfer = Settings::where('name', 'min_transaction')->first()->value;
+
+        if ($data['amount'] < $min_transfer) {
+            throw new Exception('Transaction amount is below minimum transaction');
+        }
+
+        $walletService = resolve(WalletService::class);
+        if (!$walletService->checkBalance($user->wallet, $data['amount'])) {
+            throw new Exception('Insufficient balance for that transaction');
+        }
+    }
 
     public function getTransactionDescription(string $type, string $currency): ?string
     {
@@ -39,21 +188,31 @@ class TransactionService
         $amount,
         $currency = 'NGN',
         $type = "SEND_MONEY",
+        $reference,
+        $payload,
+        $wallet_id,
+        $narration = null,
         $userIp = null,
+        $external_transaction_reference = null
     ) {
 
         $description = $this->getTransactionDescription($type, $currency);
-
-        return Transaction::create([
+        $transaction = Transaction::create([
             "user_id" => $user->id,
             "currency" => $currency,
+            "wallet_id" => $wallet_id,
             "amount" => $amount,
-            "reference" => Str::uuid(),
+            "reference" => $reference,
+            "payload" => $payload,
             "status" => "PENDING",
             "type" => $type,
             "description" => $description,
+            "narration" => $narration,
             "user_ip" => $userIp,
+            "external_transaction_reference" => $external_transaction_reference,
         ]);
+        
+        return $transaction;
     }
 
 
@@ -127,7 +286,7 @@ class TransactionService
         }
 
         $walletTransactionAmountChange = $walletTransaction->amount_change->getMinorAmount()->toInt();
-        $transactionAmount = $transaction->sender_local_amount->getMinorAmount()->toInt();
+        $transactionAmount = $transaction->amount->getMinorAmount()->toInt();
 
         // Due diligence check to ensure that the transaction originates from the wallet
         if ($wallet->is($walletTransaction->wallet) && $wallet->is($transaction->wallet) && $walletTransactionAmountChange == $transactionAmount) {

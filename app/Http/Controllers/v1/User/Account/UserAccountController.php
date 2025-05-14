@@ -6,6 +6,7 @@ use App\Helpers\TransactX;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\v1\User\Otp\UserOtpController;
 use App\Http\Requests\User\Account\UpdateUserAccountRequest;
+use App\Http\Requests\User\Account\UpdateUserAvatarRequest;
 use App\Http\Requests\User\Account\VerifyUserBVNRequest;
 use App\Http\Requests\User\Otp\VerifyAppliedVerificationCodeRequest;
 use App\Models\User;
@@ -64,6 +65,13 @@ class UserAccountController extends Controller
             if (isset($validatedData['name']) && $user->name !== $validatedData['name'] && $user->kycVerified()) {
                 throw new InvalidArgumentException("Name cannot be changed after KYC verification");
             }
+
+            if (isset($validatedData['profile'])) {
+                $uploadedFile = $validatedData['avatar'];
+                dd($uploadedFile->getRealPath());
+                $result = cloudinary()->upload($uploadedFile->getRealPath())->getSecurePath();
+                $validatedData['avatar'] = $result;
+            }
             
             $user = $this->userService->updateUserAccount($user, $validatedData);
             
@@ -74,6 +82,36 @@ class UserAccountController extends Controller
         } catch (Exception $e) {
             Log::error('UPDATE USER ACCOUNT: Error Encountered: ' . $e->getMessage());
             return TransactX::response(false, 'Failed to update user account', 500);
+        }
+    }
+    
+    /**
+     * Update user account (profile)
+     */
+    public function updateAvatar(UpdateUserAvatarRequest $request): JsonResponse
+    {
+        try {
+            $validatedData = $request->validated();
+            
+            $user = auth()->user();
+            
+            $uploadedFile = $validatedData['avatar'];
+            
+            $result = cloudinary()->upload($uploadedFile->getRealPath())->getSecurePath();
+
+            $data = [
+                'avatar' =>  $result
+            ];
+
+            $user = $this->userService->updateUserAccount($user, $data);
+            
+            return TransactX::response(true, 'User avatar updated successfully', 200, (object) ["user" => $user]);
+        } catch (InvalidArgumentException $e) {
+            Log::error('UPDATE USER AVATAR: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(false, $e->getMessage(), 400);
+        } catch (Exception $e) {
+            Log::error('UPDATE USER AVATAR: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(false, 'Failed to update user avatar', 500);
         }
     }
     

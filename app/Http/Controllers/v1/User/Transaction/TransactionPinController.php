@@ -18,7 +18,7 @@ use InvalidArgumentException;
 class TransactionPinController extends Controller
 {
     /**
-     * Create a new UserAccountController instance.
+     * Create a new TransactionPinController instance.
      */
     public function __construct(
         protected UserService $userService,

@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Notifications\User\Wallet;
+namespace App\Notifications\User\Transactions;
 
 use App\Models\Transaction;
+use App\Models\User;
 use App\Models\User\Wallet;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
@@ -12,7 +13,8 @@ use Illuminate\Notifications\Notification;
 use Kreait\Firebase\Messaging\CloudMessage;
 use NotificationChannels\FCM\FCMChannel;
 
-class WalletFundingSuccessfulNotification extends Notification implements ShouldQueue
+class CreditAlertNotification
+ extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -20,19 +22,22 @@ class WalletFundingSuccessfulNotification extends Notification implements Should
     protected float $transactionAmount;
     protected string $transactionCurrency;
     protected float $walletAmount;
+    protected string $senderFirstName;
+    protected string $senderLastName;
 
     /**
      * Create a new notification instance.
      */
     public function __construct(
         public Transaction $transaction,
-        public Wallet $wallet,
+        public string $sender
     ) {
         $this->currentDateTime = Carbon::now()->format('l, F j, Y \a\t g:i A');
 
         $this->transactionAmount = $this->transaction->amount->getAmount()->toFloat();
         $this->transactionCurrency = $this->transaction->currency;
-        $this->walletAmount = $this->wallet->amount->getAmount()->toFloat();
+        $this->senderFirstName = explode(' ', $this->sender)[0];
+        $this->senderLastName = explode(' ', $this->sender)[1];
     }
 
     /**
@@ -58,10 +63,10 @@ class WalletFundingSuccessfulNotification extends Notification implements Should
      */
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)->subject('Wallet Funding Successful 💸')
+        return (new MailMessage)->subject('Credit Alert 💸')
             ->markdown(
-                'email.user.wallet.funding-successful',
-                ['user' => $notifiable, 'wallet' => $this->wallet, 'transaction' => $this->transaction]
+                'email.user.transactions.credit-alert',
+                ['user' => $notifiable, 'transaction' => $this->transaction, 'senderFirstName' => $this->senderFirstName, 'senderLastName' => $this->senderLastName]
             );
     }
 
@@ -73,7 +78,7 @@ class WalletFundingSuccessfulNotification extends Notification implements Should
      */
     public function databaseType(object $notifiable): string
     {
-        return 'fund-wallet-successful';
+        return 'credit-alert';
     }
 
 
@@ -82,9 +87,9 @@ class WalletFundingSuccessfulNotification extends Notification implements Should
      */
     public function toFCM(object $notifiable): CloudMessage
     {
-        $title = "Wallet Funding Successful 💸";
+        $title = "Credit Alert 💸";
 
-        $body = "Funding of $this->transactionCurrency $this->transactionAmount successful 💸.";
+        $body = "You have been credited an amount of $this->transactionCurrency $this->transactionAmount by $this->senderFirstName $this->senderLastName 💸.";
 
         return CloudMessage::new()
             ->withDefaultSounds()
@@ -93,7 +98,7 @@ class WalletFundingSuccessfulNotification extends Notification implements Should
                 'body' => $body,
             ])
             ->withData([
-                'notification_key' => 'fund-wallet-successful',
+                'notification_key' => 'credit-alert',
             ]);
     }
 
@@ -106,12 +111,12 @@ class WalletFundingSuccessfulNotification extends Notification implements Should
     public function toArray(object $notifiable): array
     {
         return [
-            'title' => 'Wallet Funding Successful 💸',
-            'message' => "Funding of $this->transactionCurrency $this->transactionAmount successful 💸.",
+            'title' => 'Credit Alert 💸',
+            'message' => "You have been credited an amount of $this->transactionCurrency $this->transactionAmount by $this->senderFirstName $this->senderLastName 💸.",
             'data' => [
                 'user_id' => $notifiable->id,
                 'transaction' => $this->transaction,
-                'wallet' => $this->wallet,
+                'sender' => $this->sender,
                 'event_at' => $this->currentDateTime,
             ]
         ];

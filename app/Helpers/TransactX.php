@@ -11,7 +11,7 @@ class TransactX
     /**
      * Return a new response from the application.
      */
-    static function response(bool $success, string $message, int $code, object $data = null): JsonResponse
+    static function response(bool $success, string $message, int $code, mixed $data = null): JsonResponse
     {
         return response()->json([
             'success' => $success,

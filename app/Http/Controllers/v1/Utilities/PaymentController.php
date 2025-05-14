@@ -6,6 +6,7 @@ use App\Enums\PartnersEnum;
 use App\Events\User\Wallet\WalletTransactionReceived;
 use App\Helpers\TransactX;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\User\Transactions\Payment\ResolveAccountRequest;
 use App\Models\Settings;
 use App\Services\UserService;
 use App\Services\Utilities\PaymentService;
@@ -32,36 +33,29 @@ class PaymentController extends Controller
     {
         try {
             $paymentService = resolve(PaymentService::class);
-            return TransactX::response(true, 'Banks retrieved successfully.', 200, (object)['banks' => $paymentService->getBanks()]);
+            return TransactX::response(true, 'Banks retrieved successfully.', 200, $paymentService->getBanks());
         } catch (Exception $e) {
             Log::error('get Banks: Error Encountered: ' . $e->getMessage());
             return TransactX::response(false, $e->getMessage(), 500);
         }
     }
+    
+    public function resolveAccount(ResolveAccountRequest $request): JsonResponse
+    {
+        try {
+            $validatedData = $request->validated();
+            $account_number = $request->account_number;
+            $bank_code = $request->bank_code;
+            
+            $paymentService = resolve(PaymentService::class);
+            $account = $paymentService->resolveAccount($account_number, $bank_code);
 
-    // public function resolveAccount(Request $request): JsonResponse
-    // {
-    //     try {
-    //         $validator = Validator::make($request->all(), [
-    //             'account_number' => ['bail', 'required', 'string'],
-    //             'bank_code' => ['bail', 'required', 'string'],
-    //         ]);
-
-    //         if ($validator->fails()) {
-    //             return TransactX::response(false,  'Validation error', 422, $validator->errors());
-    //         }
-
-    //         $account_number = $request->account_number;
-    //         $bank_code = $request->bank_code;
-
-    //         $account = $this->flutterwaveService->resolveAccount($account_number, $bank_code);
-
-    //         return TransactX::response(true, 'Account resolved successfully!', 200, (object)['account' => $account['data']]);
-    //     } catch (Exception $e) {
-    //         Log::error('Resolve Account: Error Encountered: ' . $e->getMessage());
-    //         return TransactX::response(false, $e->getMessage(), 500);
-    //     }
-    // }
+            return TransactX::response(true, 'Account resolved successfully!', 200, $account['data']);
+        } catch (Exception $e) {
+            Log::error('Resolve Account: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(false, $e->getMessage(), 500);
+        }
+    }
 
 
     public function handleWebhook(Request $request)

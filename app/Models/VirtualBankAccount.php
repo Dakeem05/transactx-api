@@ -23,6 +23,11 @@ class VirtualBankAccount extends Model
         'account_reference',
         'barter_id',
     ];
+    
+    protected $hidden = [
+        'account_reference',
+        'barter_id',
+    ];
 
     public function wallet()
     {

@@ -32,7 +32,7 @@ class UserWalletController extends Controller
         
         $userId = $user->id;
 
-        $wallet = $this->walletService->getUserWalletDeep($userId);
+        $wallet = $this->walletService->getUserWalletDeep($userId, Settings::where('name', 'currency')->first()->value);
 
         return TransactX::response(true, 'Wallet retrieved successfully', 200, $wallet);
     }
@@ -66,7 +66,7 @@ class UserWalletController extends Controller
             return TransactX::response(false,  $e->getMessage(), 400);
         } catch (Exception $e) {
             Log::error('CREATE WALLET: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(false, 'Failed to create wallet.'.$e->getMessage(), 500);
+            return TransactX::response(false, 'Failed to create wallet.', 500);
         }
     }
 }

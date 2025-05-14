@@ -13,28 +13,36 @@ class SettingsSeeder extends Seeder
      */
     public function run(): void
     {
-        if (DB::table('settings')->count() > 0) {
-            $this->command->info('Settings table already seeded!');
-            return;
-        }
+    //     if (DB::table('settings')->count() > 0) {
+    //         $this->command->info('Settings table already seeded!');
+    //         return;
+    //     }
         
         $settings = [
+            // [
+            //     'id' => Str::uuid(),
+            //     'name' => 'currency',
+            //     'value' => 'NGN',
+            //     'description' => 'The active currency for the application',
+            //     'created_at' => now(),
+            //     'updated_at' => now(),
+            // ],
+            // [
+            //     'id' => Str::uuid(),
+            //     'name' => 'country',
+            //     'value' => 'NG',
+            //     'description' => 'The active currency for the application',
+            //     'created_at' => now(),
+            //     'updated_at' => now(),
+            // ],
             [
                 'id' => Str::uuid(),
-                'name' => 'currency',
-                'value' => 'NGN',
-                'description' => 'The active currency for the application',
+                'name' => 'min_transaction',
+                'value' => '100',
+                'description' => 'The minimum transfer',
                 'created_at' => now(),
                 'updated_at' => now(),
-            ],
-            [
-                'id' => Str::uuid(),
-                'name' => 'country',
-                'value' => 'NG',
-                'description' => 'The active currency for the application',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
+            ]
             
         ];
 
