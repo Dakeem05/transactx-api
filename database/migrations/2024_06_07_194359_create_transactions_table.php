@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('narration')->index()->nullable();
             $table->bigInteger('amount')->default(0);
             $table->string('currency')->index()->nullable();
-            $table->json('payload')->index()->nullable();
+            $table->json('payload')->nullable();
             $table->string('reference')->index()->nullable();
             $table->string('external_transaction_reference')->index()->nullable();
             $table->string('status')->index()->nullable();
