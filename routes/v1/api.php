@@ -79,6 +79,11 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
         Route::post('/request-money-from-username', [TransactionsController::class, 'requestMoneyFromUsername'])->name('user.transactions.request.money.from.username');
         Route::post('/request-money-from-email', [TransactionsController::class, 'requestMoneyFromEmail'])->name('user.transactions.request.money.from.email');
     });
+
+    Route::prefix('wallet')->group(function () {
+        Route::get('/', [UserWalletController::class, 'index'])->name('user.get.wallet');
+        Route::middleware('user.is.main.account')->post('/', [UserWalletController::class, 'store'])->name('user.create.wallet');
+    });
     /* -------------------------- Verified User Routes ------------------------- */
     Route::middleware('user.is.verified')->group(function () {   
         Route::middleware('user.is.main.account')->prefix('sub-account')->group(function () {
@@ -87,11 +92,11 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
             Route::put('/{id}', [SubAccountController::class, 'update'])->name('user.update.sub-account');
             Route::delete('/{id}', [SubAccountController::class, 'destroy'])->name('user.delete.sub-account');
         });
-
-        Route::prefix('wallet')->group(function () {
-            Route::get('/', [UserWalletController::class, 'index'])->name('user.get.wallet');
-            Route::middleware('user.is.main.account')->post('/', [UserWalletController::class, 'store'])->name('user.create.wallet');
-        });
+        
+        // Route::prefix('wallet')->group(function () {
+        //     Route::get('/', [UserWalletController::class, 'index'])->name('user.get.wallet');
+        //     Route::middleware('user.is.main.account')->post('/', [UserWalletController::class, 'store'])->name('user.create.wallet');
+        // });
         
         Route::prefix('subscription-model')->group(function () {
             Route::get('/', [UserSubscriptionModelController::class, 'index'])->name('user.list.sub-model');
