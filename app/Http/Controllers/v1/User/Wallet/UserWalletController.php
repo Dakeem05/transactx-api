@@ -67,7 +67,7 @@ class UserWalletController extends Controller
             return TransactX::response(false,  $e->getMessage(), 400);
         } catch (Exception $e) {
             Log::error('CREATE WALLET: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(false, 'Failed to create wallet.', 500);
+            return TransactX::response(false, 'Failed to create wallet. ' . $e->getMessage(), 500);
         }
     }
 }
