@@ -65,6 +65,20 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
         });
         Route::post('/change-password', [UserAccountController::class, 'changePassword'])->name('user.change.password');
     });
+
+    Route::prefix(('transactions'))->group(function () {
+        Route::get('/query-users', [TransactionsController::class, 'queryUsers'])->name('user.transactions.query.username');
+        Route::post('/send-money-to-username', [TransactionsController::class, 'sendMoneyToUsername'])->name('user.transactions.send.money.to.username');
+        Route::post('/send-money-to-email', [TransactionsController::class, 'sendMoneyToEmail'])->name('user.transactions.send.money.to.email');
+        Route::prefix('payment')->group(function () {
+            Route::get('/banks', [PaymentController::class, 'getBanks'])->name('user.transactions.payment.list.banks');
+            Route::post('/resolve-account', [PaymentController::class, 'resolveAccount'])->name('user.transactions.payment.resolve.account');
+            Route::post('/send-money', [TransactionsController::class, 'sendMoney'])->name('user.transactions.payment.send.money');
+        });
+        Route::get('/get-request-styles', [TransactionsController::class, 'getRequestStyles'])->name('user.transactions.get.request.styles');
+        Route::post('/request-money-from-username', [TransactionsController::class, 'requestMoneyFromUsername'])->name('user.transactions.request.money.from.username');
+        Route::post('/request-money-from-email', [TransactionsController::class, 'requestMoneyFromEmail'])->name('user.transactions.request.money.from.email');
+    });
     /* -------------------------- Verified User Routes ------------------------- */
     Route::middleware('user.is.verified')->group(function () {   
         Route::middleware('user.is.main.account')->prefix('sub-account')->group(function () {
@@ -85,19 +99,19 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
         });
 
         
-        Route::prefix(('transactions'))->group(function () {
-            Route::get('/query-users', [TransactionsController::class, 'queryUsers'])->name('user.transactions.query.username');
-            Route::post('/send-money-to-username', [TransactionsController::class, 'sendMoneyToUsername'])->name('user.transactions.send.money.to.username');
-            Route::post('/send-money-to-email', [TransactionsController::class, 'sendMoneyToEmail'])->name('user.transactions.send.money.to.email');
-            Route::prefix('payment')->group(function () {
-                Route::get('/banks', [PaymentController::class, 'getBanks'])->name('user.transactions.payment.list.banks');
-                Route::post('/resolve-account', [PaymentController::class, 'resolveAccount'])->name('user.transactions.payment.resolve.account');
-                Route::post('/send-money', [TransactionsController::class, 'sendMoney'])->name('user.transactions.payment.send.money');
-            });
-            Route::get('/get-request-styles', [TransactionsController::class, 'getRequestStyles'])->name('user.transactions.get.request.styles');
-            Route::post('/request-money-from-username', [TransactionsController::class, 'requestMoneyFromUsername'])->name('user.transactions.request.money.from.username');
-            Route::post('/request-money-from-email', [TransactionsController::class, 'requestMoneyFromEmail'])->name('user.transactions.request.money.from.email');
-        });
+        // Route::prefix(('transactions'))->group(function () {
+        //     Route::get('/query-users', [TransactionsController::class, 'queryUsers'])->name('user.transactions.query.username');
+        //     Route::post('/send-money-to-username', [TransactionsController::class, 'sendMoneyToUsername'])->name('user.transactions.send.money.to.username');
+        //     Route::post('/send-money-to-email', [TransactionsController::class, 'sendMoneyToEmail'])->name('user.transactions.send.money.to.email');
+        //     Route::prefix('payment')->group(function () {
+        //         Route::get('/banks', [PaymentController::class, 'getBanks'])->name('user.transactions.payment.list.banks');
+        //         Route::post('/resolve-account', [PaymentController::class, 'resolveAccount'])->name('user.transactions.payment.resolve.account');
+        //         Route::post('/send-money', [TransactionsController::class, 'sendMoney'])->name('user.transactions.payment.send.money');
+        //     });
+        //     Route::get('/get-request-styles', [TransactionsController::class, 'getRequestStyles'])->name('user.transactions.get.request.styles');
+        //     Route::post('/request-money-from-username', [TransactionsController::class, 'requestMoneyFromUsername'])->name('user.transactions.request.money.from.username');
+        //     Route::post('/request-money-from-email', [TransactionsController::class, 'requestMoneyFromEmail'])->name('user.transactions.request.money.from.email');
+        // });
     });
 });
 
