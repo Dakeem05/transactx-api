@@ -12,7 +12,6 @@ class ServiceProvider extends Model
     use HasFactory, UUID;
     
     protected $fillable = [
-        'id',
         'service_id',
         'name',
         'status',

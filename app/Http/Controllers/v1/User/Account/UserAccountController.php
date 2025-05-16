@@ -18,6 +18,7 @@ use Brick\Money\Money;
 use Exception;
 use GuzzleHttp\Promise\Create;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
 
@@ -39,7 +40,7 @@ class UserAccountController extends Controller
     public function show(): JsonResponse
     {
         try {
-            $user = auth()->user();
+            $user = Auth::user();
 
             $user = $this->userService->getUserById($user->id);
 
@@ -59,7 +60,7 @@ class UserAccountController extends Controller
         try {
             $validatedData = $request->validated();
             
-            $user = auth()->user();
+            $user = Auth::user();
             
             // Names can only change if user is not verified
             if (isset($validatedData['name']) && $user->name !== $validatedData['name'] && $user->kycVerified()) {
@@ -93,7 +94,7 @@ class UserAccountController extends Controller
         try {
             $validatedData = $request->validated();
             
-            $user = auth()->user();
+            $user = Auth::user();
             
             $uploadedFile = $validatedData['avatar'];
             
@@ -123,7 +124,7 @@ class UserAccountController extends Controller
     {
         try {
             $validatedData = $request->validated();
-            $user = auth()->user();
+            $user = Auth::user();
             $bvn = $validatedData['bvn'];
             $nin = $validatedData['nin'];
             $bank_code = $validatedData['bank_code'] ?? null;
@@ -159,7 +160,7 @@ class UserAccountController extends Controller
     public function destroy (): JsonResponse
     {
         try {
-            $user = auth()->user();
+            $user = Auth::user();
 
             $wallet = $user->wallet;
 
@@ -202,7 +203,7 @@ class UserAccountController extends Controller
     {
         try {
             $validatedData = $request->validated();
-            $user = auth()->user();
+            $user = Auth::user();
 
             $wallet = $user->wallet;
 

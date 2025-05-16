@@ -11,6 +11,7 @@ use App\Http\Requests\User\Otp\VerifyAppliedVerificationCodeRequest;
 use App\Models\VerificationCode;
 use Exception;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
@@ -29,7 +30,7 @@ class TransactionPinController extends Controller
     {
         try {
             $validatedData = $request->validated();
-            $user = auth()->user();
+            $user = Auth::user();
             $pin = $validatedData['pin'];
 
             if ($user->transaction_pin) {
@@ -51,7 +52,7 @@ class TransactionPinController extends Controller
     public function changeTransactionPin(): JsonResponse
     {
         try {
-            $user = auth()->user();
+            $user = Auth::user();
 
             if (!$user->transaction_pin) {
                 throw new InvalidArgumentException("Transaction pin has not been set");
@@ -81,7 +82,7 @@ class TransactionPinController extends Controller
     public function resendTransactionPinOtp(): JsonResponse
     {
         try {
-            $user = auth()->user();
+            $user = Auth::user();
 
             if (!$user->transaction_pin) {
                 throw new InvalidArgumentException("Transaction pin has not been set");
@@ -123,7 +124,7 @@ class TransactionPinController extends Controller
     {
         try {
             $validatedData = $request->validated();
-            $user = auth()->user();
+            $user = Auth::user();
 
             if (!$user->transaction_pin) {
                 throw new InvalidArgumentException("Transaction pin has not been set");
@@ -151,7 +152,7 @@ class TransactionPinController extends Controller
     {
         try {
             $validatedData = $request->validated();
-            $user = auth()->user();
+            $user = Auth::user();
             $pin = $validatedData['pin'];
 
             if (!$user->transaction_pin) {
@@ -185,7 +186,7 @@ class TransactionPinController extends Controller
     {
         try {
             $validatedData = $request->validated();
-            $user = auth()->user();
+            $user = Auth::user();
             $pin = $validatedData['pin'];
 
             if (!$user->transaction_pin) {

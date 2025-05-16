@@ -94,6 +94,9 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
                 Route::post('/resolve-account', [PaymentController::class, 'resolveAccount'])->name('user.transactions.payment.resolve.account');
                 Route::post('/send-money', [TransactionsController::class, 'sendMoney'])->name('user.transactions.payment.send.money');
             });
+            Route::get('/get-request-styles', [TransactionsController::class, 'getRequestStyles'])->name('user.transactions.get.request.styles');
+            Route::post('/request-money-from-username', [TransactionsController::class, 'requestMoneyFromUsername'])->name('user.transactions.request.money.from.username');
+            Route::post('/request-money-from-email', [TransactionsController::class, 'requestMoneyFromEmail'])->name('user.transactions.request.money.from.email');
         });
     });
 });

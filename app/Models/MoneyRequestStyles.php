@@ -5,16 +5,16 @@ namespace App\Models;
 use App\Traits\UUID;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Service extends Model
+class MoneyRequestStyles extends Model
 {
     use HasFactory, UUID;
     
     protected $fillable = [
         'name',
+        'content',
+        'picture',
         'status',
-        'description',
         'created_at',
         'updated_at'
     ];
@@ -27,9 +27,4 @@ class Service extends Model
     protected $casts = [
         'status' => 'boolean',
     ];
-
-    public function providers(): HasMany
-    {
-        return $this->hasMany(ServiceProvider::class);
-    }
 }

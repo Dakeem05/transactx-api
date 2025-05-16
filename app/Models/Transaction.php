@@ -79,6 +79,16 @@ class Transaction extends Model
     }
 
     /**
+     * Check if the transaction is a request money type
+     *
+     * @return boolean
+     */
+    public function isRequestMoneyTransaction()
+    {
+        return $this->type == "REQUEST_MONEY";
+    }
+
+    /**
      * Check if the transaction is a fund wallet type
      *
      * @return boolean

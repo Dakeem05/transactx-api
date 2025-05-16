@@ -8,6 +8,7 @@ use App\Http\Requests\User\Account\UpdateSubAccountRequest;
 use App\Services\UserService;
 use Exception;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
 
@@ -28,7 +29,7 @@ class SubAccountController extends Controller
     public function show(): JsonResponse
     {
         try {
-            $user = auth()->user();
+            $user = Auth::user();
 
             $subaccounts = $this->userService->getSubAccounts($user);
 
@@ -47,7 +48,7 @@ class SubAccountController extends Controller
         try {
             $validatedData = $request->validated();
             
-            $sub_account = auth()->user()->subAccounts->find($id);
+            $sub_account = Auth::user()->subAccounts->find($id);
 
             if (!$sub_account) {
                 return TransactX::response(false, 'Sub account not found', 404);
@@ -71,7 +72,7 @@ class SubAccountController extends Controller
     public function destroy(string $id): JsonResponse
     {
         try {
-            $sub_account = auth()->user()->subAccounts->find($id);
+            $sub_account = Auth::user()->subAccounts->find($id);
 
             if (!$sub_account) {
                 return TransactX::response(false, 'Sub account not found', 404);

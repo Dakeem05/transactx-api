@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Helpers\TransactX;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 class IsRolePermitted
@@ -35,6 +36,6 @@ class IsRolePermitted
      */
     private function userHasAnyRole($roles): bool
     {
-        return in_array(auth()->user()->role->name, $roles);
+        return in_array(Auth::user()->role->name, $roles);
     }
 }

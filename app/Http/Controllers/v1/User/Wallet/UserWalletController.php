@@ -9,6 +9,7 @@ use App\Services\User\WalletService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
 
@@ -28,7 +29,7 @@ class UserWalletController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $user = auth()->user();
+        $user = Auth::user();
         
         $userId = $user->id;
 
@@ -45,7 +46,7 @@ class UserWalletController extends Controller
     {
         try {
 
-            $user = auth()->user();
+            $user = Auth::user();
 
             $userId = $user->id;
 

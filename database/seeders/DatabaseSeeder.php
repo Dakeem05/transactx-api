@@ -19,7 +19,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             // ServicesSeeder::class,
             // ServiceProvidersSeeder::class,
-            SettingsSeeder::class,
+            // SettingsSeeder::class,
+            MoneyRequestSeeder::class,
         ]);
     }
 }

@@ -28,7 +28,7 @@ class ServicesSeeder extends Seeder
                 'description' => 'Payment service',
                 'created_at' => now(),
                 'updated_at' => now(),
-            ],
+            ]
         ];
 
         DB::table('services')->insert($services);
