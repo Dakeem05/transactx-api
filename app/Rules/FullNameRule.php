@@ -5,7 +5,7 @@ namespace App\Rules;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 
-class FullnameRule implements ValidationRule
+class FullNameRule implements ValidationRule
 {
     /**
      * Run the validation rule

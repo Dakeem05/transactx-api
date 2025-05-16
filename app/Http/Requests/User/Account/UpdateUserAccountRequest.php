@@ -3,7 +3,7 @@
 namespace App\Http\Requests\User\Account;
 
 use App\Helpers\TransactX;
-use App\Rules\FullnameRule;
+use App\Rules\FullNameRule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -47,7 +47,7 @@ class UpdateUserAccountRequest extends FormRequest
         $userId = $this->user()->id;
 
         return [
-            'name' => ['bail', 'nullable', 'string', new FullnameRule()],
+            'name' => ['bail', 'nullable', 'string', new FullNameRule()],
             'phone_number' => ['bail', 'nullable', 'sometimes', 'digits:11', 'unique:users,phone_number,' . $userId],
             'username' => ['bail', 'nullable', 'sometimes', 'string', 'unique:users,username,' . $userId],
         ];
