@@ -8,7 +8,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 class FullnameRule implements ValidationRule
 {
     /**
-     * Run the validation rule.
+     * Run the validation rule
      *
      * @param  \Closure(string): \Illuminate\Translation\PotentiallyTranslatedString  $fail
      */
