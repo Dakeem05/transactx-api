@@ -5,6 +5,7 @@ use App\Http\Controllers\v1\Auth\LoginController;
 use App\Http\Controllers\v1\Auth\RegisterController;
 use App\Http\Controllers\v1\Partner\FlutterwaveController;
 use App\Http\Controllers\v1\Partner\PaystackController;
+use App\Http\Controllers\v1\Partner\SafehavenController;
 use App\Http\Controllers\v1\User\Account\SubAccount\CreateSubAccountController;
 use App\Http\Controllers\v1\User\Account\SubAccount\SubAccountController;
 use App\Http\Controllers\v1\User\Account\UserAccountController;
@@ -24,6 +25,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/webhooks/paystack', [PaystackController::class, 'handleWebhook']);
 Route::post('/webhooks/flutterwave', [FlutterwaveController::class, 'handleWebhook']);
+Route::post('/webhooks/savehaven', [SafehavenController::class, 'handleWebhook']);
 
 
 /* -------------------------- Authentication Routes ------------------------- */

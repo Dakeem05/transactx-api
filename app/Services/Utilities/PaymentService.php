@@ -7,6 +7,7 @@ use Exception;
 use App\Models\Service;
 use App\Services\External\FlutterwaveService;
 use App\Services\External\PaystackService;
+use App\Services\External\SafehavenService;
 
 /**
  * Class PaymentService
@@ -20,6 +21,7 @@ class PaymentService
 {
     public $payment_service_provider;
     public $flutterwaveService;
+    public $safehavenService;
     public $paystackService;
 
     public function __construct ()
@@ -41,6 +43,7 @@ class PaymentService
         }
 
         $this->flutterwaveService = app(FlutterwaveService::class);
+        $this->safehavenService = app(SafehavenService::class);
         $this->paystackService = app(PaystackService::class);
     }
     /**
@@ -68,6 +71,13 @@ class PaymentService
 
             return $this->flutterwaveService->getBanks();
         }
+        if ($provider->name === 'safehaven') {
+            if (!$this->safehavenService) {
+                throw new Exception('Safehaven service not found');
+            }
+
+            return $this->safehavenService->getBanks();
+        }
         if ($provider->name === 'paystack') {
             if (!$this->paystackService) {
                 throw new Exception('Paystack service not found');
@@ -87,6 +97,13 @@ class PaymentService
             }
 
             return $this->flutterwaveService->resolveAccount($account_number, $bank_code);
+        }
+        if ($provider->name === 'safehaven') {
+            if (!$this->safehavenService) {
+                throw new Exception('Safehaven service not found');
+            }
+
+            return $this->safehavenService->resolveAccount($account_number, $bank_code);
         }
         if ($provider->name === 'paystack') {
             if (!$this->paystackService) {

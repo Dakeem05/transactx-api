@@ -47,5 +47,13 @@ return [
         'base_url' => env('FLUTTERWAVE_BASE_URL', 'https://api.flutterwave.com/v3'),
         'webhook_hash' => env('FLUTTERWAVE_WEBHOOK_HASH')
     ],
-
+    'safehaven' => [
+        'mode' => env('SAFEHAVEN_MODE'),
+        'live_url' => env('SAFEHAVEN_LIVE_URL'),
+        'sandbox_url' => env('SAFEHAVEN_SANDBOX_URL'),
+        'client_id' => env('SAFEHAVEN_CLIENT_ID'),
+        'sandbox_client_id' => env('SAFEHAVEN_SANDBOX_CLIENT_ID'),
+        'client_assertion' => env('SAFEHAVEN_CLIENT_ASSERTION'),
+        'sandbox_client_assertion' => env('SAFEHAVEN_SANDBOX_CLIENT_ASSERTION'),
+    ]
 ];

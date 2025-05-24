@@ -85,18 +85,25 @@ class SendVerificationCodeRequest extends FormRequest
     }
 
 
-    /**
+   /**
      * @param  Validator  $validator
      *
      * @return void
      */
     public function failedValidation(Validator $validator): void
     {
+        $errors = $validator->errors()->toArray();
+        
+        // Get the first validation error message
+        $firstError = collect($errors)->flatten()->first();
+
         Log::channel('daily')->info(
             'SEND VERIFICATION CODE: VALIDATION',
-            ["uid" => $this->request_uuid, "response" => ['errors' => $validator->errors()]]
+            ["uid" => $this->request_uuid, "response" => ['errors' => $errors]]
         );
 
-        throw new HttpResponseException(TransactX::response(false, "Validation error", 422, $validator->errors()));
+       throw new HttpResponseException(
+            TransactX::response(false, $firstError, 422)
+        );
     }
 }
