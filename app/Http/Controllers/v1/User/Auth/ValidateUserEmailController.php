@@ -31,6 +31,12 @@ class ValidateUserEmailController extends Controller
             Log::error('VALIDATE USER EMAIL: Error Encountered: ' . $e->getMessage());
 
             return TransactX::response(false, $e->getMessage(), 500);
+            $errors = $validator->errors()->toArray();
+        
+            // Get the first validation error message
+            $firstError = collect($errors)->flatten()->first();
+
+            TransactX::response(false, $firstError, 500);
         }
     }
 }
