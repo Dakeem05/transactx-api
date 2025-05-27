@@ -6,6 +6,7 @@ use App\Actions\Auth\RegisterUserAction;
 use App\Dtos\User\CreateUserDto;
 use App\Helpers\TransactX;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\v1\User\Otp\UserOtpController;
 use App\Http\Requests\User\RegisterUserRequest;
 use App\Http\Resources\User\CreateUserResource;
 use Exception;
@@ -27,6 +28,16 @@ class UserRegisterController extends Controller
 
             if ($data instanceof JsonResponse) {
                 return $data;
+            }
+
+            $otpService = resolve(UserOtpController::class);
+            $response = $otpService->sendForVerification(
+                $data->email,
+                null,
+            );
+
+            if (!$response->status) {
+                throw new Exception('Failed to send verification code');
             }
 
             return TransactX::response(true, 'Registration successful', 201, new CreateUserResource($data));

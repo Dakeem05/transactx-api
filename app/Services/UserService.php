@@ -81,6 +81,7 @@ class UserService
             'transaction_pin' => $attributes['transaction_pin'] ?? $user->transaction_pin,
             'password' => $attributes['password'] ?? $user->password,
             'avatar' => $attributes['avatar'] ?? $user->avatar,
+            'email_verified_at' => $attributes['email_verified_at'] ?? $user->email_verified_at,
         ]);
 
         $user->refresh();

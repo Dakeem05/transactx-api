@@ -9,10 +9,12 @@ use App\Http\Controllers\v1\Partner\SafehavenController;
 use App\Http\Controllers\v1\User\Account\SubAccount\CreateSubAccountController;
 use App\Http\Controllers\v1\User\Account\SubAccount\SubAccountController;
 use App\Http\Controllers\v1\User\Account\UserAccountController;
+use App\Http\Controllers\v1\User\Auth\ResendRegisterOtp;
 use App\Http\Controllers\v1\User\Auth\UserLoginController;
 use App\Http\Controllers\v1\User\Auth\UserRegisterController;
 use App\Http\Controllers\v1\User\Auth\UserResetPasswordController;
 use App\Http\Controllers\v1\User\Auth\ValidateUserEmailController;
+use App\Http\Controllers\v1\User\Auth\VerifyRegisterOtp;
 use App\Http\Controllers\v1\User\Otp\UserOtpController;
 use App\Http\Controllers\v1\User\Transaction\TransactionPinController;
 use App\Http\Controllers\v1\User\Transaction\TransactionsController;
@@ -33,6 +35,8 @@ Route::post('/webhooks/savehaven', [SafehavenController::class, 'handleWebhook']
 Route::middleware('checkApplicationCredentials')->prefix('auth')->group(function () {
     Route::middleware('throttle:5,1')->post('/validate-email', ValidateUserEmailController::class)->name('auth.validate.email');
     Route::middleware('throttle:login')->post('/register', UserRegisterController::class)->name('auth.register');
+    Route::middleware('throttle:otp')->post('/resend-register-otp', ResendRegisterOtp::class)->name('auth.resend.register.otp');
+    Route::middleware('throttle:otp')->post('/verify-register-otp', VerifyRegisterOtp::class)->name('auth.verify.register.otp');
     Route::middleware('throttle:login')->post('/login', UserLoginController::class)->name('auth.login');
 
     Route::middleware('throttle:otp')->post('/send-code', [UserOtpController::class, 'send'])->name('auth.send.otp');
@@ -45,7 +49,7 @@ Route::middleware('checkApplicationCredentials')->prefix('auth')->group(function
 
 /* -------------------------- User Routes ------------------------- */
 
-Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.active'])->prefix('user')->group(function () {
+Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.active', 'user.is.email.verified'])->prefix('user')->group(function () {
     
     Route::prefix('account')->group(function () {
         Route::get('/', [UserAccountController::class, 'show'])->name('user.show.account');

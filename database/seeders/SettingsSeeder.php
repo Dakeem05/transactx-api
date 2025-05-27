@@ -19,22 +19,22 @@ class SettingsSeeder extends Seeder
     //     }
         
         $settings = [
-            // [
-            //     'id' => Str::uuid(),
-            //     'name' => 'currency',
-            //     'value' => 'NGN',
-            //     'description' => 'The active currency for the application',
-            //     'created_at' => now(),
-            //     'updated_at' => now(),
-            // ],
-            // [
-            //     'id' => Str::uuid(),
-            //     'name' => 'country',
-            //     'value' => 'NG',
-            //     'description' => 'The active currency for the application',
-            //     'created_at' => now(),
-            //     'updated_at' => now(),
-            // ],
+            [
+                'id' => Str::uuid(),
+                'name' => 'currency',
+                'value' => 'NGN',
+                'description' => 'The active currency for the application',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => Str::uuid(),
+                'name' => 'country',
+                'value' => 'NG',
+                'description' => 'The active currency for the application',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
             [
                 'id' => Str::uuid(),
                 'name' => 'min_transaction',
