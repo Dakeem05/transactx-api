@@ -47,8 +47,9 @@ class RegisterUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'first_name' => ['bail', 'required', 'string', 'max:255'],
-            'last_name' => ['bail', 'required', 'string', 'max:255'],
+            'organization_name' => ['bail', 'required_without_all:first_name,last_name', 'string', 'max:255'],
+            'first_name' => ['bail', 'required_without_all:organization_name', 'string', 'max:255'],
+            'last_name' => ['bail', 'required_without_all:organization_name', 'string', 'max:255'],
             'username' => ['bail', 'required', 'string', 'unique:users'],
             'email' => ['bail', 'required', 'email', 'unique:users'],
             'password' => [

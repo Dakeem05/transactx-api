@@ -46,12 +46,13 @@ class User extends Authenticatable
         'role_id',
         'account_type',
         'main_account_id',
+        'user_type',
         'is_active',
         'bvn_status',
         'referred_by_user_id',
         'transaction_pin_updated_at',
         'push_in_app_notifications',
-        'last_logged_in_device'
+        'last_logged_in_device',
     ];
 
     /**

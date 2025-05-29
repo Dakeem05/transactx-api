@@ -19,12 +19,13 @@ class CreateUserDto extends Data
      */
     public function __construct(
         public readonly string $request_uuid,
-        public readonly string $first_name,
-        public readonly string $last_name,
+        public readonly string|null $first_name,
+        public readonly string|null $last_name,
+        public readonly string|null $organization_name,
         public readonly string $username,
         public readonly string $email,
         public readonly string $password,
-        public readonly string|null|Optional $referral_code,
+        public readonly string|null $referral_code,
     ) {
     }
 }
