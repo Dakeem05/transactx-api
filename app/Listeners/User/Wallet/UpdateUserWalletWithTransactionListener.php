@@ -68,7 +68,6 @@ class UpdateUserWalletWithTransactionListener implements ShouldQueue
 
             // Get the created wallet transaction
             $walletTransaction = $wallet->walletTransactions()
-                ->where('amount_change', $amount)
                 ->latest()
                 ->first();
 
