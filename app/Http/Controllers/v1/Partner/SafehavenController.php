@@ -97,8 +97,9 @@ class SafehavenController extends Controller
             $this->webhookService->recordIncomingWebhook(PartnersEnum::SAFEHAVEN->value, $payload, $responseData, Response::HTTP_OK, $ipAddress);
 
             $event_type = $payload['type'];
-            Log::info('Webhook status', ['data' => $payload['data']['status']]); // Specific data
-            Log::info('Webhook type', ['data' => $payload['data']['type']]); // Specific data
+            Log::info('Webhook data', ['data' => $payload['data']]); // Specific data
+            Log::info('Webhook status', ['data' => $payload['data']->status]); // Specific data
+            Log::info('Webhook data type', ['data' => $payload['data']->type]); // Specific data
             Log::info('Webhook type!', ['type' => $event_type]); // Pass context as array
             
             // Payout subaccount funding webhook
