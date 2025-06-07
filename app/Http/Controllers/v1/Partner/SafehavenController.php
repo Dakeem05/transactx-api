@@ -100,11 +100,13 @@ class SafehavenController extends Controller
             Log::info('Webhook type!', $event_type);
             Log::info('Webhook', $payload);
             Log::info('Webhook data', $payload['data']);
-
+            
             // Payout subaccount funding webhook
             if (in_array($event_type, ['transfer']) && $payload['data']['type'] === 'Inwards' && $payload['data']['status'] === 'Completed') {
+                Log::info('Webhook paymentReference', $payload['data']['paymentReference']);
                 $external_transaction_reference = $payload['data']['paymentReference'];
                 $account_number = $payload['data']['creditAccountNumber'];
+                Log::info('Webhook amount', $payload['data']['amount'] - $payload['data']['fees']);
                 $amount = $payload['data']['amount'] - $payload['data']['fees'];
                 $currency = Settings::where('name', 'currency')->first()->value;
                 event(new WalletTransactionReceived($account_number, $amount, $currency, $external_transaction_reference));
