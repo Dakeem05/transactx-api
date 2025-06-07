@@ -98,16 +98,16 @@ class SafehavenController extends Controller
 
             $event_type = $payload['type'];
             Log::info('Webhook data', ['data' => $payload['data']]); // Specific data
-            Log::info('Webhook status', ['data' => $payload['data']['status']]); // Specific data
-            Log::info('Webhook type', ['data' => $payload['data']['type']]); // Specific data
+            Log::info('Webhook status', ['data' => $payload['data']['status'] ?? 'status_not_found']); // Specific data
+            Log::info('Webhook type', ['data' => $payload['data']['type'] ?? 'type_not_found']); // Specific data
             Log::info('Webhook type!', ['type' => $event_type]); // Pass context as array
             
             // Payout subaccount funding webhook
             if ($event_type === 'transfer' && $payload['data']['type'] === 'Inwards' && $payload['data']['status'] === 'Completed') {
-                Log::info('Webhook paymentReference', ['paymentReference', $payload['data']['paymentReference']]);
+                Log::info('Webhook paymentReference', ['paymentReference' => $payload['data']['paymentReference']] ?? 'paymentReference_not_found');
                 $external_transaction_reference = $payload['data']['paymentReference'];
                 $account_number = $payload['data']['creditAccountNumber'];
-                Log::info('Webhook amount', ['amount', $payload['data']['amount'] - $payload['data']['fees']]);
+                Log::info('Webhook amount', ['amount' => $payload['data']['amount'] - $payload['data']['fees']] ?? 'amount_not_found');
                 $amount = $payload['data']['amount'] - $payload['data']['fees'];
                 $currency = Settings::where('name', 'currency')->first()->value;
                 event(new WalletTransactionReceived($account_number, $amount, $currency, $external_transaction_reference));
