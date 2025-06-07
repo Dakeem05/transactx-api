@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\UserKYBStatusEnum;
 use App\Enums\UserKYCStatusEnum;
 use App\Enums\UserStatusEnum;
 use Illuminate\Database\Migrations\Migration;
@@ -26,7 +27,9 @@ return new class extends Migration
             $table->string('country')->index()->nullable();
             $table->string('referral_code')->index()->nullable();
             $table->string('transaction_pin')->index()->nullable();
+            $table->string('bvn')->index()->nullable();
             $table->enum('kyc_status', UserKYCStatusEnum::toArray())->index()->nullable();
+            $table->enum('kyb_status', UserKYBStatusEnum::toArray())->index()->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->boolean('push_in_app_notifications')->default(true);
             $table->string('last_logged_in_device')->index()->nullable();

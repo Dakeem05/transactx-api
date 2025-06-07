@@ -2,13 +2,13 @@
 
 namespace App\Events\User\Wallet;
 
-use App\Models\User\Wallet;
+use App\Models\User;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class UserWalletCreated
+class CreateWalletEvent
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -16,10 +16,10 @@ class UserWalletCreated
      * Create a new event instance.
      */
     public function __construct(
-        public Wallet $wallet,
-        public ?string $bvn,
-        public ?string $verification_id,
-        public ?string $otp,
+        public User $user,
+        public string $bvn,
+        public string $verification_id,
+        public string $otp,
     ) {
         //
     }

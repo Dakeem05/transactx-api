@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Helpers\TransactX;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,11 +19,11 @@ class UserHasSetTransactionPin
         $user = $request->user();
 
         if (!$user) {
-            return response()->json(['message' => 'Unauthenticated'], 401);
+            return TransactX::response(false, 'Unauthenticated.', 401);
         }
         
         if (!$user->transaction_pin) {
-            return response()->json(['message' => 'Transaction pin has not been set'], 400);
+            return TransactX::response(false, 'Transaction pin has not been set.', 403);
         }
         
         return $next($request);

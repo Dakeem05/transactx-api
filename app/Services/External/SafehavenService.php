@@ -7,9 +7,11 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use App\Contracts\PaymentGateway;
+use App\Events\User\Wallet\CreateWalletEvent;
 use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Http\Client\Response;
+use InvalidArgumentException;
 
 /**
  * Class SafehavenService
@@ -80,13 +82,17 @@ class SafehavenService
             ];
 
             $response = Http::talkToSafehaven($url, 'POST', $data);
-            dd($response);
-            return array_map(function ($item) {
-                return [
-                    'account_name' => $item['accountName'],
-                    'account_number' => $item['accountNumber'],
-                ];
-            }, $response['data']);
+
+            if ($response['statusCode'] === 400) {
+                throw new Exception('Error resolving account: ' . $response['message']);
+            }
+
+            return [
+                'data' => [
+                    'account_name' => $response['data']['accountName'],
+                    'account_number' => $response['data']['accountNumber'],
+                ]
+            ];
         } catch (Exception $e) {
             Log::error('Error Encountered at Resolve Account method in Safehaven Service: ' . $e->getMessage());
             throw $e;
@@ -97,56 +103,66 @@ class SafehavenService
     {
         try {
             // Initiate the BVN verification consent process
-            $url = self::$baseUrl . '/bvn/verifications';
+            $url = self::$baseUrl . '/identity/v2';
             
             $data = [
-                'bvn' => $verification_data->bvn,
-                'firstname' => $verification_data->user->first_name,
-                'lastname' => $verification_data->user->last_name,
-                'callback_url' => self::$callbackUrl,
+                'type' => 'BVN',
+                'number' => $verification_data->bvn,
+                'debitAccountNumber' => config('services.safehaven.account_number'),
             ];
 
             $response = Http::talkToSafehaven($url, 'POST', $data);
             
-            if ($response['status'] !== 'success') {
-                throw new Exception('Error verifying BVN: ' . $response['message']);
+            if (strtolower($response['data']['status']) !== 'success') {
+                throw new Exception('Error verifying BVN: Invalid BVN or other verification error.');
             }
             
-            $reference = $response['data']['reference'] ?? null; 
-            
-            if (!$reference) {
-                throw new Exception('Error verifying BVN: No reference found in response');
-            }
-            
-            // Send the reference gotten to retrieve the BVN information 
-            
-            $verification_url = self::$baseUrl . '/bvn/verifications/' . $reference;
-            
-            $verification_response = Http::talkToSafehaven($verification_url, 'GET');
+            return [
+                'message' => 'BVN verification has been initiated. Check your phone number for a verification code.',
+                'data' => [
+                    'verification_id' => $response['data']['_id'],
+                ]
+            ];
+        } catch (Exception $e) {
+            Log::error('Error Encountered at Verify BVN method in Safehaven Service: ' . $e->getMessage());
+            throw $e;
+        }
+    }
 
-            if ($verification_response['status'] !== 'success') {
-                throw new Exception('Error verifying BVN: ' . $verification_response['message']);
-            }
+    public function validateBVN (object $verification_data)
+    {
+        try {
+            // Initiate the BVN verification consent process
+            $url = self::$baseUrl . '/identity/v2/validate';
             
-            $response_data = $verification_response['data']['bvn_data'] ?? null;
+            $data = [
+                'type' => 'BVN',
+                'identityId' => $verification_data->verification_id,
+                'otp' => $verification_data->otp,
+            ];
 
+            $response = Http::talkToSafehaven($url, 'POST', $data);
+            if (strtolower($response['data']['status']) !== 'success') {
+                throw new Exception('Error verifying BVN: Invalid BVN or other verification error.');
+            }
+            $response_data = $response['data']['providerResponse'] ?? null;
+            
             if (is_null($response_data)) {
                 throw new Exception('Error verifying BVN: No data found in response');
             }
             
-            if ($response_data['firstName'] !== $verification_data->user->first_name || $response_data['surname'] !== $verification_data->user->last_name) {
-                throw new Exception('Error verifying BVN: Name mismatch');
-            }
-            
-            if ($response_data['nin'] !== $verification_data->nin) {
-                throw new Exception('Error verifying BVN: NIN mismatch');
+            if (strtolower($response_data['firstName']) !== strtolower($verification_data->user->first_name) || strtolower($response_data['lastName']) !== strtolower($verification_data->user->last_name)) {
+                throw new InvalidArgumentException('Error verifying BVN: Name mismatch');
             }
             
             $userService = resolve(UserService::class);
             $userService->updateUserAccount($verification_data->user, [
                 'bvn_status' => 'SUCCESSFUL',
                 'kyc_status' => 'SUCCESSFUL',
+                // 'bvn' => $verification_data->bvn,
             ]);
+            
+            // event(new CreateWalletEvent($verification_data->user, $verification_data->bvn, $verification_data->verification_id, $verification_data->otp));
 
             return 'BVN verified successfully';
         } catch (Exception $e) {
@@ -156,31 +172,37 @@ class SafehavenService
     }
 
     /**
-     * Create a Payout SubAccount using the Paystack API.
+     * Create a Individual SubAccount using the Paystack API.
      *
      * @param User $user
      * @param string $country
      * @return array
      * @throws Exception
      */
-    public function createPSA(User $user, string $country): array
+    public function createISA(User $user, string $country, string $bvn, string $verification_id, string $otp): array
     {
         try {
 
-            $url = self::$baseUrl . '/payout-subaccounts';
+            $url = self::$baseUrl . '/accounts/v2/subaccount';
 
             $data = [
-                'account_name' => $user->name,
-                'email' => $user->email,
-                'mobilenumber' => $user->phone_number,
-                'country' => $country,
+                'phoneNumber' => $country === "NG" ? '+234' . substr($user->phone_number, 1) : $user->phone_number,
+                'emailAddress' => $user->email,
+                'externalReference' => str_replace('-', '', $user->wallet->id),
+                'identityType' => 'BVN',
+                'identityNumber' => $bvn,
+                'identityId' => $verification_id,
+                'otp' => $otp,
+                'autoSweep' => false,
+                'autoSweepDetails' => [
+                    'schedule' => 'Instant'
+                ]
             ];
 
             $response = Http::talkToSafehaven($url, 'POST', $data);
-
             return $response;
         } catch (Exception $e) {
-            Log::error('Error Encountered at Create PSA method in Safehaven Service: ' . $e->getMessage());
+            Log::error('Error Encountered at Create ISA method in Safehaven Service: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -212,17 +234,15 @@ class SafehavenService
         }
     }
 
-    public function getPSA(string $account_reference, string $currency): array
+    public function getISA(string $id, string $currency): array
     {
         try {
 
-            $url = self::$baseUrl . '/payout-subaccounts/' . $account_reference . '/balances?currency=' . $currency;
-
+            $url = self::$baseUrl . '/accounts/' . $id;
             $response = Http::talkToSafehaven($url);
-
             return $response;
         } catch (Exception $e) {
-            Log::error('Error Encountered at getting PSA method in Safehaven Service: ' . $e->getMessage());
+            Log::error('Error Encountered at getting ISA method in Safehaven Service: ' . $e->getMessage());
             throw $e;
         }
     }

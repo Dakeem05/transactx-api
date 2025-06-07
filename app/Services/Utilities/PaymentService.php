@@ -125,12 +125,32 @@ class PaymentService
 
             return $this->flutterwaveService->verifyBVN($verification_data);
         }
+        if ($provider->name === 'safehaven') {
+            if (!$this->safehavenService) {
+                throw new Exception('Safehaven service not found');
+            }
+
+            return $this->safehavenService->verifyBVN($verification_data);
+        }
         if ($provider->name === 'paystack') {
             if (!$this->paystackService) {
                 throw new Exception('Paystack service not found');
             }
 
             return $this->paystackService->verifyBVN($verification_data);
+        }
+    }
+
+    public function validateBVN (object $verification_data)
+    {
+        $provider = $this->getPaymentServiceProvider();
+
+        if ($provider->name === 'safehaven') {
+            if (!$this->safehavenService) {
+                throw new Exception('Safehaven service not found');
+            }
+
+            return $this->safehavenService->validateBVN($verification_data);
         }
     }
 

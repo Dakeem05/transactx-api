@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Helpers\TransactX;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,11 +19,11 @@ class UserIsEmailVerified
         $user = $request->user();
 
         if (!$user) {
-            return response()->json(['message' => 'Unauthenticated'], 401);
+            return TransactX::response(false, 'Unauthenticated.', 401);
         }
 
         if (is_null($user->email_verified_at)) {
-            return response()->json(['message' => 'Email has not been verified.'], 403);
+            return TransactX::response(false, 'Email has not been verified.', 403);
         }
         return $next($request);
     }

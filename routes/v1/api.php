@@ -55,7 +55,8 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
         Route::get('/', [UserAccountController::class, 'show'])->name('user.show.account');
         Route::middleware('user.is.main.account')->put('/update', [UserAccountController::class, 'update'])->name('user.update.account');
         Route::middleware('user.is.main.account')->post('/update-avatar', [UserAccountController::class, 'updateAvatar'])->name('user.update.avatar');
-        Route::middleware('user.is.main.account')->post('bvn/verification', [UserAccountController::class, 'verifyBVN'])->name('user.validate.bvn');
+        Route::middleware('user.is.main.account')->post('bvn/initiate-verification', [UserAccountController::class, 'initiateBvnVerification'])->name('user.bvn.initiate.verification');
+        Route::middleware('user.is.main.account')->post('bvn/validate-verification', [UserAccountController::class, 'validateBvnVerification'])->name('user.bvn.validate.verification');
         Route::middleware('user.is.main.account')->delete('/', [UserAccountController::class, 'destroy'])->name('user.delete.account');
         Route::middleware('user.is.main.account')->post('/delete-account', [UserAccountController::class, 'verifyOtpAndDeleteAccount'])->name('user.verify.otp.and.delete.account');
     });
@@ -86,23 +87,20 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
         Route::post('/request-money-from-email', [TransactionsController::class, 'requestMoneyFromEmail'])->name('user.transactions.request.money.from.email');
     });
 
-    Route::prefix('wallet')->group(function () {
-        Route::get('/', [UserWalletController::class, 'index'])->name('user.get.wallet');
-        Route::middleware('user.is.main.account')->post('/', [UserWalletController::class, 'store'])->name('user.create.wallet');
-    });
     /* -------------------------- Verified User Routes ------------------------- */
     Route::middleware('user.is.verified')->group(function () {   
-        Route::middleware('user.is.main.account')->prefix('sub-account')->group(function () {
+        Route::middleware(['user.is.main.account', 'user.is.organization'])->prefix('sub-account')->group(function () {
             Route::post('/', CreateSubAccountController::class)->name('user.create.sub-account');
             Route::get('/', [SubAccountController::class, 'show'])->name('user.sub-accounts');
             Route::put('/{id}', [SubAccountController::class, 'update'])->name('user.update.sub-account');
             Route::delete('/{id}', [SubAccountController::class, 'destroy'])->name('user.delete.sub-account');
         });
         
-        // Route::prefix('wallet')->group(function () {
-        //     Route::get('/', [UserWalletController::class, 'index'])->name('user.get.wallet');
-        //     Route::middleware('user.is.main.account')->post('/', [UserWalletController::class, 'store'])->name('user.create.wallet');
-        // });
+        Route::prefix('wallet')->group(function () {
+            Route::get('/', [UserWalletController::class, 'index'])->name('user.get.wallet');
+            Route::middleware('user.is.main.account')->post('/initiate-create', [UserWalletController::class, 'initiateCreateWallet'])->name('user.initiate.create.wallet');
+            Route::middleware('user.is.main.account')->post('/', [UserWalletController::class, 'store'])->name('user.create.wallet');
+        });
         
         Route::prefix('subscription-model')->group(function () {
             Route::get('/', [UserSubscriptionModelController::class, 'index'])->name('user.list.sub-model');

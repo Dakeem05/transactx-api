@@ -9,7 +9,7 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
-class VerifyUserBVNRequest extends FormRequest
+class ValidateUserBVNRequest extends FormRequest
 {
 
     private string $request_uuid;
@@ -31,8 +31,8 @@ class VerifyUserBVNRequest extends FormRequest
         $this->request_uuid = Str::uuid()->toString();
 
         Log::channel('daily')->info(
-            'VERIFY USER BVN: START',
-            ["uid" => $this->request_uuid, "request" => $this->except(['bvn', 'nin'])]
+            'VALIDATE USER BVN: START',
+            ["uid" => $this->request_uuid, "request" => $this->except(['bvn', 'verification_id'])]
         );
     }
 
@@ -44,10 +44,9 @@ class VerifyUserBVNRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'account_number' => ['bail', 'optional', 'digits:10'],
-            'nin' => ['bail', 'nullable', 'string'],
+            'verification_id' => ['bail', 'required', 'string'],
+            'otp' => ['bail', 'required', 'string'],
             'bvn' => ['bail', 'required', 'digits:11'],
-            'bank_code' => ['bail', 'optional', 'string'],
         ];
     }
 
@@ -80,7 +79,7 @@ class VerifyUserBVNRequest extends FormRequest
         $firstError = collect($errors)->flatten()->first();
 
         Log::channel('daily')->info(
-            'VERIFY USER BVN: VALIDATION',
+            'VALIDATE USER BVN: VALIDATION',
             ["uid" => $this->request_uuid, "response" => ['errors' => $errors]]
         );
 

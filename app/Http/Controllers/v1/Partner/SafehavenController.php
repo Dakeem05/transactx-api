@@ -78,67 +78,67 @@ class SafehavenController extends Controller
             $payload = $request->all();
             Log::info('Webhook received!', compact("payload"));
             
-            // only a post with safehaven signature header gets our attention
-            if ((strtoupper($_SERVER['REQUEST_METHOD']) != 'POST') || !isset($_SERVER['HTTP_VERIF_HASH'])) {
-                throw new Exception('Invalid signature');
-            }
+            // // only a post with safehaven signature header gets our attention
+            // if ((strtoupper($_SERVER['REQUEST_METHOD']) != 'POST') || !isset($_SERVER['HTTP_VERIF_HASH'])) {
+            //     throw new Exception('Invalid signature');
+            // }
 
-            //get safehaven webhook hash
-            $secret_webhook_hash = config('services.safehaven.webhook_hash');
+            // //get safehaven webhook hash
+            // $secret_webhook_hash = config('services.safehaven.webhook_hash');
 
-            // validate event do all at once to avoid timing attack
-            if ($_SERVER['HTTP_VERIF_HASH'] != $secret_webhook_hash) {
-                throw new Exception('Invalid signature');
-            }
+            // // validate event do all at once to avoid timing attack
+            // if ($_SERVER['HTTP_VERIF_HASH'] != $secret_webhook_hash) {
+            //     throw new Exception('Invalid signature');
+            // }
 
             $responseData = ['message' => 'Webhook received!'];
             $ipAddress = $request->ip();
 
-            $this->webhookService->recordIncomingWebhook(PartnersEnum::safehaven->value, $payload, $responseData, Response::HTTP_OK, $ipAddress);
+            $this->webhookService->recordIncomingWebhook(PartnersEnum::SAFEHAVEN->value, $payload, $responseData, Response::HTTP_OK, $ipAddress);
 
-            $event_type = $payload['event'];
+            $event_type = $payload['type'];
 
             // Payout subaccount funding webhook
-            if (in_array($event_type, ['transfer.completed']) && $payload['data']['debit_currency'] === 'PSA' && $payload['data']['status'] === 'SUCCESSFUL') {
-                $external_transaction_reference = $payload['data']['reference'];
-                $account_number = $payload['data']['account_number'];
-                $amount = $payload['data']['amount'];
+            if (in_array($event_type, ['transfer']) && $payload['data']['type'] === 'Inwards' && $payload['data']['status'] === 'Completed') {
+                $external_transaction_reference = $payload['data']['paymentReference'];
+                $account_number = $payload['data']['creditAccountNumber'];
+                $amount = $payload['data']['amount'] - $payload['data']['fees'];
                 $currency = Settings::where('name', 'currency')->first()->value;
                 event(new WalletTransactionReceived($account_number, $amount, $currency, $external_transaction_reference));
                 
                 $sender_transaction = Transaction::where('external_transaction_reference', $external_transaction_reference)->where('status', 'PENDING')->orWhere('status', 'PROCESSING')->with(['wallet', 'user'])->first();
-
-                if ($sender_transaction) {
-                    event(new TransferSuccessful($sender_transaction, $account_number, Settings::where('name', 'currency')->first()->value, $payload['data']['fullname']));
-                }
-                return;
-            }
-
-            // Successful transfers webhook
-            if (in_array($event_type, ['transfer.completed']) && $payload['data']['debit_currency'] === Settings::where('name', 'currency')->first()->value && $payload['data']['status'] === 'SUCCESSFUL') {
-                $external_transaction_reference = $payload['data']['reference'];
-                $account_number = $payload['data']['metadata']['account_number'];
                 
-                $sender_transaction = Transaction::where('external_transaction_reference', $external_transaction_reference)->where('status', 'PENDING')->orWhere('status', 'PROCESSING')->with(['wallet', 'user'])->first();
-
                 if ($sender_transaction) {
-                    event(new TransferSuccessful($sender_transaction, $account_number, Settings::where('name', 'currency')->first()->value, $payload['data']['fullname']));
+                    event(new TransferSuccessful($sender_transaction, $account_number, Settings::where('name', 'currency')->first()->value, $payload['data']['creditAccountName']));
                 }
                 return;
             }
+
+            // // Successful transfers webhook
+            // if (in_array($event_type, ['transfer.completed']) && $payload['data']['debit_currency'] === Settings::where('name', 'currency')->first()->value && $payload['data']['status'] === 'SUCCESSFUL') {
+            //     $external_transaction_reference = $payload['data']['reference'];
+            //     $account_number = $payload['data']['metadata']['account_number'];
+                
+            //     $sender_transaction = Transaction::where('external_transaction_reference', $external_transaction_reference)->where('status', 'PENDING')->orWhere('status', 'PROCESSING')->with(['wallet', 'user'])->first();
+
+            //     if ($sender_transaction) {
+            //         event(new TransferSuccessful($sender_transaction, $account_number, Settings::where('name', 'currency')->first()->value, $payload['data']['fullname']));
+            //     }
+            //     return;
+            // }
             
-            // Failed transfers webhook
-            if (in_array($event_type, ['transfer.completed']) && $payload['data']['debit_currency'] === Settings::where('name', 'currency')->first()->value && $payload['data']['status'] === 'FAILED') {
-                $external_transaction_reference = $payload['data']['reference'];
-                $account_number = $payload['data']['metadata']['account_number'];
+            // // Failed transfers webhook
+            // if (in_array($event_type, ['transfer.completed']) && $payload['data']['debit_currency'] === Settings::where('name', 'currency')->first()->value && $payload['data']['status'] === 'FAILED') {
+            //     $external_transaction_reference = $payload['data']['reference'];
+            //     $account_number = $payload['data']['metadata']['account_number'];
                 
-                $sender_transaction = Transaction::where('external_transaction_reference', $external_transaction_reference)->where('status', 'PENDING')->orWhere('status', 'PROCESSING')->first();
+            //     $sender_transaction = Transaction::where('external_transaction_reference', $external_transaction_reference)->where('status', 'PENDING')->orWhere('status', 'PROCESSING')->first();
                 
-                if ($sender_transaction) {
-                    event(new TransferFailed($sender_transaction, $payload['data']['fullname']));
-                }
-                return;
-            }
+            //     if ($sender_transaction) {
+            //         event(new TransferFailed($sender_transaction, $payload['data']['fullname']));
+            //     }
+            //     return;
+            // }
 
 
 

@@ -70,6 +70,7 @@ class Kernel extends HttpKernel
         'user.is.verified' => \App\Http\Middleware\UserIsVerified::class,
         'user.is.email.verified' => \App\Http\Middleware\UserIsEmailVerified::class,
         'user.is.main.account' => \App\Http\Middleware\UserIsMainAccount::class,
+        'user.is.organization' => \App\Http\Middleware\UserIsOrganization::class,
         'user.has.set.transaction.pin' => \App\Http\Middleware\UserHasSetTransactionPin::class,
     ];
 }

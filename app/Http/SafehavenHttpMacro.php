@@ -21,7 +21,7 @@ class SafehavenHttpMacro
     {
         try {
             $accessTokens = self::generateAccessToken($base_url);
-
+    
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $accessTokens['access_token'],
                 'ClientID' => $accessTokens['ibs_client_id'],
@@ -33,10 +33,10 @@ class SafehavenHttpMacro
                 $statusCode = $response->status();
                 $responseBody = $response->body();
                 $responseHeaders = $response->headers();
-
+    
                 throw new Exception("Safehaven API request failed with status code $statusCode. Response body: $responseBody, Headers: " . json_encode($responseHeaders));
             }
-
+    
             return $response->json();
         } catch (Exception $e) {
             throw $e;
@@ -63,7 +63,6 @@ class SafehavenHttpMacro
 
                 throw new Exception("Safehaven API request failed with status code $statusCode. Response body: $responseBody, Headers: " . json_encode($responseHeaders));
             }
-
             return $response->json();
         } catch (Exception $e) {
             throw $e;

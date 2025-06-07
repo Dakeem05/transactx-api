@@ -77,6 +77,7 @@ class UserService
             'username' => $attributes['username'] ?? $user->username,
             'customer_code' => $attributes['customer_code'] ?? $user->customer_code,
             'bvn_status' => $attributes['bvn_status'] ?? $user->bvn_status,
+            'bvn' => $attributes['bvn'] ?? $user->bvn,
             'kyc_status' => $attributes['kyc_status'] ?? $user->kyc_status,
             'transaction_pin' => $attributes['transaction_pin'] ?? $user->transaction_pin,
             'password' => $attributes['password'] ?? $user->password,

@@ -55,5 +55,6 @@ return [
         'sandbox_client_id' => env('SAFEHAVEN_SANDBOX_CLIENT_ID'),
         'client_assertion' => env('SAFEHAVEN_CLIENT_ASSERTION'),
         'sandbox_client_assertion' => env('SAFEHAVEN_SANDBOX_CLIENT_ASSERTION'),
+        'account_number' => env('SAFEHAVEN_DEBIT_ACCOUNT_NUMBER'),
     ]
 ];

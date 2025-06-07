@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\v1\User\Otp\UserOtpController;
 use App\Http\Requests\User\Account\UpdateUserAccountRequest;
 use App\Http\Requests\User\Account\UpdateUserAvatarRequest;
+use App\Http\Requests\User\Account\ValidateUserBVNRequest;
 use App\Http\Requests\User\Account\VerifyUserBVNRequest;
 use App\Http\Requests\User\Otp\VerifyAppliedVerificationCodeRequest;
 use App\Models\User;
@@ -19,6 +20,7 @@ use Exception;
 use GuzzleHttp\Promise\Create;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
 
@@ -69,7 +71,6 @@ class UserAccountController extends Controller
 
             if (isset($validatedData['profile'])) {
                 $uploadedFile = $validatedData['avatar'];
-                dd($uploadedFile->getRealPath());
                 $result = cloudinary()->upload($uploadedFile->getRealPath())->getSecurePath();
                 $validatedData['avatar'] = $result;
             }
@@ -117,22 +118,24 @@ class UserAccountController extends Controller
     }
     
     
-    /**
-     * Verify a User BVN
-     */
-    public function verifyBVN(VerifyUserBVNRequest $request): JsonResponse
+    public function initiateBvnVerification(VerifyUserBVNRequest $request): JsonResponse
     {
         try {
             $validatedData = $request->validated();
             $user = Auth::user();
             $bvn = $validatedData['bvn'];
-            $nin = $validatedData['nin'];
+            $nin = $validatedData['nin'] ?? null;
             $bank_code = $validatedData['bank_code'] ?? null;
             $account_number = $validatedData['account_number'] ?? null;
 
             if ($user->bvnVerified()) {
                 throw new InvalidArgumentException("BVN has already been verified");
             }
+
+            // SUPPOSED TO CHECK IF VN HAS BEEN VERIFIED BEFORE 
+            // if (User::withBvn($request->bvn)->exists()) {
+            //     throw new InvalidArgumentException("BVN already exists");
+            // }
 
             $verification_data = (object) [
                 'user' => $user,
@@ -145,6 +148,41 @@ class UserAccountController extends Controller
             $paymentService = resolve(PaymentService::class);
             $verification_response = $paymentService->verifyBVN($verification_data);
                 
+            return TransactX::response(true, $verification_response['message'], 200, (object) [
+                'verification_id' => $verification_response['data']['verification_id'],
+            ]);
+        } catch (InvalidArgumentException $e) {
+            Log::error('VERIFY USER BVN: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(false, $e->getMessage(), 400);
+        } catch (Exception $e) {
+            Log::error('VERIFY USER BVN: Error Encountered: ' . $e->getMessage());
+            // return TransactX::response(false, 'Failed to verify user bvn', 500);
+
+            return TransactX::response(false, 'Failed to validate user bvn'.$e->getMessage(), 500);
+
+        }
+    }
+
+    public function validateBvnVerification(ValidateUserBVNRequest $request): JsonResponse
+    {
+        try {
+            $validatedData = $request->validated();
+            $user = Auth::user();
+
+            if ($user->bvnVerified()) {
+                throw new InvalidArgumentException("BVN has already been verified");
+            }
+
+            $verification_data = (object) [
+                'user' => $user,
+                'otp' =>  $validatedData['otp'],
+                'bvn' =>  $validatedData['bvn'],
+                'verification_id' =>  $validatedData['verification_id'],
+            ];
+
+            $paymentService = resolve(PaymentService::class);
+            $verification_response = $paymentService->validateBVN($verification_data);
+                
             return TransactX::response(true, $verification_response, 200);
         } catch (InvalidArgumentException $e) {
             Log::error('VERIFY USER BVN: Error Encountered: ' . $e->getMessage());
@@ -152,8 +190,6 @@ class UserAccountController extends Controller
         } catch (Exception $e) {
             Log::error('VERIFY USER BVN: Error Encountered: ' . $e->getMessage());
             return TransactX::response(false, 'Failed to validate user bvn', 500);
-            // return TransactX::response(false, 'Failed to validate user bvn'.$e->getMessage(), 500);
-
         }
     }
 

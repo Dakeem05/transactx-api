@@ -16,6 +16,7 @@ use Facades\Laravolt\Avatar\Avatar;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Kreait\Firebase\Messaging\MessageTarget;
@@ -39,7 +40,9 @@ class User extends Authenticatable
         'country',
         'referral_code',
         'transaction_pin',
+        'bvn',
         'kyc_status',
+        'kyb_status',
         'password',
         'customer_code',
         'email_verified_at',
@@ -62,6 +65,7 @@ class User extends Authenticatable
      */
     protected $hidden = [
         'role_id',
+        'bvn',
         'password',
         'transaction_pin',
         'remember_token',
@@ -79,7 +83,8 @@ class User extends Authenticatable
         'transaction_pin' => 'hashed',
         'push_in_app_notifications' => 'boolean',
         'push_email_notifications' => 'boolean',
-        'is_active' => 'boolean'
+        'is_active' => 'boolean',
+        'bvn' => 'encrypted',
     ];
 
     protected $appends = ['last_name', 'first_name'];
@@ -171,9 +176,19 @@ class User extends Authenticatable
         return $this->account_type === 'main';
     }
 
+    public function isOrganization(): bool
+    {
+        return $this->user_type === 'organization';
+    }
+
     public function kycVerified(): bool
     {
         return $this->kyc_status === 'SUCCESSFUL';
+    }
+
+    public function kybVerified(): bool
+    {
+        return $this->kyb_status === 'SUCCESSFUL';
     }
 
     public function bvnVerified(): bool
@@ -200,6 +215,12 @@ class User extends Authenticatable
     {
         return $this->belongsTo(User::class, 'main_account_id');
     }
+
+    public function scopeWithBvn($query, $bvn)
+    {
+        return $query->where('bvn', Crypt::encrypt($bvn));
+    }
+
 
 
     /**

@@ -4,8 +4,11 @@ namespace App\Http\Controllers\v1\User\Wallet;
 
 use App\Helpers\TransactX;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\User\Account\CreateWalletRequest;
+use App\Http\Requests\User\Account\VerifyUserBVNRequest;
 use App\Models\Settings;
 use App\Services\User\WalletService;
+use App\Services\Utilities\PaymentService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -42,32 +45,88 @@ class UserWalletController extends Controller
     /**
      * This handles creation of wallet
      */
-    public function store(Request $request): JsonResponse
+    public function initiateCreateWallet(VerifyUserBVNRequest $request): JsonResponse
     {
         try {
-
+            $validatedData = $request->validated();
             $user = Auth::user();
+            $bvn = $validatedData['bvn'];
 
             $userId = $user->id;
 
-            // if (!$user->bvnVerified()) {
-            //     throw new InvalidArgumentException('You need to verify your BVN before you can create a wallet.');
-            // }
-
+            if (!$user->bvnVerified()) {
+                throw new InvalidArgumentException("You need to verify your BVN before you can create a wallet.");
+                // return TransactX::response(false, 'You need to verify your BVN before you can create a wallet.', 400);
+            }
+            
+            if (is_null($user->phone_number)) {
+                throw new InvalidArgumentException("You need to update your phone number.");
+                // return TransactX::response(false, 'You need to update your phone number.', 400);
+            }
+            
             if ($this->walletService->getUserWallet($userId)) {
-                throw new InvalidArgumentException('User already has a wallet.');
+                throw new InvalidArgumentException("User already has a wallet.");
+                // return TransactX::response(false, 'User already has a wallet.', 400);
             }
 
-            $wallet = $this->walletService->createWallet($userId);
+            $verification_data = (object) [
+                'user' => $user,
+                'bvn' => $bvn,
+            ];
 
-            return TransactX::response(true, 'Wallet created successfully.', 201, $wallet);
-            // 
+            $paymentService = resolve(PaymentService::class);
+            $verification_response = $paymentService->verifyBVN($verification_data);
+                
+            return TransactX::response(true, 'Create wallet initiated succesfully.', 200, (object) [
+                'verification_id' => $verification_response['data']['verification_id'],
+            ]);
         } catch (InvalidArgumentException $e) {
             Log::error('CREATE WALLET: Error Encountered: ' . $e->getMessage());
             return TransactX::response(false,  $e->getMessage(), 400);
         } catch (Exception $e) {
             Log::error('CREATE WALLET: Error Encountered: ' . $e->getMessage());
             return TransactX::response(false, 'Failed to create wallet. ' . $e->getMessage(), 500);
+        }
+    }
+
+    public function store(CreateWalletRequest $request): JsonResponse
+    {
+        try {
+
+            $validatedData = $request->validated();
+            $user = Auth::user();
+
+            $userId = $user->id;
+
+            if (!$user->bvnVerified()) {
+                throw new InvalidArgumentException("You need to verify your BVN before you can create a wallet.");
+                // return TransactX::response(false, 'You need to verify your BVN before you can create a wallet.', 400);
+            }
+            
+            if (is_null($user->phone_number)) {
+                throw new InvalidArgumentException("You need to update your phone number.");
+                // return TransactX::response(false, 'You need to update your phone number.', 400);
+            }
+            
+            if ($this->walletService->getUserWallet($userId)) {
+                throw new InvalidArgumentException("User already has a wallet.");
+                // return TransactX::response(false, 'User already has a wallet.', 400);
+            }
+
+            $wallet = $this->walletService->createWallet($userId, 
+                Settings::where('name', 'currency')->first()->value, 
+                $validatedData['bvn'], 
+                $validatedData['verification_id'], 
+                $validatedData['otp']
+            );
+
+            return TransactX::response(true, 'Wallet created successfully.', 201, $wallet);
+        } catch (InvalidArgumentException $e) {
+            Log::error('CREATE WALLET: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(false,  $e->getMessage(), 400);
+        } catch (Exception $e) {
+            Log::error('CREATE WALLET: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(false, 'Failed to create wallet.', 500);
         }
     }
 }

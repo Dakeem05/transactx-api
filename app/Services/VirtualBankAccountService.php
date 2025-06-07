@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\VirtualBankAccount;
 use App\Services\External\FlutterwaveService;
 use App\Services\External\PaystackService;
+use App\Services\External\SafehavenService;
 use App\Services\Utilities\PaymentService;
 use Exception;
 use Illuminate\Support\Facades\Log;
@@ -89,7 +90,7 @@ class VirtualBankAccountService
      * 
      * @return ?VirtualBankAccount|void
      */
-    public function createVirtualBankAccount(User $user, $currency = 'NGN', string $walletId, string $provider)
+    public function createVirtualBankAccount(User $user, $currency = 'NGN', string $walletId, string $provider, ?string $bvn = null, ?string $verification_id = null, ?string $otp = null)
     {
         if ($provider == 'paystack') {
             $virtualBankAccount = $this->createVirtualBankAccountViaPaystack($user, $currency, $walletId, $provider);
@@ -97,6 +98,10 @@ class VirtualBankAccountService
             return $virtualBankAccount;
         } else if ($provider == 'flutterwave') {
             $virtualBankAccount = $this->createVirtualBankAccountViaFlutterwave($user, $currency, $walletId, $provider);
+            event(new VirtualBankAccountCreated($virtualBankAccount));
+            return $virtualBankAccount;
+        } else if ($provider == 'safehaven') {
+            $virtualBankAccount = $this->createVirtualBankAccountViaSafehaven($user, $currency, $walletId, $provider, $bvn, $verification_id, $otp);
             event(new VirtualBankAccountCreated($virtualBankAccount));
             return $virtualBankAccount;
         }
@@ -179,6 +184,46 @@ class VirtualBankAccountService
         ]);
     }
 
+    /**
+     * This creates a payout subaccount using Safehaven service
+     * 
+     * @param \App\Models\User $user
+     * @param string $currency
+     * @param string $walletId
+     * @param string $provider
+     * @param string|null $bvn
+     * @param string|null $verification_id
+     * @param string|null $otp
+     * 
+     * @return VirtualBankAccount|\Illuminate\Database\Eloquent\Model|void
+     */
+    private function createVirtualBankAccountViaSafehaven(User $user, $currency, string $walletId, string $provider, string $bvn, string $verification_id, string $otp)
+    {
+        $safehavenService = resolve(SafehavenService::class);
+
+        $response = $safehavenService->createISA($user, Settings::where('name', 'country')->first()->value, $bvn, $verification_id, $otp);
+        
+        if (isset($response['statusCode']) && $response['statusCode'] != 200) {
+            Log::error('createVirtualBankAccountViaSafehaven: Failed to create ISA. Reason: ' . $response['message']);
+            return;
+        }
+
+        $data = $response['data'];
+
+        return VirtualBankAccount::create([
+            'wallet_id' => $walletId,
+            'currency' => $currency,
+            'country' => Settings::where('name', 'country')->first()->value,
+            'account_number' => $data['accountNumber'],
+            'account_name' => $data['accountName'],
+            'account_reference' => $data['externalReference'],
+            'barter_id' => $data['_id'],
+            'bank_name' => 'Safehaven',
+            'bank_code' => null, // Safehaven does not provide a bank code
+            'provider' => $provider,
+        ]);
+    }
+
     public function getAccount(VirtualBankAccount $virtualBankAccount, $currency)
     {
         $virtualBankAccount = VirtualBankAccount::find($virtualBankAccount->id);
@@ -205,6 +250,8 @@ class VirtualBankAccountService
             throw new Exception("Getting of paystack balance not integrated.");
         } else if ($provider == 'flutterwave') {
             return $this->getVirtualBankAccountViaFlutterwave($virtualBankAccount->account_reference, $currency);
+        } else if ($provider == 'safehaven') {
+            return $this->getVirtualBankAccountViaSafehaven($virtualBankAccount->barter_id, $currency);
         }
     }
 
@@ -215,6 +262,19 @@ class VirtualBankAccountService
         $response = $flutterwaveService->getPSA($account_reference, $currency);
         if (isset($response['status']) && $response['status'] != 'success') {
             Log::error('getVirtualBankAccountViaFlutterwave: Failed to get PSA. Reason: ' . $response['message']);
+            return;
+        }
+
+        return $response['data'];
+    }
+
+    private function getVirtualBankAccountViaSafehaven(string $account_reference, string $currency)
+    {
+        $safehavenService = resolve(SafehavenService::class);
+
+        $response = $safehavenService->getISA($account_reference, $currency);
+        if (isset($response['statusCode']) && $response['statusCode'] != 200) {
+            Log::error('getVirtualBankAccountViaSafehaven: Failed to get ISA. Reason: ' . $response['message']);
             return;
         }
 

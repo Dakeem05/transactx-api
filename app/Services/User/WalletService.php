@@ -60,8 +60,8 @@ class WalletService
             $virtualBankAccountService = resolve(VirtualBankAccountService::class);
             $data = $virtualBankAccountService->getAccount($wallet->virtualBankAccount, $currency);
 
-            $wallet->ledger_balance->plus(Money::of($data['ledger_balance'], $wallet->currency));
-            $wallet->amount->plus(Money::of($data['available_balance'], $wallet->currency));
+            $wallet->ledger_balance->plus(Money::of($data['bookBalance'], $wallet->currency));
+            $wallet->amount->plus(Money::of($data['accountBalance'], $wallet->currency));
             $wallet->refresh();
         }
 
@@ -76,7 +76,7 @@ class WalletService
      * @param string $currency
      * @return Wallet
      */
-    public function createWallet($userId, $currency = 'NGN'): Wallet
+    public function createWallet($userId, $currency = 'NGN', $bvn = null, $verification_id = null, $otp = null): Wallet
     {
         try {
             DB::beginTransaction();
@@ -86,9 +86,9 @@ class WalletService
                 'currency' => $currency,
                 'amount' => 0,
             ]);
-    
-            event(new UserWalletCreated($wallet));
-
+            
+            event(new UserWalletCreated($wallet, $bvn, $verification_id, $otp));
+            
             DB::commit();
             return $wallet;
         } catch (Exception $e) {

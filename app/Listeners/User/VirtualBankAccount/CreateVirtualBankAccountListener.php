@@ -55,7 +55,10 @@ class CreateVirtualBankAccountListener implements ShouldQueue
                 $user, 
                 $currency, 
                 $wallet->id, 
-                $provider->name
+                $provider->name,
+                $event->bvn ?? null,
+                $event->verification_id ?? null,
+                $event->otp ?? null,
             );
         }
     }
