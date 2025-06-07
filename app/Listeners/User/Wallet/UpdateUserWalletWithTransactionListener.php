@@ -31,41 +31,60 @@ class UpdateUserWalletWithTransactionListener implements ShouldQueue
     {
         $account_number = $event->account_number;
         $amount = $event->amount;
-        $currency = $event->currency;
+        $currency = strtoupper($event->currency); // Ensure consistent case
         $external_reference = $event->external_reference;
 
         try {
             DB::beginTransaction();
 
-            $wallet = Wallet::whereHas('virtualBankAccount', function ($query) use ($account_number, $currency) {
-                $query->where([
-                    ['account_number', $account_number],
-                    ['currency', $currency],
-                ]);
-            })->where('currency', $currency)
-                ->with(['user'])
+            // Optimized wallet query
+            $wallet = Wallet::with(['user', 'virtualBankAccount'])
+                ->whereHas('virtualBankAccount', fn($q) => $q->where('account_number', $account_number))
+                ->where('currency', $currency)
                 ->first();
 
             if (!$wallet) {
-                Log::error('UpdateUserWalletWithTransactionListener.handle() - Wallet not found for account: ' . $account_number . ' and currency ' . $currency);
+                Log::error('Wallet not found', [
+                    'account_number' => $account_number,
+                    'currency' => $currency,
+                    'event_data' => $event
+                ]);
+                return;
+            }
+
+            // Validate amount is numeric
+            if (!is_numeric($amount)) {
+                Log::error('Invalid amount received', [
+                    'amount' => $amount,
+                    'type' => gettype($amount)
+                ]);
                 return;
             }
 
             $user = $wallet->user;
 
-            $this->walletService->deposit($wallet, $amount);
+            // Deposit to wallet
+            $this->walletService->deposit($wallet, (float) $amount);
 
-            $walletTransaction = $wallet->walletTransactions()->latest()->first();
+            // Get the created wallet transaction
+            $walletTransaction = $wallet->walletTransactions()
+                ->where('amount_change', $amount)
+                ->latest()
+                ->first();
 
-            if (!$walletTransaction && $walletTransaction->wallet_id != $wallet->id && $walletTransaction->amount_change != $amount) {
-                Log::error('UpdateUserWalletWithTransactionListener.handle() - Could not find matching transaction for wallet: ' . $wallet->id);
+            if (!$walletTransaction) {
+                Log::error('Wallet transaction not found after deposit', [
+                    'wallet_id' => $wallet->id,
+                    'amount' => $amount
+                ]);
                 return;
             }
 
+            // Create main transaction
             $transaction = $this->transactionService->createSuccessfulTransaction(
                 $user,
-                $amount,
-                $currency,
+                (float) $amount,
+                $currency, // Make sure your service accepts currency codes
                 'FUND_WALLET',
                 $wallet->id,
                 null,
@@ -76,9 +95,21 @@ class UpdateUserWalletWithTransactionListener implements ShouldQueue
             $this->transactionService->attachWalletTransactionFor($transaction, $wallet, $walletTransaction->id);
 
             DB::commit();
+
+            Log::info('Wallet funding processed successfully', [
+                'wallet_id' => $wallet->id,
+                'user_id' => $user->id,
+                'amount' => $amount,
+                'reference' => $external_reference
+            ]);
+
         } catch (Exception $e) {
             DB::rollBack();
-            Log::error("UpdateUserWalletWithTransactionListener.handle() - Error Encountered - " . $e->getMessage());
+            Log::error("Wallet funding failed", [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'event_data' => $event
+            ]);
         }
     }
 }

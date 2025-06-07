@@ -112,11 +112,11 @@ class SafehavenController extends Controller
                 $currency = Settings::where('name', 'currency')->first()->value;
                 event(new WalletTransactionReceived($account_number, $amount, $currency, $external_transaction_reference));
                 
-                $sender_transaction = Transaction::where('external_transaction_reference', $external_transaction_reference)->where('status', 'PENDING')->orWhere('status', 'PROCESSING')->with(['wallet', 'user'])->first();
+                // $sender_transaction = Transaction::where('external_transaction_reference', $external_transaction_reference)->where('status', 'PENDING')->orWhere('status', 'PROCESSING')->with(['wallet', 'user'])->first();
 
-                if ($sender_transaction) {
-                    event(new TransferSuccessful($sender_transaction, $account_number, Settings::where('name', 'currency')->first()->value, $payload['data']['creditAccountName']));
-                }
+                // if ($sender_transaction) {
+                //     event(new TransferSuccessful($sender_transaction, $account_number, Settings::where('name', 'currency')->first()->value, $payload['data']['creditAccountName']));
+                // }
                 return;
             }
 
