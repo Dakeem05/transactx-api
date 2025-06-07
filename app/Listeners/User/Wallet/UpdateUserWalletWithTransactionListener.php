@@ -31,59 +31,42 @@ class UpdateUserWalletWithTransactionListener implements ShouldQueue
     {
         $account_number = $event->account_number;
         $amount = $event->amount;
-        $currency = strtoupper($event->currency); // Ensure consistent case
+        $currency = $event->currency;
         $external_reference = $event->external_reference;
 
         try {
             DB::beginTransaction();
 
-            // Optimized wallet query
-            $wallet = Wallet::with(['user', 'virtualBankAccount'])
-                ->whereHas('virtualBankAccount', fn($q) => $q->where('account_number', $account_number))
-                ->where('currency', $currency)
+            $wallet = Wallet::whereHas('virtualBankAccount', function ($query) use ($account_number, $currency) {
+                $query->where([
+                    ['account_number', $account_number],
+                    ['currency', $currency],
+                ]);
+            })->where('currency', $currency)
+                ->with(['user'])
                 ->first();
 
             if (!$wallet) {
-                Log::error('Wallet not found', [
-                    'account_number' => $account_number,
-                    'currency' => $currency,
-                    'event_data' => $event
-                ]);
-                return;
-            }
-
-            // Validate amount is numeric
-            if (!is_numeric($amount)) {
-                Log::error('Invalid amount received', [
-                    'amount' => $amount,
-                    'type' => gettype($amount)
-                ]);
+                Log::error('UpdateUserWalletWithTransactionListener.handle() - Wallet not found for account: ' . $account_number . ' and currency ' . $currency);
                 return;
             }
 
             $user = $wallet->user;
 
-            // Deposit to wallet
-            $this->walletService->deposit($wallet, (float) $amount);
+            $this->walletService->deposit($wallet, $amount);
 
-            // Get the created wallet transaction
-            $walletTransaction = $wallet->walletTransactions()
-                ->latest()
-                ->first();
+            $walletTransaction = $wallet->walletTransactions()->latest()->first();
 
-            if (!$walletTransaction) {
-                Log::error('Wallet transaction not found after deposit', [
-                    'wallet_id' => $wallet->id,
-                    'amount' => $amount
-                ]);
+            if (!$walletTransaction && $walletTransaction->wallet_id != $wallet->id && $walletTransaction->amount_change != $amount) {
+                Log::error('UpdateUserWalletWithTransactionListener.handle() - Could not find matching transaction for wallet: ' . $wallet->id);
                 return;
             }
 
-            // Create main transaction
             $transaction = $this->transactionService->createSuccessfulTransaction(
                 $user,
-                (float) $amount,
-                $currency, // Make sure your service accepts currency codes
+                $amount,
+                $wallet->id,
+                $currency,
                 'FUND_WALLET',
                 $wallet->id,
                 null,
@@ -94,21 +77,9 @@ class UpdateUserWalletWithTransactionListener implements ShouldQueue
             $this->transactionService->attachWalletTransactionFor($transaction, $wallet, $walletTransaction->id);
 
             DB::commit();
-
-            Log::info('Wallet funding processed successfully', [
-                'wallet_id' => $wallet->id,
-                'user_id' => $user->id,
-                'amount' => $amount,
-                'reference' => $external_reference
-            ]);
-
         } catch (Exception $e) {
             DB::rollBack();
-            Log::error("Wallet funding failed", [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'event_data' => $event
-            ]);
+            Log::error("UpdateUserWalletWithTransactionListener.handle() - Error Encountered - " . $e->getMessage());
         }
     }
 }
