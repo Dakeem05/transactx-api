@@ -98,8 +98,8 @@ class SafehavenController extends Controller
 
             $event_type = $payload['type'];
             Log::info('Webhook data', ['data' => $payload['data']]); // Specific data
-            Log::info('Webhook status', ['data' => $payload['data']->status]); // Specific data
-            Log::info('Webhook data type', ['data' => $payload['data']->type]); // Specific data
+            Log::info('Webhook status', ['data' => $payload['data']['status']]); // Specific data
+            Log::info('Webhook type', ['data' => $payload['data']['type']]); // Specific data
             Log::info('Webhook type!', ['type' => $event_type]); // Pass context as array
             
             // Payout subaccount funding webhook
@@ -152,7 +152,7 @@ class SafehavenController extends Controller
 
             // 
         } catch (Exception $e) {
-            Log::error('Paystack Webhook Error: ', ["error" => $e->getMessage()]);
+            Log::error('Safehaven Webhook Error: ', ["error" => $e->getMessage()]);
             return response()->json(['message' => 'Error occurred'], 500);
         }
     }
