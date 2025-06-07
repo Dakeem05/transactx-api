@@ -64,11 +64,10 @@ class UpdateUserWalletWithTransactionListener implements ShouldQueue
 
             $transaction = $this->transactionService->createSuccessfulTransaction(
                 $user,
-                $amount,
                 $wallet->id,
+                $amount,
                 $currency,
                 'FUND_WALLET',
-                $wallet->id,
                 null,
                 $external_reference,
             );
