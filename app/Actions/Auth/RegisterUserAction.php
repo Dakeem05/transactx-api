@@ -8,6 +8,7 @@ use App\Enums\UserTypeEnum;
 use App\Events\User\UserCreatedEvent;
 use App\Models\Role;
 use App\Models\User;
+use Exception;
 use Facades\App\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -25,6 +26,9 @@ class RegisterUserAction
     public static function handle(CreateUserDto $createUserDto, Request $request)
     {
         return DB::transaction(function () use ($createUserDto, $request) {
+            // if (User::where('email', $createUserDto->email)->exists()) {
+            //     throw new Exception("Email already exists");
+            // }
 
             // Create user
             $user = User::create([
