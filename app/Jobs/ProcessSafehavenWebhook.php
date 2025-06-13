@@ -92,8 +92,9 @@ class ProcessSafehavenWebhook implements ShouldQueue
             ->first();
 
         Log::info('Sender Transaction', ['transaction' => $sender_transaction]);
-
+        
         if ($sender_transaction) {
+            Log::info('Sender Transaction inside', ['transaction' => $sender_transaction]);
             event(new TransferSuccessful(
                 $sender_transaction, 
                 $account_number, 

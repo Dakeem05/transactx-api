@@ -37,6 +37,7 @@ class TransferSuccessfulListener implements ShouldQueue
 
         try {
             DB::beginTransaction();
+            Log::info("TransferSuccessfulListener.handle() - Starting transfer for transaction: {$transaction->id}, account_number: {$account_number}, currency: {$currency}");
 
             $wallet = $transaction->wallet;
             $user = $transaction->user;
@@ -64,6 +65,8 @@ class TransferSuccessfulListener implements ShouldQueue
                 $transaction->feeTransactions()->first(),
                 'SUCCESSFUL',
             );
+
+            Log::info("TransferSuccessfulListener.handle() - Updating wallet balance for user: {$user->id}, wallet: {$wallet->id}");
             
             $user->notify(new TransferSuccessfulNotification($transaction, $wallet, $name));
 
