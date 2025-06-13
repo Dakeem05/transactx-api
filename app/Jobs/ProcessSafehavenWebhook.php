@@ -20,6 +20,9 @@ class ProcessSafehavenWebhook implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    public $tries = 3;
+    public $timeout = 120;
+
     public function __construct(
         protected array $payload,
         protected string $ipAddress
