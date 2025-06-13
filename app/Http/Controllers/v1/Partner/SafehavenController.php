@@ -131,7 +131,7 @@ class SafehavenController extends Controller
                 Log::info('Webhook transfer sender_transaction', ['sender_transaction' => $sender_transaction] ?? 'sender_transaction_not_found');
 
                 if ($sender_transaction) {
-                    event(new TransferSuccessful($sender_transaction, $account_number, Settings::where('name', 'currency')->first()->value, $payload['data']['fullname']));
+                    event(new TransferSuccessful($sender_transaction, $account_number, Settings::where('name', 'currency')->first()->value, $payload['data']['creditAccountName']));
                 }
                 return;
             }
