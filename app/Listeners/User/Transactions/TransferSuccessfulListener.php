@@ -41,6 +41,8 @@ class TransferSuccessfulListener implements ShouldQueue
             $wallet = $transaction->wallet;
             $user = $transaction->user;
 
+            Log::info("TransferSuccessfulListener.handle() - Processing transfer for user: {$user->id}, transaction: {$transaction}");
+
             $recipient_wallet = Wallet::whereHas('virtualBankAccount', function ($query) use ($account_number, $currency) {
                 $query->where([
                     ['account_number', $account_number],
