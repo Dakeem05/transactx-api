@@ -31,7 +31,7 @@ class ProcessSafehavenWebhook implements ShouldQueue
     public function handle(WebhookService $webhookService)
     {
         try {
-            Log::info('Processing Safehaven webhook in queue', ['type' => $this->payload['type'] ?? null]);
+            Log::info('Processing Safehaven webhook in queue', ['payload' => $this->payload]);
 
             $responseData = ['message' => 'Webhook processed'];
             $webhookService->recordIncomingWebhook(
@@ -90,6 +90,8 @@ class ProcessSafehavenWebhook implements ShouldQueue
             ->whereIn('status', ['PENDING', 'PROCESSING'])
             ->with(['wallet', 'user', 'feeTransactions'])
             ->first();
+
+        Log::info('Sender Transaction', ['transaction' => $sender_transaction]);
 
         if ($sender_transaction) {
             event(new TransferSuccessful(

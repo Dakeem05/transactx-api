@@ -79,7 +79,7 @@ class SafehavenController extends Controller
             $ipAddress = $request->ip();
 
             // Log initial receipt
-            Log::info('Webhook received', ['type' => $payload['type'] ?? 'unknown']);
+            Log::info('Webhook received!', compact("payload"));
 
             // Dispatch to queue
             ProcessSafehavenWebhook::dispatch($payload, $ipAddress)
