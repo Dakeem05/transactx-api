@@ -18,6 +18,7 @@ class TransferMoney
     public function __construct(
         public Wallet $wallet,
         public float $amount,
+        public float $fees,
         public string $currency,
         public string $reference,
         public string $external_reference,

@@ -26,10 +26,6 @@ class RegisterUserAction
     public static function handle(CreateUserDto $createUserDto, Request $request)
     {
         return DB::transaction(function () use ($createUserDto, $request) {
-            // if (User::where('email', $createUserDto->email)->exists()) {
-            //     throw new Exception("Email already exists");
-            // }
-
             // Create user
             $user = User::create([
                 'name' => isset($createUserDto->organization_name) ? $createUserDto->organization_name : $createUserDto->first_name . ' ' . $createUserDto->last_name,

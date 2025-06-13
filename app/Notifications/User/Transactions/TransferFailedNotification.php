@@ -20,6 +20,7 @@ class TransferFailedNotification
 
     public $currentDateTime;
     protected float $transactionAmount;
+    protected float $transactionFee;
     protected string $transactionCurrency;
     protected float $walletAmount;
     protected string $recipientFirstName;
@@ -36,6 +37,7 @@ class TransferFailedNotification
         $this->currentDateTime = Carbon::now()->format('l, F j, Y \a\t g:i A');
 
         $this->transactionAmount = $this->transaction->amount->getAmount()->toFloat();
+        $this->transactionFee = $this->transaction->feeTransactions()->first()->amount->getAmount()->toFloat();
         $this->transactionCurrency = $this->transaction->currency;
         $this->walletAmount = $this->wallet->amount->getAmount()->toFloat();
         $this->recipientFirstName = explode(' ', $this->recipient)[0];

@@ -44,7 +44,8 @@ class SendMoneyRequest extends FormRequest
         return [
             'bank_code' => ['bail', 'required', 'string'],
             'account_number' => ['bail', 'required', 'digits:10'],
-            'account_name' => ['bail','required', 'string'],
+            'account_name' => ['bail', 'required', 'string'],
+            'session_id' => ['bail', 'required', 'string'],
             'bank_name' => ['bail','required', 'string'],
             'amount' => ['bail', 'required', 'numeric'],
             'narration' => ['bail', 'nullable', 'string', 'sometimes']

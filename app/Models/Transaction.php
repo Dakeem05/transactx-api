@@ -10,6 +10,7 @@ use Exception;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 
@@ -21,6 +22,7 @@ class Transaction extends Model
         'user_id',
         'wallet_id',
         'wallet_transaction_id',
+        'principal_transaction_id',
         'type',
         'description',
         'amount',
@@ -112,5 +114,46 @@ class Transaction extends Model
     public function walletTransaction(): BelongsTo
     {
         return $this->belongsTo(WalletTransaction::class);
+    }
+
+    /**
+     * Get the principal transaction this fee belongs to
+     */
+    public function principalTransaction(): BelongsTo
+    {
+        return $this->belongsTo(Transaction::class, 'principal_transaction_id');
+    }
+
+    /**
+     * Get all fee transactions associated with this principal transaction
+     */
+    public function feeTransactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class, 'principal_transaction_id')
+                   ->where('type', 'SEND_MONEY_FEE'); // Optional: scope to just fees
+    }
+
+    /**
+     * Get all related transactions (both principal and fees)
+     */
+    public function relatedTransactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class, 'principal_transaction_id');
+    }
+
+    /**
+     * Scope to only include fee transactions
+     */
+    public function scopeFees($query)
+    {
+        return $query->where('type', 'SEND_MONEY_FEE');
+    }
+
+    /**
+     * Scope to only include principal transactions
+     */
+    public function scopePrincipal($query)
+    {
+        return $query->whereNull('principal_transaction_id');
     }
 }

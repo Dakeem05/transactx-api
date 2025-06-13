@@ -20,6 +20,7 @@ class TransferSuccessfulNotification
 
     public $currentDateTime;
     protected float $transactionAmount;
+    protected float $transactionFee;
     protected string $transactionCurrency;
     protected float $walletAmount;
     protected string $recipientFirstName;
@@ -36,6 +37,7 @@ class TransferSuccessfulNotification
         $this->currentDateTime = Carbon::now()->format('l, F j, Y \a\t g:i A');
 
         $this->transactionAmount = $this->transaction->amount->getAmount()->toFloat();
+        $this->transactionFee = $this->transaction->feeTransactions()->first()->amount->getAmount()->toFloat();
         $this->transactionCurrency = $this->transaction->currency;
         $this->walletAmount = $this->wallet->amount->getAmount()->toFloat();
         $this->recipientFirstName = explode(' ', $this->recipient)[0];
@@ -91,7 +93,7 @@ class TransferSuccessfulNotification
     {
         $title = "Transfer Successful 💸";
 
-        $body = "Your transfer of $this->transactionCurrency $this->transactionAmount to $this->recipientFirstName $this->recipientLastName is successful 💸.";
+        $body = "Your transfer of $this->transactionCurrency $this->transactionAmount to $this->recipientFirstName $this->recipientLastName is successful 💸. You were charged $this->transactionCurrency $this->transactionFee.";
 
         return CloudMessage::new()
             ->withDefaultSounds()
@@ -114,7 +116,7 @@ class TransferSuccessfulNotification
     {
         return [
             'title' => 'Transfer Successful 💸',
-            'message' => "Your transfer of $this->transactionCurrency $this->transactionAmount to $this->recipientFirstName $this->recipientLastName is successful 💸.",
+            'message' => "Your transfer of $this->transactionCurrency $this->transactionAmount to $this->recipientFirstName $this->recipientLastName is successful 💸. You were charged $this->transactionCurrency $this->transactionFee.",
             'data' => [
                 'user_id' => $notifiable->id,
                 'transaction' => $this->transaction,

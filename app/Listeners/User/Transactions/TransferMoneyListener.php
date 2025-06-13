@@ -3,6 +3,7 @@
 namespace App\Listeners\User\Transactions;
 
 use App\Events\User\Transactions\TransferMoney;
+use App\Models\Transaction;
 use App\Notifications\User\Transactions\TransferMoneyNotification;
 use App\Services\TransactionService;
 use App\Services\User\WalletService;
@@ -30,6 +31,7 @@ class TransferMoneyListener implements ShouldQueue
     {
         $wallet = $event->wallet;
         $amount = $event->amount;
+        $fees = $event->fees;
         $currency = $event->currency;
         $reference = $event->reference;
         $external_reference = $event->external_reference;
@@ -43,11 +45,11 @@ class TransferMoneyListener implements ShouldQueue
             
             $user = $wallet->user;
             
-            $this->walletService->debit($wallet, $amount);
+            $this->walletService->debit($wallet, $amount + $fees);
             
             $walletTransaction = $wallet->walletTransactions()->latest()->first();
             
-            if (!$walletTransaction && $walletTransaction->wallet_id != $wallet->id && $walletTransaction->amount_change != $amount) {
+            if (!$walletTransaction && $walletTransaction->wallet_id != $wallet->id && $walletTransaction->amount_change != $amount + $fees) {
                 Log::error('TransferMoneyListener.handle() - Could not find matching transaction for wallet: ' . $wallet->id);
                 return;
             }
@@ -64,11 +66,21 @@ class TransferMoneyListener implements ShouldQueue
                 $ip_address,
                 $external_reference,
             );
+
+            $feeTransaction =$this->transactionService->createPendingFeeTransaction(
+                $user,
+                $fees,
+                $currency,
+                'SEND_MONEY_FEE',
+                $reference,
+                $wallet->id,
+                $transaction->id
+            );
+            $transaction = Transaction::where('id', $transaction->id)->with(['feeTransactions'])->first();
             
             // Associate wallet transaction
             $this->transactionService->attachWalletTransactionFor($transaction, $wallet, $walletTransaction->id);
 
-            
             $user->notify(new TransferMoneyNotification($transaction, $wallet, $name));
 
             DB::commit();

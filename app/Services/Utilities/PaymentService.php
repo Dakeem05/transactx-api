@@ -57,7 +57,16 @@ class PaymentService
             throw new Exception('Payment service provider not found');
         }
     
-        return PaymentProviderDto::from($this->payment_service_provider);
+        $provider = PaymentProviderDto::from($this->payment_service_provider);
+
+        if (!$provider instanceof PaymentProviderDto) {
+            $provider = new PaymentProviderDto(
+                name: $provider->name ?? null,
+                description: $provider->description ?? null,
+                status: $provider->status ?? false
+            );
+        }
+        return $provider;
     }
 
     public function getBanks()
@@ -171,6 +180,13 @@ class PaymentService
             }
 
             // return $this->paystackService->transfer($transfer_data);
+        }
+        if ($provider->name === 'safehaven') {
+            if (!$this->safehavenService) {
+                throw new Exception('Safehaven service not found');
+            }
+
+            return $this->safehavenService->transfer($transfer_data);
         }
     }
 

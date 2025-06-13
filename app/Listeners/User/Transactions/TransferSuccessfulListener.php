@@ -58,6 +58,10 @@ class TransferSuccessfulListener implements ShouldQueue
                 $transaction,
                 'SUCCESSFUL',
             );
+            $this->transactionService->updateTransactionStatus(
+                $transaction->feeTransactions()->first(),
+                'SUCCESSFUL',
+            );
             
             $user->notify(new TransferSuccessfulNotification($transaction, $wallet, $name));
 

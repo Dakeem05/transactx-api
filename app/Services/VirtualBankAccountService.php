@@ -219,7 +219,7 @@ class VirtualBankAccountService
             'account_reference' => $data['externalReference'],
             'barter_id' => $data['_id'],
             'bank_name' => 'Safehaven',
-            'bank_code' => null, // Safehaven does not provide a bank code
+            'bank_code' => '090286', // Safehaven does not provide a bank code
             'provider' => $provider,
         ]);
     }

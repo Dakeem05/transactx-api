@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Dtos\Utilities\PaymentProviderDto;
 use App\Events\User\Transactions\TransferMoney;
 use App\Events\User\Wallet\FundWalletSuccessful;
 use App\Models\MoneyRequestStyles;
@@ -14,6 +15,7 @@ use App\Models\User\Wallet\WalletTransaction;
 use App\Models\VirtualBankAccount;
 use App\Notifications\User\Transactions\MoneyRequestReceivedNotification;
 use App\Notifications\User\Transactions\MoneyRequestSentNotification;
+use App\Services\External\SafehavenService;
 use App\Services\User\WalletService;
 use App\Services\Utilities\PaymentService;
 use Brick\Money\Money;
@@ -61,8 +63,34 @@ class TransactionService
         if (is_null($recipient->wallet->virtualBankAccount)) {
             throw new Exception('Recipient does not have a virtual bank account');
         }
+
+        $paymentService = resolve(PaymentService::class);
+        $provider = $paymentService->getPaymentServiceProvider();
         
-        return $this->transfer($user->wallet->virtualBankAccount, $data['amount'], $recipient->wallet->virtualBankAccount->account_number, $recipient->wallet->virtualBankAccount->bank_code, $data['narration'] ?? null, $ip_address ?? null);
+        // Proper type casting to PaymentProviderDto
+        if (!$provider instanceof PaymentProviderDto) {
+            $provider = new PaymentProviderDto(
+                name: $provider->name ?? null,
+                description: $provider->description ?? null,
+                status: $provider->status ?? false
+            );
+        }
+
+        if ($provider->name === 'safehaven') {
+            $safehavenService = resolve(SafehavenService::class);
+            $resolvedAccount = $safehavenService->resolveAccount(
+                $recipient->wallet->virtualBankAccount->account_number, 
+                $recipient->wallet->virtualBankAccount->bank_code
+            );
+            if (isset($resolvedAccount['data']['account_name'])) {
+                $recipient->wallet->virtualBankAccount->account_name = $resolvedAccount['data']['account_name'];
+                $recipient->wallet->virtualBankAccount->save();
+            } else {
+                throw new Exception('Failed to resolve recipient account name');
+            }
+        }
+        
+        return $this->transfer($user->wallet->virtualBankAccount, $data['amount'], $recipient->wallet->virtualBankAccount->account_number, $recipient->wallet->virtualBankAccount->bank_code, $resolvedAccount['data']['session_id'], $data['narration'] ?? null, $ip_address ?? null);
     }
     
     public function sendMoneyToEmail(array $data, User $user, string $ip_address) 
@@ -84,35 +112,62 @@ class TransactionService
             throw new Exception('Recipient does not have a virtual bank account');
         }
         
-        return $this->transfer($user->wallet->virtualBankAccount, $data['amount'], $recipient->wallet->virtualBankAccount->account_number, $recipient->wallet->virtualBankAccount->bank_code, $data['narration'] ?? null, $ip_address ?? null);
+        $paymentService = resolve(PaymentService::class);
+        $provider = $paymentService->getPaymentServiceProvider();
+        
+        // Proper type casting to PaymentProviderDto
+        if (!$provider instanceof PaymentProviderDto) {
+            $provider = new PaymentProviderDto(
+                name: $provider->name ?? null,
+                description: $provider->description ?? null,
+                status: $provider->status ?? false
+            );
+        }
+
+        if ($provider->name === 'safehaven') {
+            $safehavenService = resolve(SafehavenService::class);
+            $resolvedAccount = $safehavenService->resolveAccount(
+                $recipient->wallet->virtualBankAccount->account_number, 
+                $recipient->wallet->virtualBankAccount->bank_code
+            );
+            if (isset($resolvedAccount['data']['account_name'])) {
+                $recipient->wallet->virtualBankAccount->account_name = $resolvedAccount['data']['account_name'];
+                $recipient->wallet->virtualBankAccount->save();
+            } else {
+                throw new Exception('Failed to resolve recipient account name');
+            }
+        }
+        
+        return $this->transfer($user->wallet->virtualBankAccount, $data['amount'], $recipient->wallet->virtualBankAccount->account_number, $recipient->wallet->virtualBankAccount->bank_code, $resolvedAccount['data']['session_id'], $data['narration'] ?? null, $ip_address ?? null);
     }
     
     public function sendMoney(array $data, User $user, string $ip_address) 
     {
         $this->verifyTransaction($data, $user);
         
-        return $this->transfer($user->wallet->virtualBankAccount, $data['amount'], $data['account_number'], $data['bank_code'], $data['narration'] ?? null, $ip_address ?? null, $data['account_name'], $data['bank_name']);
+        return $this->transfer($user->wallet->virtualBankAccount, $data['amount'], $data['account_number'], $data['bank_code'], $data['session_id'], $data['narration'] ?? null, $ip_address ?? null, $data['account_name'], $data['bank_name']);
     }
     
-    private function transfer (VirtualBankAccount $virtualBankAccount, int $amount, string $account_number, string $bank_code, string $narration = null, string $ip_address = null, string $name = null, string $bank_name = null)
+    private function transfer (VirtualBankAccount $virtualBankAccount, int $amount, string $account_number, string $bank_code, string $session_id, string $narration = null, string $ip_address = null, string $name = null, string $bank_name = null)
     {
         try {
             $reference = uuid_create();
             $currency = Settings::where('name', 'currency')->first()->value;
             
             $data = [
-                'account_reference' => $virtualBankAccount->account_reference,
+                'debit_account_number' => $virtualBankAccount->account_number,
                 'amount' => $amount,
                 'account_number' => $account_number,
                 'bank_code' => $bank_code,
                 'currency' => $currency,
                 'narration' => $narration,
                 'reference' => $reference,
+                'session_id' => $session_id,
             ];
             
             $paymentService = resolve(PaymentService::class);
             $response = $paymentService->transfer($data);
-            if (isset($response['status']) && $response['status'] != 'success') {
+            if (isset($response['statusCode']) && $response['statusCode'] != 200) {
                 Log::error('transfer: Failed to get Transfer. Reason: ' . $response['message']);
                 return;
             }
@@ -133,7 +188,7 @@ class TransactionService
                     'bank_name' => $recipient_wallet->virtualBankAccount->bank_name,
                     'account_name' => $recipient_wallet->virtualBankAccount->account_name,
                 ];
-                event(new TransferMoney($virtualBankAccount->wallet, $data['amount'], $data['currency'], $data['reference'], $response['data']['reference'], $data['narration'], $ip_address, $recipient_wallet->virtualBankAccount->account_name, $payload));
+                event(new TransferMoney($virtualBankAccount->wallet, $data['amount'], $response['data']['fees'], $data['currency'], $data['reference'], $response['data']['paymentReference'], $data['narration'], $ip_address, $recipient_wallet->virtualBankAccount->account_name, $payload));
             } else {
                 $payload = [
                     'account_number' => $account_number,
@@ -141,7 +196,7 @@ class TransactionService
                     'bank_name' => $bank_name,
                     'account_name' => $name,
                 ];
-                event(new TransferMoney($virtualBankAccount->wallet, $data['amount'], $data['currency'], $data['reference'], $response['data']['reference'], $data['narration'], $ip_address, $name, $payload));
+                event(new TransferMoney($virtualBankAccount->wallet, $data['amount'], $response['data']['fees'], $data['currency'], $data['reference'], $response['data']['paymentReference'], $data['narration'], $ip_address, $name, $payload));
             }
         } catch (Exception $e) {
             throw new Exception($e);
@@ -264,12 +319,14 @@ class TransactionService
 
         $min_transfer = Settings::where('name', 'min_transaction')->first()->value;
 
-        if ($data['amount'] < $min_transfer) {
-            throw new Exception('Transaction amount is below minimum transaction');
-        }
+        // Uncomment the following lines if you want to enforce minimum transfer amount
+        // if ($data['amount'] < $min_transfer) {
+        //     throw new Exception('Transaction amount is below minimum transaction');
+        // }
 
         $walletService = resolve(WalletService::class);
-        if (!$walletService->checkBalance($user->wallet, $data['amount'])) {
+        $potential_charges = 50;
+        if (!$walletService->checkBalance($user->wallet, $data['amount'] + $potential_charges)) {
             throw new Exception('Insufficient balance for that transaction');
         }
     }
@@ -322,6 +379,43 @@ class TransactionService
             "narration" => $narration,
             "user_ip" => $userIp,
             "external_transaction_reference" => $external_transaction_reference,
+        ]);
+        
+        return $transaction;
+    }
+
+    /**
+     * Create and return a new pending fee transaction
+     *
+     * @param User $user
+     * @param float $amount
+     * @param string $currency
+     * @param string $type
+     * @param ?string $userIp
+     * 
+     * @return Transaction
+     */
+    public function createPendingFeeTransaction(
+        User $user,
+        $amount,
+        $currency = 'NGN',
+        $type = "SEND_MONEY_FEE",
+        $reference,
+        $wallet_id,
+        $principal_transaction_id,
+    ) {
+
+        $description = $this->getTransactionDescription($type, $currency);
+        $transaction = Transaction::create([
+            "user_id" => $user->id,
+            "currency" => $currency,
+            "wallet_id" => $wallet_id,
+            "principal_transaction_id" => $principal_transaction_id,
+            "amount" => $amount,
+            "reference" => $reference,
+            "status" => "PENDING",
+            "type" => $type,
+            "description" => $description,
         ]);
         
         return $transaction;
@@ -395,9 +489,10 @@ class TransactionService
 
         $walletTransactionAmountChange = $walletTransaction->amount_change->getMinorAmount()->toInt();
         $transactionAmount = $transaction->amount->getMinorAmount()->toInt();
+        $feeAmount = $transaction->feeTransactions()->first()->amount->getMinorAmount()->toInt();
 
         // Due diligence check to ensure that the transaction originates from the wallet
-        if ($wallet->is($walletTransaction->wallet) && $wallet->is($transaction->wallet) && $walletTransactionAmountChange == $transactionAmount) {
+        if ($wallet->is($walletTransaction->wallet) && $wallet->is($transaction->wallet) && $walletTransactionAmountChange == $transactionAmount + $feeAmount) {
             $this->updateTransaction($transaction, ['wallet_transaction_id' => $walletTransaction->id]);
         }
     }

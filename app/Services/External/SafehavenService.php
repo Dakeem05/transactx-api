@@ -91,6 +91,7 @@ class SafehavenService
                 'data' => [
                     'account_name' => $response['data']['accountName'],
                     'account_number' => $response['data']['accountNumber'],
+                    'session_id' => $response['data']['sessionId'],
                 ]
             ];
         } catch (Exception $e) {
@@ -162,8 +163,6 @@ class SafehavenService
                 // 'bvn' => $verification_data->bvn,
             ]);
             
-            // event(new CreateWalletEvent($verification_data->user, $verification_data->bvn, $verification_data->verification_id, $verification_data->otp));
-
             return 'BVN verified successfully';
         } catch (Exception $e) {
             Log::error('Error Encountered at Verify BVN method in Safehaven Service: ' . $e->getMessage());
@@ -188,7 +187,7 @@ class SafehavenService
             $data = [
                 'phoneNumber' => $country === "NG" ? '+234' . substr($user->phone_number, 1) : $user->phone_number,
                 'emailAddress' => $user->email,
-                'externalReference' => str_replace('-', '', $user->wallet->id),
+                'externalReference' => $user->wallet->id,
                 'identityType' => 'BVN',
                 'identityNumber' => $bvn,
                 'identityId' => $verification_id,
@@ -214,19 +213,17 @@ class SafehavenService
             $url = self::$baseUrl . '/transfers';
 
             $data = [
-                'account_bank' => $data['bank_code'],
-                'account_number' => $data['account_number'],
+                'nameEnquiryReference' => $data['session_id'],
+                'debitAccountNumber' => $data['debit_account_number'],
+                'beneficiaryBankCode' => $data['bank_code'],
+                'beneficiaryAccountNumber' => $data['account_number'],
                 'amount' => $data['amount'],
-                'currency' => $data['currency'],
-                'debit_subaccount' => $data['account_reference'],
-                'reference' => $data['reference'],
-                'debit_currency' => $data['currency'],
+                'saveBeneficiary' => false,
                 'narration' => $data['narration'],
-                'callback_url' => self::$callbackUrl
+                'paymentReference' => $data['reference'],
             ];
 
             $response = Http::talkToSafehaven($url, 'POST', $data);
-
             return $response;
         } catch (Exception $e) {
             Log::error('Error Encountered at transfer method in Safehaven Service: ' . $e->getMessage());

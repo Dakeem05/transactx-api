@@ -2,7 +2,7 @@
 
 namespace App\Listeners\User\Transactions;
 
-use App\Events\User\Transactions\TransferSuccessful;
+use App\Events\User\Transactions\TransferFailed;
 use App\Notifications\User\Transactions\TransferFailedNotification;
 use App\Services\TransactionService;
 use App\Services\User\WalletService;
@@ -26,7 +26,7 @@ class TransferFailedListener implements ShouldQueue
     /**
      * Handle the event.
      */
-    public function handle(TransferSuccessful $event): void
+    public function handle(TransferFailed $event): void
     {
         $transaction = $event->transaction;
         $name = $event->name;
@@ -37,10 +37,15 @@ class TransferFailedListener implements ShouldQueue
             $wallet = $transaction->wallet;
             $user = $transaction->user;
 
-            $this->walletService->deposit($wallet, $transaction->amount);
+            $this->walletService->deposit($wallet, $transaction->amount + $transaction->feeTransactions()->first()->amount);
 
             $this->transactionService->updateTransactionStatus(
                 $transaction,
+                'REVERSED',
+            );
+
+            $this->transactionService->updateTransactionStatus(
+                $transaction->feeTransactions()->first(),
                 'REVERSED',
             );
             
