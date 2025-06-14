@@ -171,7 +171,7 @@ class TransactionService
                 Log::error('transfer: Failed to get Transfer. Reason: ' . $response['message']);
                 return;
             }
-            
+            Log::info('transfer: Transfer successful. Response: ' . json_encode($response));
             
             $recipient_wallet = Wallet::whereHas('virtualBankAccount', function ($query) use ($account_number, $currency) {
                 $query->where([

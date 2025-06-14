@@ -42,6 +42,7 @@ class TransferMoneyListener implements ShouldQueue
 
         try {
             DB::beginTransaction();
+            Log::info("TransferMoneyListener.handle() - Starting transfer for wallet: {$wallet->id}, amount: {$amount}, fees: {$fees}, currency: {$currency}, external_reference: {$external_reference}");
             
             $user = $wallet->user;
             
@@ -66,8 +67,9 @@ class TransferMoneyListener implements ShouldQueue
                 $ip_address,
                 $external_reference,
             );
+            Log::info("TransferMoneyListener.handle() - Created pending transaction: {$transaction} for user: {$user->id}");
 
-            $feeTransaction =$this->transactionService->createPendingFeeTransaction(
+            $feeTransaction = $this->transactionService->createPendingFeeTransaction(
                 $user,
                 $fees,
                 $currency,
@@ -76,8 +78,10 @@ class TransferMoneyListener implements ShouldQueue
                 $wallet->id,
                 $transaction->id
             );
-            $transaction = Transaction::where('id', $transaction->id)->with(['feeTransactions'])->first();
+            Log::info("TransferMoneyListener.handle() - Created pending fee transaction for transaction: {$feeTransaction}, fees: {$fees}");
             
+            $transaction->feeTransactions()->save($feeTransaction);
+            $transaction = Transaction::where('id', $transaction->id)->with(['feeTransactions'])->first();
             // Associate wallet transaction
             $this->transactionService->attachWalletTransactionFor($transaction, $wallet, $walletTransaction->id);
 
