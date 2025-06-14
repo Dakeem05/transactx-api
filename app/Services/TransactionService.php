@@ -180,6 +180,8 @@ class TransactionService
                 ]);
             })->where('currency', $currency)
             ->first();
+
+            Log::info('transfer: Recipient wallet found: ' . json_encode($recipient_wallet));
             
             if (!is_null($recipient_wallet)) {
                 $payload = [
@@ -188,6 +190,7 @@ class TransactionService
                     'bank_name' => $recipient_wallet->virtualBankAccount->bank_name,
                     'account_name' => $recipient_wallet->virtualBankAccount->account_name,
                 ];
+                Log::info('transfer: Firing TransferMoney event for recipient wallet: ' . json_encode($payload));
                 event(new TransferMoney($virtualBankAccount->wallet, $data['amount'], $response['data']['fees'], $data['currency'], $data['reference'], $response['data']['paymentReference'], $data['narration'], $ip_address, $recipient_wallet->virtualBankAccount->account_name, $payload));
             } else {
                 $payload = [
@@ -196,6 +199,7 @@ class TransactionService
                     'bank_name' => $bank_name,
                     'account_name' => $name,
                 ];
+                Log::info('transfer: Firing TransferMoney event :' . json_encode($payload));
                 event(new TransferMoney($virtualBankAccount->wallet, $data['amount'], $response['data']['fees'], $data['currency'], $data['reference'], $response['data']['paymentReference'], $data['narration'], $ip_address, $name, $payload));
             }
         } catch (Exception $e) {
