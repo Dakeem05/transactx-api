@@ -82,8 +82,7 @@ class SafehavenController extends Controller
             Log::info('Webhook received!', compact("payload"));
 
             // Dispatch to queue
-            ProcessSafehavenWebhook::dispatch($payload, $ipAddress)
-                ->onQueue('webhooks');
+            ProcessSafehavenWebhook::dispatch($payload, $ipAddress);
 
             return response()->json(['message' => 'Webhook queued for processing'], 202);
 
