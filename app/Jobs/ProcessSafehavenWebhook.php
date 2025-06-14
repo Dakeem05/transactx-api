@@ -6,6 +6,7 @@ use App\Enums\PartnersEnum;
 use App\Events\User\Transactions\TransferFailed;
 use App\Events\User\Transactions\TransferSuccessful;
 use App\Events\User\Wallet\WalletTransactionReceived;
+use App\Jobs\Webhook\ProcessSuccessfulOutwardTransfer;
 use App\Models\Settings;
 use App\Models\Transaction;
 use App\Services\WebhookService;
@@ -95,12 +96,19 @@ class ProcessSafehavenWebhook implements ShouldQueue
         
         if ($sender_transaction) {
             Log::info('Sender Transaction inside', ['transaction' => $sender_transaction]);
-            event(new TransferSuccessful(
-                $sender_transaction, 
-                $account_number, 
-                Settings::where('name', 'currency')->first()->value, 
-                $this->payload['data']['creditAccountName']
-            ));
+            $processSuccessfulOutwardTransfer = resolve(ProcessSuccessfulOutwardTransfer::class, [
+                'transaction' => $sender_transaction,
+                'account_number' => $account_number,
+                'currency' => Settings::where('name', 'currency')->first()->value,
+                'name' => $this->payload['data']['creditAccountName']
+            ]);
+            $processSuccessfulOutwardTransfer->handle();
+            // event(new TransferSuccessful(
+            //     $sender_transaction, 
+            //     $account_number, 
+            //     Settings::where('name', 'currency')->first()->value, 
+            //     $this->payload['data']['creditAccountName']
+            // ));
         }
     }
 
