@@ -40,12 +40,12 @@ class ProcessSuccessfulOutwardTransfer implements ShouldQueue
 
         try {
             DB::beginTransaction();
-            Log::info("TransferSuccessfulListener.handle() - Starting transfer for transaction: {$transaction->id}, account_number: {$account_number}, currency: {$currency}");
+            Log::info("ProcessSuccessfulOutwardTransfer.handle() - Starting transfer for transaction: {$transaction->id}, account_number: {$account_number}, currency: {$currency}");
 
             $wallet = $transaction->wallet;
             $user = $transaction->user;
 
-            Log::info("TransferSuccessfulListener.handle() - Processing transfer for user: {$user->id}, transaction: {$transaction}");
+            Log::info("ProcessSuccessfulOutwardTransfer.handle() - Processing transfer for user: {$user->id}, transaction: {$transaction}");
 
             $recipient_wallet = Wallet::whereHas('virtualBankAccount', function ($query) use ($account_number, $currency) {
                 $query->where([
@@ -70,14 +70,14 @@ class ProcessSuccessfulOutwardTransfer implements ShouldQueue
                 'SUCCESSFUL',
             );
 
-            Log::info("TransferSuccessfulListener.handle() - Updating wallet balance for user: {$user->id}, wallet: {$wallet->id}");
+            Log::info("ProcessSuccessfulOutwardTransfer.handle() - Updating wallet balance for user: {$user->id}, wallet: {$wallet->id}");
             
             $user->notify(new TransferSuccessfulNotification($transaction, $wallet, $name));
 
             DB::commit();
         } catch (Exception $e) {
             DB::rollBack();
-            Log::error("TransferSuccessfulListener.handle() - Error Encountered - " . $e->getMessage());
+            Log::error("ProcessSuccessfulOutwardTransfer.handle() - Error Encountered - " . $e->getMessage());
         }
     }
 }
