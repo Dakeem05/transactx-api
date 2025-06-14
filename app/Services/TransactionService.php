@@ -401,7 +401,6 @@ class TransactionService
         $currency = 'NGN',
         $type = "SEND_MONEY_FEE",
         $reference,
-        $payload,
         $wallet_id,
         $principal_transaction_id,
     ) {

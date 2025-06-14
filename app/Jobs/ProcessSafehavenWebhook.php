@@ -96,19 +96,19 @@ class ProcessSafehavenWebhook implements ShouldQueue
         
         if ($sender_transaction) {
             Log::info('Sender Transaction inside', ['transaction' => $sender_transaction]);
-            $processSuccessfulOutwardTransfer = resolve(ProcessSuccessfulOutwardTransfer::class, [
-                'transaction' => $sender_transaction,
-                'account_number' => $account_number,
-                'currency' => Settings::where('name', 'currency')->first()->value,
-                'name' => $this->payload['data']['creditAccountName']
-            ]);
-            $processSuccessfulOutwardTransfer->handle();
-            // event(new TransferSuccessful(
-            //     $sender_transaction, 
-            //     $account_number, 
-            //     Settings::where('name', 'currency')->first()->value, 
-            //     $this->payload['data']['creditAccountName']
-            // ));
+            // $processSuccessfulOutwardTransfer = resolve(ProcessSuccessfulOutwardTransfer::class, [
+            //     'transaction' => $sender_transaction,
+            //     'account_number' => $account_number,
+            //     'currency' => Settings::where('name', 'currency')->first()->value,
+            //     'name' => $this->payload['data']['creditAccountName']
+            // ]);
+            // $processSuccessfulOutwardTransfer->handle();
+            event(new TransferSuccessful(
+                $sender_transaction, 
+                $account_number, 
+                Settings::where('name', 'currency')->first()->value, 
+                $this->payload['data']['creditAccountName']
+            ));
         }
     }
 
