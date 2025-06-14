@@ -493,7 +493,12 @@ class TransactionService
 
         $walletTransactionAmountChange = $walletTransaction->amount_change->getMinorAmount()->toInt();
         $transactionAmount = $transaction->amount->getMinorAmount()->toInt();
-        $feeAmount = $transaction->feeTransactions()->first()->amount->getMinorAmount()->toInt();
+
+        if ($transaction->isFundWalletTransaction()) {
+            $feeAmount = 0;
+        } else {
+            $feeAmount = $transaction->feeTransactions()->first()->amount->getMinorAmount()->toInt();
+        }
 
         // Due diligence check to ensure that the transaction originates from the wallet
         if ($wallet->is($walletTransaction->wallet) && $wallet->is($transaction->wallet) && $walletTransactionAmountChange == $transactionAmount + $feeAmount) {
