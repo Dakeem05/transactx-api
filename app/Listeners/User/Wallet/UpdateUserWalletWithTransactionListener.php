@@ -36,6 +36,7 @@ class UpdateUserWalletWithTransactionListener implements ShouldQueue
 
         try {
             DB::beginTransaction();
+            Log::info("UpdateUserWalletWithTransactionListener.handle() - Starting update for account: {$account_number}, amount: {$amount}, currency: {$currency}, external_reference: {$external_reference}");
 
             $wallet = Wallet::whereHas('virtualBankAccount', function ($query) use ($account_number, $currency) {
                 $query->where([
@@ -45,6 +46,8 @@ class UpdateUserWalletWithTransactionListener implements ShouldQueue
             })->where('currency', $currency)
                 ->with(['user'])
                 ->first();
+
+            Log::info("UpdateUserWalletWithTransactionListener.handle() - Found wallet: " . json_encode($wallet) . " for account: {$account_number}, currency: {$currency}");
 
             if (!$wallet) {
                 Log::error('UpdateUserWalletWithTransactionListener.handle() - Wallet not found for account: ' . $account_number . ' and currency ' . $currency);
@@ -71,6 +74,8 @@ class UpdateUserWalletWithTransactionListener implements ShouldQueue
                 null,
                 $external_reference,
             );
+
+            Log::info("UpdateUserWalletWithTransactionListener.handle() - Created successful transaction: {$transaction} for user: {$user->id}");
 
             // Associate wallet transaction
             $this->transactionService->attachWalletTransactionFor($transaction, $wallet, $walletTransaction->id);
