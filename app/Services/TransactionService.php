@@ -225,16 +225,15 @@ class TransactionService
     {
         // Get the user's wallet
         $wallet = $user->wallet;
-
+    
         if (is_null($wallet)) {
             return collect();
         }
-
-        // Fetch recent transactions where the user is the sender
+    
+        // Fetch recent transactions and process for unique recipients
         return Transaction::where('wallet_id', $wallet->id)
             ->where('type', 'SEND_MONEY')
             ->orderBy('created_at', 'desc')
-            ->take($limit)
             ->get()
             ->map(function ($transaction) {
                 return [
@@ -242,8 +241,21 @@ class TransactionService
                     'bank_code' => $transaction->payload['bank_code'] ?? null,
                     'bank_name' => $transaction->payload['bank_name'] ?? null,
                     'account_name' => $transaction->payload['account_name'] ?? null,
+                    'created_at' => $transaction->created_at // Keep for sorting
                 ];
-            });
+            })
+            ->filter() // Remove null entries
+            ->unique(function ($item) {
+                return $item['account_number'].$item['bank_code'];
+            })
+            ->sortByDesc('created_at')
+            ->take($limit)
+            ->map(function ($item) {
+                // Remove created_at before returning
+                unset($item['created_at']);
+                return $item;
+            })
+            ->values(); // Reset array keys
     }
     
     private function transfer (VirtualBankAccount $virtualBankAccount, int $amount, string $account_number, string $bank_code, string $session_id, string $narration = null, string $ip_address = null, string $name = null, string $bank_name = null)
