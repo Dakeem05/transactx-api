@@ -125,7 +125,7 @@ class TransactionsController extends Controller
     public function getRecentRequestMoneyRecipients(): JsonResponse
     {
         try {
-            $response = $this->transactionService->getRecentRecipients(Auth::user());
+            $response = $this->transactionService->getRecentRequestMoneyRecipients(Auth::user());
 
             return TransactX::response(true, 'Recent request money recipients fetched successfully', 200, $response);
         } catch (InvalidArgumentException $e) {
