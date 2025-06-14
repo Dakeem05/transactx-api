@@ -114,6 +114,7 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
             Route::get('/get-request-styles', [TransactionsController::class, 'getRequestStyles'])->name('user.transactions.get.request.styles');
             Route::post('/request-money-from-username', [TransactionsController::class, 'requestMoneyFromUsername'])->name('user.transactions.request.money.from.username');
             Route::post('/request-money-from-email', [TransactionsController::class, 'requestMoneyFromEmail'])->name('user.transactions.request.money.from.email');
+            Route::get('/get-request-money-recents', [TransactionsController::class, 'getRecentRequestMoneyRecipients'])->name('user.transactions.get.request.recents');
         });
     });
 });

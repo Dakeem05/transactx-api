@@ -122,6 +122,21 @@ class TransactionsController extends Controller
         }
     }
 
+    public function getRecentRequestMoneyRecipients(): JsonResponse
+    {
+        try {
+            $response = $this->transactionService->getRecentRecipients(Auth::user());
+
+            return TransactX::response(true, 'Recent request money recipients fetched successfully', 200, $response);
+        } catch (InvalidArgumentException $e) {
+            Log::error('GET RECENT REQUEST MONEY RECIPIENTS: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(false, $e->getMessage(), 400);
+        } catch (Exception $e) {
+            Log::error('GET RECENT REQUEST MONEY RECIPIENTS: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(false, 'Failed to fetch recent request money recipients', 500);
+        }
+    }
+
     public function getRequestStyles(): JsonResponse
     {
         try {

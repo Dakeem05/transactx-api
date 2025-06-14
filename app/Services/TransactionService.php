@@ -395,7 +395,14 @@ class TransactionService
                 $content = $request_content;
             }
 
-            $transaction = $this->createSuccessfulTransaction($user, $user->wallet->id, $amount, $currency, 'REQUEST_MONEY', $ip_address);
+            $payload = [
+                'name' => $requestee->name,
+                'username' => $requestee->username,
+                'email' => $requestee->email,
+                'avatar' => $requestee->avatar,
+            ];
+
+            $transaction = $this->createSuccessfulTransaction($user, $user->wallet->id, $amount, $currency, 'REQUEST_MONEY', $ip_address, null, $payload);
 
             $user->notify(new MoneyRequestSentNotification($transaction, $requestee->name));
             $requestee->notify(new MoneyRequestReceivedNotification($user->name, $content));
@@ -405,6 +412,43 @@ class TransactionService
             DB::rollBack();
             throw new Exception($e);
         }
+    }
+
+    public function getRecentRequestMoneyRecipients(User $user, int $limit = 10)
+    {
+        // Get the user's wallet
+        $wallet = $user->wallet;
+    
+        if (is_null($wallet)) {
+            return collect();
+        }
+    
+        // Fetch recent transactions and process for unique recipients
+        return Transaction::where('wallet_id', $wallet->id)
+            ->where('type', 'REQUEST_MONEY')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($transaction) {
+                return [
+                    'name' => $transaction->payload['name'] ?? null,
+                    'username' => $transaction->payload['username'] ?? null,
+                    'email' => $transaction->payload['email'] ?? null,
+                    'avatar' => $transaction->payload['avatar'] ?? null,
+                    'created_at' => $transaction->created_at // Keep for sorting
+                ];
+            })
+            ->filter() // Remove null entries
+            ->unique(function ($item) {
+                return $item['username'].$item['email'];
+            })
+            ->sortByDesc('created_at')
+            ->take($limit)
+            ->map(function ($item) {
+                // Remove created_at before returning
+                unset($item['created_at']);
+                return $item;
+            })
+            ->values(); // Reset array keys
     }
 
     private function verifyRequest(array $data, User $user)
@@ -553,7 +597,8 @@ class TransactionService
         $currency = 'NGN',
         $type = "SEND_MONEY",
         $userIp = null,
-        $external_transaction_reference = null
+        $external_transaction_reference = null,
+        $payload = null
     ) {
 
         $description = $this->getTransactionDescription($type, $currency);
@@ -567,6 +612,7 @@ class TransactionService
             "external_transaction_reference" => $external_transaction_reference,
             "status" => "SUCCESSFUL",
             "type" => $type,
+            "payload" => $payload,
             "description" => $description,
             "user_ip" => $userIp,
         ]);

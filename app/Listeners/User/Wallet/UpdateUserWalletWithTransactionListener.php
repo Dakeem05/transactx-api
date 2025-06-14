@@ -71,6 +71,7 @@ class UpdateUserWalletWithTransactionListener implements ShouldQueue
                 'FUND_WALLET',
                 null,
                 $external_reference,
+                null
             );
 
             $feeTransaction = $this->transactionService->createSuccessfulFeeTransaction(
