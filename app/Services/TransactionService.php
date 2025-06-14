@@ -89,6 +89,20 @@ class TransactionService
                 throw new Exception('Failed to resolve recipient account name');
             }
         }
+
+        if ($data['add_beneficiary']) {
+            $beneficiaryService = resolve(BeneficiaryService::class);
+            $payload = [
+                'name' => $recipient->name,
+                'avatar' => $recipient->avatar,
+                'username' => $recipient->username,
+                'email' => $recipient->email,
+                'account_number' => $recipient->wallet->virtualBankAccount->account_number,
+                'bank_code' => $recipient->wallet->virtualBankAccount->bank_code,
+                'bank_name' => $recipient->wallet->virtualBankAccount->bank_name,
+            ];
+            $beneficiaryService->addBeneficiary($user->id, 'payment', $payload);
+        }
         
         return $this->transfer($user->wallet->virtualBankAccount, $data['amount'], $recipient->wallet->virtualBankAccount->account_number, $recipient->wallet->virtualBankAccount->bank_code, $resolvedAccount['data']['session_id'], $data['narration'] ?? null, $ip_address ?? null);
     }
@@ -137,15 +151,99 @@ class TransactionService
                 throw new Exception('Failed to resolve recipient account name');
             }
         }
+
+        if ($data['add_beneficiary']) {
+            $beneficiaryService = resolve(BeneficiaryService::class);
+            $payload = [
+                'name' => $recipient->name,
+                'avatar' => $recipient->avatar,
+                'username' => $recipient->username,
+                'email' => $recipient->email,
+                'account_number' => $recipient->wallet->virtualBankAccount->account_number,
+                'bank_code' => $recipient->wallet->virtualBankAccount->bank_code,
+                'bank_name' => $recipient->wallet->virtualBankAccount->bank_name,
+            ];
+            $beneficiaryService->addBeneficiary($user->id, 'payment', $payload);
+        }
         
         return $this->transfer($user->wallet->virtualBankAccount, $data['amount'], $recipient->wallet->virtualBankAccount->account_number, $recipient->wallet->virtualBankAccount->bank_code, $resolvedAccount['data']['session_id'], $data['narration'] ?? null, $ip_address ?? null);
+    }
+
+    public function sendMoneyToBeneficiary(array $data, User $user, string $ip_address) 
+    {
+        $beneficiary = resolve(BeneficiaryService::class)->getBeneficiary($user->id, $data['beneficiary_id']);
+        $this->verifyTransaction($data, $user);
+        
+        $paymentService = resolve(PaymentService::class);
+        $provider = $paymentService->getPaymentServiceProvider();
+        
+        // Proper type casting to PaymentProviderDto
+        if (!$provider instanceof PaymentProviderDto) {
+            $provider = new PaymentProviderDto(
+                name: $provider->name ?? null,
+                description: $provider->description ?? null,
+                status: $provider->status ?? false
+            );
+        }
+
+        if ($provider->name === 'safehaven') {
+            $safehavenService = resolve(SafehavenService::class);
+            $resolvedAccount = $safehavenService->resolveAccount(
+                $beneficiary->payload['account_number'], 
+                $beneficiary->payload['bank_code']
+            );
+            if (!isset($resolvedAccount['data']['account_name'])) {
+                throw new Exception('Failed to resolve recipient account name');
+            }
+        }
+        
+        return $this->transfer($user->wallet->virtualBankAccount, $data['amount'], $beneficiary->payload['account_number'], $beneficiary->payload['bank_code'], $resolvedAccount['data']['session_id'], $data['narration'] ?? null, $ip_address ?? null);
     }
     
     public function sendMoney(array $data, User $user, string $ip_address) 
     {
         $this->verifyTransaction($data, $user);
+
+        if ($data['add_beneficiary']) {
+            $beneficiaryService = resolve(BeneficiaryService::class);
+            $payload = [
+                'name' => $data['account_name'],
+                'avatar' => null,
+                'username' => null,
+                'email' => null,
+                'account_number' => $data['account_number'],
+                'bank_code' => $data['bank_code'],
+                'bank_name' => $data['bank_name'],
+            ];
+            $beneficiaryService->addBeneficiary($user->id, 'payment', $payload);
+        }
         
         return $this->transfer($user->wallet->virtualBankAccount, $data['amount'], $data['account_number'], $data['bank_code'], $data['session_id'], $data['narration'] ?? null, $ip_address ?? null, $data['account_name'], $data['bank_name']);
+    }
+
+    public function getRecentRecipients(User $user, int $limit = 10)
+    {
+        // Get the user's wallet
+        $wallet = $user->wallet;
+
+        if (is_null($wallet)) {
+            return collect();
+        }
+
+        // Fetch recent transactions where the user is the sender
+        return Transaction::where('wallet_id', $wallet->id)
+            ->where('type', 'SEND_MONEY')
+            ->orderBy('created_at', 'desc')
+            ->take($limit)
+            ->get()
+            ->map(function ($transaction) {
+                return [
+                    'account_number' => $transaction->payload['account_number'] ?? null,
+                    'bank_code' => $transaction->payload['bank_code'] ?? null,
+                    'bank_name' => $transaction->payload['bank_name'] ?? null,
+                    'account_name' => $transaction->payload['account_name'] ?? null,
+                ];
+            });
     }
     
     private function transfer (VirtualBankAccount $virtualBankAccount, int $amount, string $account_number, string $bank_code, string $session_id, string $narration = null, string $ip_address = null, string $name = null, string $bank_name = null)
@@ -171,7 +269,6 @@ class TransactionService
                 Log::error('transfer: Failed to get Transfer. Reason: ' . $response['message']);
                 return;
             }
-            Log::info('transfer: Transfer successful. Response: ' . json_encode($response));
             
             $recipient_wallet = Wallet::whereHas('virtualBankAccount', function ($query) use ($account_number, $currency) {
                 $query->where([
@@ -180,8 +277,6 @@ class TransactionService
                 ]);
             })->where('currency', $currency)
             ->first();
-
-            Log::info('transfer: Recipient wallet found: ' . json_encode($recipient_wallet));
             
             if (!is_null($recipient_wallet)) {
                 $payload = [
@@ -190,7 +285,6 @@ class TransactionService
                     'bank_name' => $recipient_wallet->virtualBankAccount->bank_name,
                     'account_name' => $recipient_wallet->virtualBankAccount->account_name,
                 ];
-                Log::info('transfer: Firing TransferMoney event for recipient wallet: ' . json_encode($payload));
                 event(new TransferMoney($virtualBankAccount->wallet, $data['amount'], $response['data']['fees'], $data['currency'], $data['reference'], $response['data']['paymentReference'], $data['narration'], $ip_address, $recipient_wallet->virtualBankAccount->account_name, $payload));
             } else {
                 $payload = [
@@ -199,7 +293,6 @@ class TransactionService
                     'bank_name' => $bank_name,
                     'account_name' => $name,
                 ];
-                Log::info('transfer: Firing TransferMoney event :' . json_encode($payload));
                 event(new TransferMoney($virtualBankAccount->wallet, $data['amount'], $response['data']['fees'], $data['currency'], $data['reference'], $response['data']['paymentReference'], $data['narration'], $ip_address, $name, $payload));
             }
         } catch (Exception $e) {
@@ -341,6 +434,8 @@ class TransactionService
             'SEND_MONEY' => "Sent $currency",
             'REQUEST_MONEY' => "Requested $currency",
             'FUND_WALLET' => "Funded $currency wallet",
+            'SEND_MONEY_FEE' => "Charged $currency fee",
+            'FUND_WALLET_FEE' => "Charged $currency fee",
             default => null,
         };
     }
@@ -471,7 +566,31 @@ class TransactionService
         return $transaction;
     }
 
+    public function createSuccessfulFeeTransaction(
+        User $user,
+        $wallet_id,
+        $amount,
+        $currency = 'NGN',
+        $type = "SEND_MONEY_FEE",
+        $principal_transaction_id,
+    ) {
 
+        $description = $this->getTransactionDescription($type, $currency);
+
+        $transaction = Transaction::create([
+            "user_id" => $user->id,
+            "wallet_id" => $wallet_id,
+            "currency" => $currency,
+            "amount" => $amount,
+            "reference" => Str::uuid(),
+            "status" => "SUCCESSFUL",
+            "type" => $type,
+            "description" => $description,
+            "principal_transaction_id" => $principal_transaction_id,
+        ]);
+
+        return $transaction;
+    }
 
     /**
      * Update Transaction with associated Wallet Transaction
@@ -493,20 +612,19 @@ class TransactionService
 
         $walletTransactionAmountChange = $walletTransaction->amount_change->getMinorAmount()->toInt();
         $transactionAmount = $transaction->amount->getMinorAmount()->toInt();
-
-        if ($transaction->isFundWalletTransaction()) {
-            $feeAmount = 0;
-        } else {
-            $feeAmount = $transaction->feeTransactions()->first()->amount->getMinorAmount()->toInt();
-        }
-
+        $feeAmount = $transaction->feeTransactions()->first()->amount->getMinorAmount()->toInt();
+        
         // Due diligence check to ensure that the transaction originates from the wallet
-        if ($wallet->is($walletTransaction->wallet) && $wallet->is($transaction->wallet) && $walletTransactionAmountChange == $transactionAmount + $feeAmount) {
-            $this->updateTransaction($transaction, ['wallet_transaction_id' => $walletTransaction->id]);
+        if ($transaction->isFundWalletTransaction()) {
+            if ($wallet->is($walletTransaction->wallet) && $wallet->is($transaction->wallet) && $walletTransactionAmountChange == $transactionAmount - $feeAmount) {
+                $this->updateTransaction($transaction, ['wallet_transaction_id' => $walletTransaction->id]);
+            }
+        } else {
+            if ($wallet->is($walletTransaction->wallet) && $wallet->is($transaction->wallet) && $walletTransactionAmountChange == $transactionAmount + $feeAmount) {
+                $this->updateTransaction($transaction, ['wallet_transaction_id' => $walletTransaction->id]);
+            }
         }
     }
-
-
 
     /**
      * Update a transaction with new data.
@@ -538,8 +656,6 @@ class TransactionService
 
         return $transaction;
     }
-
-
 
     /**
      * Update a transaction's status.

@@ -20,6 +20,7 @@ use App\Http\Controllers\v1\User\Transaction\TransactionPinController;
 use App\Http\Controllers\v1\User\Transaction\TransactionsController;
 use App\Http\Controllers\v1\User\UserSubscriptionModelController;
 use App\Http\Controllers\v1\User\Wallet\UserWalletController;
+use App\Http\Controllers\v1\Utilities\BeneficiaryController;
 use App\Http\Controllers\v1\Utilities\PaymentController;
 use Illuminate\Support\Facades\Route;
 
@@ -103,6 +104,13 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
                 Route::post('/resolve-account', [PaymentController::class, 'resolveAccount'])->name('user.transactions.payment.resolve.account');
                 Route::post('/send-money', [TransactionsController::class, 'sendMoney'])->name('user.transactions.payment.send.money');
             });
+            Route::prefix('beneficiary')->group(function () {
+                Route::get('/', [BeneficiaryController::class, 'getBeneficiaries'])->name('user.transactions.beneficiary');
+                Route::get('/{query}', [BeneficiaryController::class, 'searchBeneficiaries'])->name('user.transactions.search.beneficiary');
+                Route::delete('/{id}', [BeneficiaryController::class, 'deleteBeneficiary'])->name('user.transactions.beneficiary.delete');
+                Route::post('/send-money', [BeneficiaryController::class, 'sendMoney'])->name('user.transactions.beneficiary.send.money');
+            });
+            Route::get('/recents', [TransactionsController::class, 'getRecentRecipients'])->name('user.transactions.recents');
             Route::get('/get-request-styles', [TransactionsController::class, 'getRequestStyles'])->name('user.transactions.get.request.styles');
             Route::post('/request-money-from-username', [TransactionsController::class, 'requestMoneyFromUsername'])->name('user.transactions.request.money.from.username');
             Route::post('/request-money-from-email', [TransactionsController::class, 'requestMoneyFromEmail'])->name('user.transactions.request.money.from.email');

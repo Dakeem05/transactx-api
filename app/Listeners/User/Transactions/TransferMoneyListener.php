@@ -75,6 +75,7 @@ class TransferMoneyListener implements ShouldQueue
                 $wallet->id,
                 $transaction->id
             );
+            Log::info("TransferMoneyListener.handle() - Fee Transaction Created: " . $feeTransaction);
 
             $transaction->feeTransactions()->save($feeTransaction);
             $transaction = Transaction::where('id', $transaction->id)->with(['feeTransactions'])->first();

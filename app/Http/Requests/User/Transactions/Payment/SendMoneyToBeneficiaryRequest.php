@@ -9,7 +9,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class SendMoneyRequest extends FormRequest
+class SendMoneyToBeneficiaryRequest extends FormRequest
 {
 
     private string $request_uuid;
@@ -28,7 +28,7 @@ class SendMoneyRequest extends FormRequest
         $this->request_uuid = Str::uuid()->toString();
 
         Log::channel('daily')->info(
-            'SEND MONEY: START',
+            'SEND MONEY TO BENEFICIARY: START',
             ["uid" => $this->request_uuid, "request" => $this->all()]
         );
     }
@@ -42,14 +42,9 @@ class SendMoneyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'bank_code' => ['bail', 'required', 'string'],
-            'account_number' => ['bail', 'required', 'digits:10'],
-            'account_name' => ['bail', 'required', 'string'],
-            'session_id' => ['bail', 'required', 'string'],
-            'bank_name' => ['bail','required', 'string'],
+            'beneficiary_id' => ['bail', 'required', 'string'],
             'amount' => ['bail', 'required', 'numeric'],
             'narration' => ['bail', 'nullable', 'string', 'sometimes'],
-            'add_beneficiary' => ['bail', 'boolean', 'required'],
         ];
     }
 
@@ -66,7 +61,7 @@ class SendMoneyRequest extends FormRequest
         $firstError = collect($errors)->flatten()->first();
 
         Log::channel('daily')->info(
-            'SEND MONEY: VALIDATION',
+            'SEND MONEY TO BENEFICIARY: VALIDATION',
             ["uid" => $this->request_uuid, "response" => ['errors' => $errors]]
         );
 

@@ -44,7 +44,8 @@ class SendMoneyToUsernameRequest extends FormRequest
         return [
             'username' => ['bail','required', 'string'],
             'amount' => ['bail', 'required', 'numeric'],
-            'narration' => ['bail', 'nullable', 'string', 'sometimes']
+            'narration' => ['bail', 'nullable', 'string', 'sometimes'],
+            'add_beneficiary' => ['bail', 'boolean', 'required'],
         ];
     }
 

@@ -81,10 +81,10 @@ class TransactionsController extends Controller
             
             return TransactX::response(true, 'Transfer sent successfully', 200);
         } catch (InvalidArgumentException $e) {
-            Log::error('SEND MONEY TO USERNAME: Error Encountered: ' . $e->getMessage());
+            Log::error('SEND MONEY TO EMAIL: Error Encountered: ' . $e->getMessage());
             return TransactX::response(false, $e->getMessage(), 400);
         } catch (Exception $e) {
-            Log::error('SEND MONEY TO USERNAME: Error Encountered: ' . $e->getMessage());
+            Log::error('SEND MONEY TO EMAIL: Error Encountered: ' . $e->getMessage());
             return TransactX::response(false, 'Failed to send money: ' . $e->getMessage(), 500);
         }
     }
@@ -99,11 +99,26 @@ class TransactionsController extends Controller
             
             return TransactX::response(true, 'Transfer sent successfully', 200);
         } catch (InvalidArgumentException $e) {
-            Log::error('SEND MONEY TO USERNAME: Error Encountered: ' . $e->getMessage());
+            Log::error('SEND MONEY: Error Encountered: ' . $e->getMessage());
             return TransactX::response(false, $e->getMessage(), 400);
         } catch (Exception $e) {
-            Log::error('SEND MONEY TO USERNAME: Error Encountered: ' . $e->getMessage());
+            Log::error('SEND MONEY: Error Encountered: ' . $e->getMessage());
             return TransactX::response(false, 'Failed to send money: ' . $e->getMessage(), 500);
+        }
+    }
+
+    public function getRecentRecipients(): JsonResponse
+    {
+        try {
+            $response = $this->transactionService->getRecentRecipients(Auth::user());
+
+            return TransactX::response(true, 'Recent recipients fetched successfully', 200, $response);
+        } catch (InvalidArgumentException $e) {
+            Log::error('GET RECENT RECIPIENTS: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(false, $e->getMessage(), 400);
+        } catch (Exception $e) {
+            Log::error('GET RECENT RECIPIENTS: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(false, 'Failed to fetch recent recipients', 500);
         }
     }
 

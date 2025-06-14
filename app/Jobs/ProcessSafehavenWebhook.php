@@ -76,7 +76,8 @@ class ProcessSafehavenWebhook implements ShouldQueue
     {
         $external_transaction_reference = $this->payload['data']['paymentReference'];
         $account_number = $this->payload['data']['creditAccountNumber'];
-        $amount = $this->payload['data']['amount'] - $this->payload['data']['fees'];
+        $amount = $this->payload['data']['amount'];
+        $fees = $this->payload['data']['fees'];
         $currency = Settings::where('name', 'currency')->first()->value;
         
         Log::info('Processing Inward Transfer', [
@@ -85,7 +86,7 @@ class ProcessSafehavenWebhook implements ShouldQueue
             'amount' => $amount,
             'currency' => $currency
         ]);
-        event(new WalletTransactionReceived($account_number, $amount, $currency, $external_transaction_reference));
+        event(new WalletTransactionReceived($account_number, $amount, $fees, $currency, $external_transaction_reference));
     }
 
     protected function processSuccessfulOutwardTransfer()

@@ -20,6 +20,7 @@ class WalletTransactionReceived
     public function __construct(
         public string $account_number,
         public float $amount,
+        public float $fees,
         public string $currency,
         public string $external_reference,
     ) {

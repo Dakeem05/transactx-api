@@ -44,7 +44,8 @@ class SendMoneyToEmailRequest extends FormRequest
         return [
             'email' => ['bail','required', 'email'],
             'amount' => ['bail', 'required', 'numeric'],
-            'narration' => ['bail', 'nullable', 'string', 'sometimes']
+            'narration' => ['bail', 'nullable', 'string', 'sometimes'],
+            'add_beneficiary' => ['bail', 'boolean', 'required'],
         ];
     }
 
