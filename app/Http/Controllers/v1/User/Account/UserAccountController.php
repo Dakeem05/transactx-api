@@ -19,7 +19,6 @@ use Brick\Money\Money;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
 
@@ -126,7 +125,6 @@ class UserAccountController extends Controller
             $nin = $validatedData['nin'] ?? null;
             $bank_code = $validatedData['bank_code'] ?? null;
             $account_number = $validatedData['account_number'] ?? null;
-            dd(Crypt::encryptString($validatedData['bvn']));
 
             if ($user->bvnVerified()) {
                 throw new InvalidArgumentException("BVN has already been verified");
