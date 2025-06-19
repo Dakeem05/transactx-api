@@ -2,7 +2,7 @@
 
 namespace App\Services\Utilities;
 
-use App\Dtos\Utilities\PaymentProviderDto;
+use App\Dtos\Utilities\ServiceProviderDto;
 use Exception;
 use App\Models\Service;
 use App\Services\External\FlutterwaveService;
@@ -57,10 +57,10 @@ class PaymentService
             throw new Exception('Payment service provider not found');
         }
     
-        $provider = PaymentProviderDto::from($this->payment_service_provider);
+        $provider = ServiceProviderDto::from($this->payment_service_provider);
 
-        if (!$provider instanceof PaymentProviderDto) {
-            $provider = new PaymentProviderDto(
+        if (!$provider instanceof ServiceProviderDto) {
+            $provider = new ServiceProviderDto(
                 name: $provider->name ?? null,
                 description: $provider->description ?? null,
                 status: $provider->status ?? false

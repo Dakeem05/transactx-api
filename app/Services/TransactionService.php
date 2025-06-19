@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Dtos\Utilities\PaymentProviderDto;
+use App\Dtos\Utilities\ServiceProviderDto;
 use App\Events\User\Transactions\TransferMoney;
 use App\Events\User\Wallet\FundWalletSuccessful;
 use App\Models\MoneyRequestStyles;
@@ -67,9 +67,9 @@ class TransactionService
         $paymentService = resolve(PaymentService::class);
         $provider = $paymentService->getPaymentServiceProvider();
         
-        // Proper type casting to PaymentProviderDto
-        if (!$provider instanceof PaymentProviderDto) {
-            $provider = new PaymentProviderDto(
+        // Proper type casting to ServiceProviderDto
+        if (!$provider instanceof ServiceProviderDto) {
+            $provider = new ServiceProviderDto(
                 name: $provider->name ?? null,
                 description: $provider->description ?? null,
                 status: $provider->status ?? false
@@ -129,9 +129,9 @@ class TransactionService
         $paymentService = resolve(PaymentService::class);
         $provider = $paymentService->getPaymentServiceProvider();
         
-        // Proper type casting to PaymentProviderDto
-        if (!$provider instanceof PaymentProviderDto) {
-            $provider = new PaymentProviderDto(
+        // Proper type casting to ServiceProviderDto
+        if (!$provider instanceof ServiceProviderDto) {
+            $provider = new ServiceProviderDto(
                 name: $provider->name ?? null,
                 description: $provider->description ?? null,
                 status: $provider->status ?? false
@@ -177,9 +177,9 @@ class TransactionService
         $paymentService = resolve(PaymentService::class);
         $provider = $paymentService->getPaymentServiceProvider();
         
-        // Proper type casting to PaymentProviderDto
-        if (!$provider instanceof PaymentProviderDto) {
-            $provider = new PaymentProviderDto(
+        // Proper type casting to ServiceProviderDto
+        if (!$provider instanceof ServiceProviderDto) {
+            $provider = new ServiceProviderDto(
                 name: $provider->name ?? null,
                 description: $provider->description ?? null,
                 status: $provider->status ?? false
@@ -464,7 +464,7 @@ class TransactionService
         }
     }
 
-    private function verifyTransaction (array $data, User $user)
+    public function verifyTransaction (array $data, User $user)
     {
         if (is_null($user->wallet)) {
             throw new Exception('Create and fund your wallet');
@@ -478,7 +478,7 @@ class TransactionService
         // }
 
         $walletService = resolve(WalletService::class);
-        $potential_charges = 50;
+        $potential_charges = 25;
         if (!$walletService->checkBalance($user->wallet, $data['amount'] + $potential_charges)) {
             throw new Exception('Insufficient balance for that transaction');
         }
@@ -492,6 +492,8 @@ class TransactionService
             'FUND_WALLET' => "Funded $currency wallet",
             'SEND_MONEY_FEE' => "Charged $currency fee",
             'FUND_WALLET_FEE' => "Charged $currency fee",
+            'AIRTIME' => "Purchased $currency",
+            'AIRTIME_FEE' => "Charged $currency fee",
             default => null,
         };
     }

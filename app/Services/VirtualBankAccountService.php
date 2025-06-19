@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Dtos\Utilities\PaymentProviderDto;
+use App\Dtos\Utilities\ServiceProviderDto;
 use App\Events\User\VirtualBankAccount\VirtualBankAccountCreated;
 use App\Models\Settings;
 use App\Models\User;
@@ -235,8 +235,8 @@ class VirtualBankAccountService
         $paymentService = resolve(PaymentService::class);
         $provider = $paymentService->getPaymentServiceProvider();
         
-        if (!$provider instanceof PaymentProviderDto) {
-            $provider = new PaymentProviderDto(
+        if (!$provider instanceof ServiceProviderDto) {
+            $provider = new ServiceProviderDto(
                 name: $provider->name ?? null,
                 description: $provider->description ?? null,
                 status: $provider->status ?? false
@@ -292,8 +292,8 @@ class VirtualBankAccountService
         $paymentService = resolve(PaymentService::class);
         $provider = $paymentService->getPaymentServiceProvider();
         
-        if (!$provider instanceof PaymentProviderDto) {
-            $provider = new PaymentProviderDto(
+        if (!$provider instanceof ServiceProviderDto) {
+            $provider = new ServiceProviderDto(
                 name: $provider->name ?? null,
                 description: $provider->description ?? null,
                 status: $provider->status ?? false

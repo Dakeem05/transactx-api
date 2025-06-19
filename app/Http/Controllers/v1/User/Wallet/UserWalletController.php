@@ -13,6 +13,7 @@ use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
 
@@ -45,13 +46,10 @@ class UserWalletController extends Controller
     /**
      * This handles creation of wallet
      */
-    public function initiateCreateWallet(VerifyUserBVNRequest $request): JsonResponse
+    public function initiateCreateWallet(): JsonResponse
     {
         try {
-            $validatedData = $request->validated();
             $user = Auth::user();
-            $bvn = $validatedData['bvn'];
-
             $userId = $user->id;
 
             if (!$user->bvnVerified()) {
@@ -71,7 +69,7 @@ class UserWalletController extends Controller
 
             $verification_data = (object) [
                 'user' => $user,
-                'bvn' => $bvn,
+                'bvn' => Crypt::decryptString($user->bvn),
             ];
 
             $paymentService = resolve(PaymentService::class);
@@ -115,7 +113,7 @@ class UserWalletController extends Controller
 
             $wallet = $this->walletService->createWallet($userId, 
                 Settings::where('name', 'currency')->first()->value, 
-                $validatedData['bvn'], 
+                Crypt::decryptString($user->bvn), 
                 $validatedData['verification_id'], 
                 $validatedData['otp']
             );

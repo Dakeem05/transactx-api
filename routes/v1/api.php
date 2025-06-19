@@ -20,6 +20,7 @@ use App\Http\Controllers\v1\User\Transaction\TransactionPinController;
 use App\Http\Controllers\v1\User\Transaction\TransactionsController;
 use App\Http\Controllers\v1\User\UserSubscriptionModelController;
 use App\Http\Controllers\v1\User\Wallet\UserWalletController;
+use App\Http\Controllers\v1\Utilities\AirtimeServiceController;
 use App\Http\Controllers\v1\Utilities\BeneficiaryController;
 use App\Http\Controllers\v1\Utilities\PaymentController;
 use Illuminate\Support\Facades\Route;
@@ -85,7 +86,7 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
         
         Route::prefix('wallet')->group(function () {
             Route::get('/', [UserWalletController::class, 'index'])->name('user.get.wallet');
-            Route::middleware('user.is.main.account')->post('/initiate-create', [UserWalletController::class, 'initiateCreateWallet'])->name('user.initiate.create.wallet');
+            Route::middleware('user.is.main.account')->get('/initiate-create', [UserWalletController::class, 'initiateCreateWallet'])->name('user.initiate.create.wallet');
             Route::middleware('user.is.main.account')->post('/', [UserWalletController::class, 'store'])->name('user.create.wallet');
         });
         
@@ -93,7 +94,6 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
             Route::get('/', [UserSubscriptionModelController::class, 'index'])->name('user.list.sub-model');
             Route::get('/{id}', [UserSubscriptionModelController::class, 'show'])->name('user.show.sub-model');
         });
-
         
         Route::prefix(('transactions'))->group(function () {
             Route::get('/query-users', [TransactionsController::class, 'queryUsers'])->name('user.transactions.query.username');
@@ -115,6 +115,15 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
             Route::post('/request-money-from-username', [TransactionsController::class, 'requestMoneyFromUsername'])->name('user.transactions.request.money.from.username');
             Route::post('/request-money-from-email', [TransactionsController::class, 'requestMoneyFromEmail'])->name('user.transactions.request.money.from.email');
             Route::get('/get-request-money-recents', [TransactionsController::class, 'getRecentRequestMoneyRecipients'])->name('user.transactions.get.request.recents');
+        });
+
+        Route::prefix('services')->group(function () {
+            Route::prefix('airtime')->group(function () {
+                Route::get('networks', [AirtimeServiceController::class, 'getNetworks']);
+                Route::post('buy', [AirtimeServiceController::class, 'buyAirtime']);
+                // Route::get('history', [AirtimeServiceController::class, 'airtimeHistory']);
+            });
+    
         });
     });
 });

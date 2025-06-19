@@ -84,7 +84,6 @@ class User extends Authenticatable
         'push_in_app_notifications' => 'boolean',
         'push_email_notifications' => 'boolean',
         'is_active' => 'boolean',
-        'bvn' => 'encrypted',
     ];
 
     protected $appends = ['last_name', 'first_name'];
@@ -218,9 +217,12 @@ class User extends Authenticatable
 
     public function scopeWithBvn($query, $bvn)
     {
-        return $query->where('bvn', Crypt::encrypt($bvn));
+        // For small user bases (<1000 users)
+        return $query->whereIn('id', User::where('bvn_status', 'SUCCESSFUL')->get()
+            ->filter(fn($user) => Crypt::decryptString($user->bvn) === $bvn)
+            ->pluck('id')
+        );
     }
-
 
 
     /**

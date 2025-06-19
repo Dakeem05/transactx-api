@@ -17,7 +17,6 @@ use App\Services\UserService;
 use App\Services\Utilities\PaymentService;
 use Brick\Money\Money;
 use Exception;
-use GuzzleHttp\Promise\Create;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
@@ -127,15 +126,16 @@ class UserAccountController extends Controller
             $nin = $validatedData['nin'] ?? null;
             $bank_code = $validatedData['bank_code'] ?? null;
             $account_number = $validatedData['account_number'] ?? null;
+            dd(Crypt::encryptString($validatedData['bvn']));
 
             if ($user->bvnVerified()) {
                 throw new InvalidArgumentException("BVN has already been verified");
             }
 
             // SUPPOSED TO CHECK IF VN HAS BEEN VERIFIED BEFORE 
-            // if (User::withBvn($request->bvn)->exists()) {
-            //     throw new InvalidArgumentException("BVN already exists");
-            // }
+            if (User::withBvn($validatedData['bvn'])->exists()) {
+                throw new InvalidArgumentException("BVN already exists");
+            }
 
             $verification_data = (object) [
                 'user' => $user,
@@ -173,6 +173,11 @@ class UserAccountController extends Controller
                 throw new InvalidArgumentException("BVN has already been verified");
             }
 
+            // SUPPOSED TO CHECK IF VN HAS BEEN VERIFIED BEFORE 
+            if (User::withBvn($validatedData['bvn'])->exists()) {
+                throw new InvalidArgumentException("BVN already exists");
+            }
+
             $verification_data = (object) [
                 'user' => $user,
                 'otp' =>  $validatedData['otp'],
@@ -189,7 +194,7 @@ class UserAccountController extends Controller
             return TransactX::response(false, $e->getMessage(), 400);
         } catch (Exception $e) {
             Log::error('VERIFY USER BVN: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(false, 'Failed to validate user bvn', 500);
+            return TransactX::response(false, 'Failed to validate user bvn' , 500);
         }
     }
 

@@ -54,6 +54,51 @@ class BeneficiaryService
         ]);
     }
 
+    public function addAirtimeAndDataBeneficiary(string $userId, string $service, array $payload): Beneficiary
+    {
+        // Extract the unique identifiers from payload
+        $phone_number = $payload['phone_number'] ?? null;
+
+        if (is_null($phone_number)) {
+            // Check for existing beneficiary
+            $existing = Beneficiary::where('user_id', $userId)
+                ->where('service', $service)
+                ->whereJsonContains('payload->phone_number', $payload['phone_number'])
+                ->first();
+    
+            if ($existing) {
+                // Update existing beneficiary
+                $existing->update([
+                    'payload' => array_merge($existing->payload, $payload),
+                ]);
+                return $existing;
+            }
+
+        } else {
+            // Check for existing beneficiary
+            $existing = Beneficiary::where('user_id', $userId)
+                ->where('service', $service)
+                ->whereJsonContains('payload->phone_number', $phone_number)
+                ->first();
+    
+            if ($existing) {
+                // Update existing beneficiary
+                $existing->update([
+                    'payload' => array_merge($existing->payload, $payload),
+                ]);
+                return $existing;
+            }
+
+        }
+
+        // Create new beneficiary
+        return Beneficiary::create([
+            'user_id' => $userId,
+            'service' => $service,
+            'payload' => $payload
+        ]);
+    }
+
     public function getBeneficiary(string $userId, string $id): ?Beneficiary
     {
         return Beneficiary::where('user_id', $userId)->where('id', $id)->first();

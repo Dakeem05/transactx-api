@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Http\Requests\User\Account;
+namespace App\Http\Requests\User\Services;
 
 use App\Helpers\TransactX;
-use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
-class CreateWalletRequest extends FormRequest
+class BuyAirtimeServiceRequest extends FormRequest
 {
 
     private string $request_uuid;
@@ -23,18 +23,16 @@ class CreateWalletRequest extends FormRequest
     }
 
 
-    /**
-     * @return void
-     */
     public function prepareForValidation(): void
     {
         $this->request_uuid = Str::uuid()->toString();
 
         Log::channel('daily')->info(
-            'CREATE WALLET: START',
-            ["uid" => $this->request_uuid, "request" => $this->except(['bvn', 'verification_id'])]
+            'BUY AIRTIME SERVICE REQUEST: START',
+            ["uid" => $this->request_uuid, "request" => $this->all()]
         );
     }
+
 
     /**
      * Get the validation rules that apply to the request.
@@ -44,25 +42,12 @@ class CreateWalletRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'verification_id' => ['bail', 'required', 'string'],
-            'otp' => ['bail', 'required', 'string'],
+            'id' => ['bail', 'required', 'string'],
+            'network' => ['bail', 'required', 'string'],
+            'amount' => ['bail', 'required', 'numeric'],
+            'phone_number' => ['bail', 'required', 'digits:11'],
+            'add_beneficiary' => ['bail', 'boolean', 'required'],
         ];
-    }
-
-
-    /**
-     * @param $key
-     * @param $default
-     *
-     * @return array
-     */
-    public function validated($key = null, $default = null): array
-    {
-        $data = parent::validated($key, $default);
-
-        return array_merge($data, [
-            'request_uuid' => $this->request_uuid,
-        ]);
     }
 
    /**
@@ -78,7 +63,7 @@ class CreateWalletRequest extends FormRequest
         $firstError = collect($errors)->flatten()->first();
 
         Log::channel('daily')->info(
-            'CREATE WALLET: VALIDATION',
+            'BUY AIRTIME SERVICE REQUEST',
             ["uid" => $this->request_uuid, "response" => ['errors' => $errors]]
         );
 

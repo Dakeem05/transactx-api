@@ -3,14 +3,11 @@
 namespace App\Services\External;
 
 use Exception;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
-use App\Contracts\PaymentGateway;
-use App\Events\User\Wallet\CreateWalletEvent;
 use App\Models\User;
 use App\Services\UserService;
-use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Crypt;
 use InvalidArgumentException;
 
 /**
@@ -160,7 +157,7 @@ class SafehavenService
             $userService->updateUserAccount($verification_data->user, [
                 'bvn_status' => 'SUCCESSFUL',
                 'kyc_status' => 'SUCCESSFUL',
-                // 'bvn' => $verification_data->bvn,
+                'bvn' => Crypt::encryptString($verification_data->bvn),
             ]);
             
             return 'BVN verified successfully';
@@ -255,6 +252,70 @@ class SafehavenService
             return $response;
         } catch (Exception $e) {
             Log::error('Error Encountered at delete PSA method in Safehaven Service: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    public function getBillers(): array
+    {
+        try {
+
+            $url = self::$baseUrl . '/vas/services';
+            $response = Http::talkToSafehaven($url, 'GET');
+            return $response;
+        } catch (Exception $e) {
+            Log::error('Error Encountered at getBillers method in Safehaven Service: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    public function getBillerById(string $id): array
+    {
+        try {
+            $url = self::$baseUrl . '/vas/service/' . $id;
+            $response = Http::talkToSafehaven($url, 'GET');
+            return $response;
+        } catch (Exception $e) {
+            Log::error('Error Encountered at getBillerById method in Safehaven Service: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    public function getBillerCategory(string $id): array
+    {
+        try {
+            $url = self::$baseUrl . '/vas/service/' . $id . '/service-categories';
+            $response = Http::talkToSafehaven($url, 'GET');
+            return $response;
+        } catch (Exception $e) {
+            Log::error('Error Encountered at getBillerCategory method in Safehaven Service: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    public function getBillerCategoryProduct(string $id): array
+    {
+        try {
+            $url = self::$baseUrl . '/vas/service-category/' . $id . '/products';
+            $response = Http::talkToSafehaven($url, 'GET');
+            return $response;
+        } catch (Exception $e) {
+            Log::error('Error Encountered at getBillerCategoryProduct method in Safehaven Service: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    public function purchaseService(array $data, string $service): array
+    {
+        // dd($data);
+
+        try {
+            $url = self::$baseUrl . '/vas/pay/' . $service;
+            $response = Http::talkToSafehaven($url, 'POST', $data);
+            dd($response);
+            return $response;
+        } catch (Exception $e) {
+            Log::error('Error Encountered at purchaseService method in Safehaven Service: ' . $e->getMessage());
             throw $e;
         }
     }

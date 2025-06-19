@@ -2,7 +2,7 @@
 
 namespace App\Listeners\User\VirtualBankAccount;
 
-use App\Dtos\Utilities\PaymentProviderDto;
+use App\Dtos\Utilities\ServiceProviderDto;
 use App\Events\User\Wallet\UserWalletCreated;
 use App\Models\Settings;
 use App\Services\Utilities\PaymentService;
@@ -31,9 +31,9 @@ class CreateVirtualBankAccountListener implements ShouldQueue
         $paymentService = resolve(PaymentService::class);
         $provider = $paymentService->getPaymentServiceProvider();
         
-        // Proper type casting to PaymentProviderDto
-        if (!$provider instanceof PaymentProviderDto) {
-            $provider = new PaymentProviderDto(
+        // Proper type casting to ServiceProviderDto
+        if (!$provider instanceof ServiceProviderDto) {
+            $provider = new ServiceProviderDto(
                 name: $provider->name ?? null,
                 description: $provider->description ?? null,
                 status: $provider->status ?? false
