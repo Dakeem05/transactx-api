@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Notifications\User\Transactions;
+namespace App\Notifications\User\Services;
 
 use App\Models\Transaction;
-use App\Models\User;
 use App\Models\User\Wallet;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;

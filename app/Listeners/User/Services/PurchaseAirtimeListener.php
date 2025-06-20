@@ -4,7 +4,7 @@ namespace App\Listeners\User\Services;
 
 use App\Events\User\Services\PurchaseAirtime;
 use App\Models\Transaction;
-use App\Notifications\User\Transactions\PurchaseAirtimeNotification;
+use App\Notifications\User\Services\PurchaseAirtimeNotification;
 use App\Services\TransactionService;
 use App\Services\User\WalletService;
 use Exception;
