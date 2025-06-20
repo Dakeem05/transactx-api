@@ -38,7 +38,6 @@ class PurchaseAirtimeListener implements ShouldQueue
         $payload = $event->payload;
         $fees = 0;
 
-        Log::info("PurchaseAirtimeListener event", $event);
         try {
             DB::beginTransaction();
             $user = $wallet->user;
@@ -73,9 +72,6 @@ class PurchaseAirtimeListener implements ShouldQueue
                     'AIRTIME_FEE',
                     $transaction->id
                 );
-
-                Log::info("PurchaseAirtimeListener.handle() - Fee Transaction Created: " . $feeTransaction);
-    
                 $transaction->feeTransactions()->save($feeTransaction);
                 $transaction = Transaction::where('id', $transaction->id)->with(['feeTransactions'])->first();
                 // Associate wallet transaction
@@ -107,9 +103,6 @@ class PurchaseAirtimeListener implements ShouldQueue
                     $wallet->id,
                     $transaction->id
                 );
-
-                Log::info("PurchaseAirtimeListener.handle() - Fee Transaction Created: " . $feeTransaction);
-    
                 $transaction->feeTransactions()->save($feeTransaction);
                 $transaction = Transaction::where('id', $transaction->id)->with(['feeTransactions'])->first();
                 // Associate wallet transaction
