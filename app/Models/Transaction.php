@@ -129,8 +129,7 @@ class Transaction extends Model
      */
     public function feeTransactions(): HasMany
     {
-        return $this->hasMany(Transaction::class, 'principal_transaction_id')
-                   ->where('type', 'SEND_MONEY_FEE'); // Optional: scope to just fees
+        return $this->hasMany(Transaction::class, 'principal_transaction_id'); // Optional: scope to just fees
     }
 
     /**
