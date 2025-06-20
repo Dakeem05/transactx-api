@@ -102,10 +102,6 @@ class AirtimeService
             if ($provider->name == 'safehaven') {
                 $payload = $this->createDataPayload($data, $user);
                 $response = $this->purchaseService($payload, 'AIRTIME');
-                if (isNull($response)) {
-                    return;
-                }
-
                 if (strtolower($response['status']) == "processing") {
                     $this->handleProcessingPurchase($data, $user, $response);
                 } else if (strtolower($response['status']) == "successful")  {
@@ -132,7 +128,6 @@ class AirtimeService
             'phone_number' => $data['phone_number'],
             'network' => $data['network'],
         ];
-        Log::info('handleSuccessfulPurchase payload', $payload);
         event(new PurchaseAirtime($user->wallet, $data['amount'], 'successful', Settings::where('name', 'currency')->first()->value, $response['reference'], $response['id'], $payload));
     }
 

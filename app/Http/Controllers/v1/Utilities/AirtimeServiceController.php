@@ -9,6 +9,7 @@ use App\Services\Utilities\AirtimeService;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
 
 class AirtimeServiceController extends Controller
 {
@@ -23,9 +24,12 @@ class AirtimeServiceController extends Controller
         try {
             $networks = $this->airtimeService->getNetworks();
             return TransactX::response(true, 'Networks fetched successfully', 200, $networks);
+        } catch (InvalidArgumentException $e) {
+            Log::error('Get network: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(false, $e->getMessage(), 400);
         } catch (Exception $e) {
             Log::error('Get network: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(false, $e->getMessage(), 500);
+            return TransactX::response(false, 'Failed to get networks', 500);
         }
     }
 
@@ -34,9 +38,12 @@ class AirtimeServiceController extends Controller
         try {
             $this->airtimeService->buyAirtime($request->validated(), Auth::user());
             return TransactX::response(true, 'Airtime bought successfully', 200, );
+        } catch (InvalidArgumentException $e) {
+            Log::error('Buy airtime: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(false, $e->getMessage(), 400);
         } catch (Exception $e) {
             Log::error('Buy airtime: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(false, $e->getMessage(), 500);
+            return TransactX::response(false, 'Failed to buy airtime', 500);
         }
     }
 
