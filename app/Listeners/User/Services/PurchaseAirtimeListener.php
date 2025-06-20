@@ -38,6 +38,7 @@ class PurchaseAirtimeListener implements ShouldQueue
         $payload = $event->payload;
         $fees = 0;
 
+        Log::info("PurchaseAirtimeListener event", $event);
         try {
             DB::beginTransaction();
             $user = $wallet->user;

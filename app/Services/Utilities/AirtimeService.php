@@ -132,6 +132,7 @@ class AirtimeService
             'phone_number' => $data['phone_number'],
             'network' => $data['network'],
         ];
+        Log::info('handleSuccessfulPurchase payload', $payload);
         event(new PurchaseAirtime($user->wallet, $data['amount'], 'successful', Settings::where('name', 'currency')->first()->value, $response['reference'], $response['id'], $payload));
     }
 
