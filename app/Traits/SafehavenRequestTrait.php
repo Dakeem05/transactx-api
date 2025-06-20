@@ -3,6 +3,7 @@
 namespace App\Traits;
 
 use App\Services\External\SafehavenService;
+use Illuminate\Support\Facades\Log;
 
 trait SafehavenRequestTrait
 {
@@ -56,6 +57,7 @@ trait SafehavenRequestTrait
     {
         $category = $this->getSafehavenService()->getBillerCategory($billerId);
         if (strtolower($category['statusCode']) != 200) {
+            Log::error('getBillerCategory: Failed to get biller category. Reason: ' . $category['message']);
             return null;
         }
         
@@ -66,6 +68,7 @@ trait SafehavenRequestTrait
     {
         $product = $this->getSafehavenService()->getBillerCategoryProduct($categoryId);
         if (strtolower($product['statusCode']) != 200) {
+            Log::error('getBillerCategoryProduct: Failed to get biller category product. Reason: ' . $product['message']);
             return null;
         }
         
@@ -82,6 +85,7 @@ trait SafehavenRequestTrait
 
         $response = $this->getSafehavenService()->purchaseService($data, strtolower($service));
         if (strtolower($response['statusCode']) != 200) {
+            Log::error('purchaseService: Failed to get Purchase Service. Reason: ' . $response['message']);
             return null;
         }
         

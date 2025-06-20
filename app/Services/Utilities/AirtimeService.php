@@ -3,6 +3,7 @@
 namespace App\Services\Utilities;
 
 use App\Dtos\Utilities\ServiceProviderDto;
+use App\Events\User\Services\PurchaseAirtime;
 use App\Models\Service;
 use App\Models\Settings;
 use App\Models\User;
@@ -11,6 +12,9 @@ use App\Services\TransactionService;
 use App\Traits\SafehavenRequestTrait;
 use Exception;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
+use function PHPUnit\Framework\isNull;
 
 class AirtimeService
 {
@@ -93,30 +97,51 @@ class AirtimeService
 
     public function handleAirtimePurchase(array $data, User $user)
     {
-        DB::beginTransaction();
-
-        // try {
+        try {
             $provider = $this->getAirtimeServiceProvider();
             if ($provider->name == 'safehaven') {
                 $payload = $this->createDataPayload($data, $user);
-                $data = $this->purchaseService($payload, 'AIRTIME');
-                dd($data);
+                $response = $this->purchaseService($payload, 'AIRTIME');
+                if (isNull($response)) {
+                    return;
+                }
+
+                if (strtolower($response['status']) == "processing") {
+                    $this->handleProcessingPurchase($data, $user, $response);
+                } else if (strtolower($response['status']) == "successful")  {
+                    $this->handleSuccessfulPurchase($data, $user, $response);
+                }
             }
-            DB::commit();
-        // } catch (\Exception $e) {
-        //     throw new Exception($e);
-        //     DB::rollBack();
-        // }
+        } catch (\Exception $e) {
+            throw new Exception($e);
+        }
+    }
+
+    private function handleProcessingPurchase(array $data, User $user, array $response)
+    {
+        $payload = [
+            'phone_number' => $data['phone_number'],
+            'network' => $data['network'],
+        ];
+        event(new PurchaseAirtime($user->wallet, $data['amount'], 'processing', Settings::where('name', 'currency')->first()->value, $response['reference'], $response['id'], $payload));
+    }
+    
+    private function handleSuccessfulPurchase(array $data, User $user, array $response)
+    {
+        $payload = [
+            'phone_number' => $data['phone_number'],
+            'network' => $data['network'],
+        ];
+        event(new PurchaseAirtime($user->wallet, $data['amount'], 'successful', Settings::where('name', 'currency')->first()->value, $response['reference'], $response['id'], $payload));
     }
 
     private function createDataPayload(array $data, User $user)
     {
         return [
+            'amount' => (int)$data['amount'],
+            'channel' => "WEB",
             'serviceCategoryId' => $data['id'],
-            'amount' => $data['amount'],
-            'channel' => 'Web',
             'debitAccountNumber' => $user->wallet->virtualBankAccount->account_number,
-            // 'phoneNumber' => $data['phone_number'],
             'phoneNumber' => Settings::where('name', 'country')->first()->value === "NG" ? '+234' . substr($data['phone_number'], 1) : $data['phone_number'],
         ];
     }

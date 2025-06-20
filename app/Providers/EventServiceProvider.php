@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Events\User\Services\PurchaseAirtime;
 use App\Events\User\SubAccountLoggedInEvent;
 use App\Events\User\Transactions\TransferFailed;
 use App\Events\User\Transactions\TransferMoney;
@@ -19,6 +20,7 @@ use App\Listeners\User\CreateUserAsCustomerOnPaystack;
 use App\Listeners\User\SendSubAccountLoginNotificationListener;
 use App\Listeners\User\SendUserLoginNotificationListener;
 use App\Listeners\User\SendWelcomeOnboardNotificationListener;
+use App\Listeners\User\Services\PurchaseAirtimeListener;
 use App\Listeners\User\Transactions\TransferFailedListener;
 use App\Listeners\User\Transactions\TransferMoneyListener;
 use App\Listeners\User\Transactions\TransferSuccessfulListener;
@@ -75,8 +77,11 @@ class EventServiceProvider extends ServiceProvider
         ],
         TransferFailed::class => [
             TransferFailedListener::class
-        ]
-    ];
+        ],
+        PurchaseAirtime::class => [
+            PurchaseAirtimeListener::class
+        ],
+        ];
 
     /**
      * Register any events for your application.

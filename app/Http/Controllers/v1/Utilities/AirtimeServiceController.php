@@ -32,8 +32,8 @@ class AirtimeServiceController extends Controller
     public function buyAirtime(BuyAirtimeServiceRequest $request)
     {
         try {
-            $data = $this->airtimeService->buyAirtime($request->validated(), Auth::user());
-            return TransactX::response(true, 'Airtime bought successfully', 200, $data);
+            $this->airtimeService->buyAirtime($request->validated(), Auth::user());
+            return TransactX::response(true, 'Airtime bought successfully', 200, );
         } catch (Exception $e) {
             Log::error('Buy airtime: Error Encountered: ' . $e->getMessage());
             return TransactX::response(false, $e->getMessage(), 500);

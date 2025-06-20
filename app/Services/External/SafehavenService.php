@@ -219,7 +219,7 @@ class SafehavenService
                 'narration' => $data['narration'],
                 'paymentReference' => $data['reference'],
             ];
-
+            
             $response = Http::talkToSafehaven($url, 'POST', $data);
             return $response;
         } catch (Exception $e) {
@@ -307,12 +307,9 @@ class SafehavenService
 
     public function purchaseService(array $data, string $service): array
     {
-        // dd($data);
-
         try {
             $url = self::$baseUrl . '/vas/pay/' . $service;
             $response = Http::talkToSafehaven($url, 'POST', $data);
-            dd($response);
             return $response;
         } catch (Exception $e) {
             Log::error('Error Encountered at purchaseService method in Safehaven Service: ' . $e->getMessage());

@@ -402,7 +402,7 @@ class TransactionService
                 'avatar' => $requestee->avatar,
             ];
 
-            $transaction = $this->createSuccessfulTransaction($user, $user->wallet->id, $amount, $currency, 'REQUEST_MONEY', $ip_address, null, $payload);
+            $transaction = $this->createSuccessfulTransaction($user, $user->wallet->id, $amount, $currency, 'REQUEST_MONEY', $ip_address, null, $payload, null);
 
             $user->notify(new MoneyRequestSentNotification($transaction, $requestee->name));
             $requestee->notify(new MoneyRequestReceivedNotification($user->name, $content));
@@ -600,7 +600,8 @@ class TransactionService
         $type = "SEND_MONEY",
         $userIp = null,
         $external_transaction_reference = null,
-        $payload = null
+        $payload = null,
+        $reference = null
     ) {
 
         $description = $this->getTransactionDescription($type, $currency);
@@ -610,7 +611,7 @@ class TransactionService
             "wallet_id" => $wallet_id,
             "currency" => $currency,
             "amount" => $amount,
-            "reference" => Str::uuid(),
+            "reference" => isset($reference) ? $reference  : Str::uuid(),
             "external_transaction_reference" => $external_transaction_reference,
             "status" => "SUCCESSFUL",
             "type" => $type,
