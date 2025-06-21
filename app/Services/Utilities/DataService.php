@@ -3,8 +3,8 @@
 namespace App\Services\Utilities;
 
 use App\Dtos\Utilities\ServiceProviderDto;
-use App\Events\User\Services\PurchaseAirtime;
-use App\Events\User\Services\PurchaseAirtimeUpdate;
+use App\Events\User\Services\PurchaseData;
+use App\Events\User\Services\PurchaseDataUpdate;
 use App\Models\Service;
 use App\Models\Settings;
 use App\Models\Transaction;
@@ -14,43 +14,45 @@ use App\Services\TransactionService;
 use App\Traits\SafehavenRequestTrait;
 use Exception;
 
-class AirtimeService
+class DataService
 {
     use SafehavenRequestTrait;
 
-    public $airtime_service_provider;
+    public $data_service_provider;
 
     public function __construct ()
     {
-        $airtime_service = Service::where('name', 'airtime')->first();
+        $data_service = Service::where('name', 'data')->first();
 
-        if (!$airtime_service) {
-            throw new Exception('Airtime service not found');
+        if (!$data_service) {
+            throw new Exception('Data service not found');
         }
         
-        if ($airtime_service->status === false) {
-            throw new Exception('Airtime service is currently unavailable');
+        if ($data_service->status === false) {
+            throw new Exception('Data service is currently unavailable');
         }
-        $this->airtime_service_provider = $airtime_service->providers->where('status', true)->first();
+        $this->data_service_provider = $data_service->providers->where('status', true)->first();
         
-        if (is_null($this->airtime_service_provider)) {
-            throw new Exception('Airtime service provider not found');
+        if (is_null($this->data_service_provider)) {
+            throw new Exception('Data service provider not found');
         }
     }
 
-    private function getAirtimeServiceProvider()
+    private function getDataServiceProvider()
     {
-        if (!$this->airtime_service_provider) {
-            throw new Exception('Airtime service provider not found');
+        if (!$this->data_service_provider) {
+            throw new Exception('Data service provider not found');
         }
     
-        $provider = ServiceProviderDto::from($this->airtime_service_provider);
+        $provider = ServiceProviderDto::from($this->data_service_provider);
 
         if (!$provider instanceof ServiceProviderDto) {
             $provider = new ServiceProviderDto(
                 name: $provider->name ?? null,
                 description: $provider->description ?? null,
-                status: $provider->status ?? false
+                status: $provider->status ?? false,
+                percentage_charge: $provider->percentage_charge ?? 0.00,
+                fixed_charge: $provider->fixed_charge ?? 0.00,
             );
         }
         return $provider;
@@ -58,10 +60,10 @@ class AirtimeService
 
     public function getNetworks()
     {
-        $provider = $this->getAirtimeServiceProvider();
+        $provider = $this->getDataServiceProvider();
 
         if ($provider->name == 'safehaven') {
-            $biller = $this->getSpecificServiceBiller('AIRTIME');
+            $biller = $this->getSpecificServiceBiller('DATA');
             $networks = $this->getBillerCategory($biller['_id']);
     
             return array_map(function ($network) {
@@ -75,7 +77,31 @@ class AirtimeService
         }
     }
 
-    public function buyAirtime(array $data, User $user)
+    public function getPlans(array $data)
+    {
+        $provider = $this->getDataServiceProvider();
+        $percentage = $provider->percentage_charge ?? 0.00;
+        $fixed = $provider->fixed_charge ?? 0.00;
+        $charge_type = $fixed > 0 ? 'fixed' : 'percentage';
+        
+        if ($provider->name == 'safehaven') {
+            $plans = $this->getBillerCategoryProduct($data['id']);
+            return array_map(function ($plan) use ($charge_type, $fixed, $percentage) { // Add use here
+                $totalAmount = $charge_type === 'fixed' 
+                    ? $plan['amount'] + $fixed 
+                    : $plan['amount'] + ($plan['amount'] * ($percentage / 100));
+                
+                return [
+                    'validity' => $plan['validity'],
+                    'plan' => $plan['bundleCode'],
+                    'amount' => $plan['amount'],
+                    'total_amount' => $totalAmount,
+                ];
+            }, $plans);
+        }
+    }
+
+    public function buyData(array $data, User $user)
     {
         $transactionService = resolve(TransactionService::class);
         $transactionService->verifyTransaction($data, $user);
@@ -87,19 +113,19 @@ class AirtimeService
                 'id' => $data['id'],
                 'network' => $data['network'],
             ];
-            $beneficiaryService->addAirtimeAndDataBeneficiary($user->id, 'airtime', $payload);
+            $beneficiaryService->addAirtimeAndDataBeneficiary($user->id, 'data', $payload);
         }
 
-        return $this->handleAirtimePurchase($data, $user);
+        return $this->handleDataPurchase($data, $user);
     }
 
-    public function handleAirtimePurchase(array $data, User $user)
+    public function handleDataPurchase(array $data, User $user)
     {
         try {
-            $provider = $this->getAirtimeServiceProvider();
+            $provider = $this->getDataServiceProvider();
             if ($provider->name == 'safehaven') {
                 $payload = $this->createDataPayload($data, $user);
-                $response = $this->purchaseService($payload, 'AIRTIME');
+                $response = $this->purchaseService($payload, 'DATA');
                 if (strtolower($response['status']) == "successful")  {
                     $this->handlePurchase($data, $user, $response, 'successful');
                 } else {
@@ -113,7 +139,7 @@ class AirtimeService
 
     public function pendingPurchase(Transaction $transaction)
     {
-        $provider = $this->getAirtimeServiceProvider();
+        $provider = $this->getDataServiceProvider();
 
         if ($provider->name == 'safehaven') {
             $response = $this->getPurchaseTransaction($transaction->external_reference);
@@ -132,13 +158,15 @@ class AirtimeService
         $payload = [
             'phone_number' => $data['phone_number'],
             'network' => $data['network'],
+            'validity' => $data['validity'],
+            'plan' => $data['plan'],
         ];
-        event(new PurchaseAirtime($user->wallet, $data['amount'], $status, Settings::where('name', 'currency')->first()->value, $response['id'], $response['reference'], $payload));
+        event(new PurchaseData($user->wallet, $data['total_amount'], $status, Settings::where('name', 'currency')->first()->value, $response['id'], $response['reference'], $payload));
     }
 
     private function handleUpdatedPurchase(Transaction $transaction, string $status)
     {
-        event(new PurchaseAirtimeUpdate($transaction, $status));
+        event(new PurchaseDataUpdate($transaction, $status));
     }
 
     private function createDataPayload(array $data, User $user)
@@ -147,6 +175,7 @@ class AirtimeService
             'amount' => (int)$data['amount'],
             'channel' => "WEB",
             'serviceCategoryId' => $data['id'],
+            'bundleCode' => $data['plan'],
             'debitAccountNumber' => $user->wallet->virtualBankAccount->account_number,
             'phoneNumber' => Settings::where('name', 'country')->first()->value === "NG" ? '+234' . substr($data['phone_number'], 1) : $data['phone_number'],
         ];

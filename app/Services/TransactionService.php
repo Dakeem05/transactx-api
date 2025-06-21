@@ -492,8 +492,10 @@ class TransactionService
             'FUND_WALLET' => "Funded $currency wallet",
             'SEND_MONEY_FEE' => "Charged $currency fee",
             'FUND_WALLET_FEE' => "Charged $currency fee",
-            'AIRTIME' => "Purchased $currency",
+            'AIRTIME' => "Recharged $currency",
             'AIRTIME_FEE' => "Charged $currency fee",
+            'DATA' => "Purchased $currency",
+            'DATA_FEE' => "Charged $currency fee",
             default => null,
         };
     }

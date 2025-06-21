@@ -22,6 +22,7 @@ use App\Http\Controllers\v1\User\UserSubscriptionModelController;
 use App\Http\Controllers\v1\User\Wallet\UserWalletController;
 use App\Http\Controllers\v1\Utilities\AirtimeServiceController;
 use App\Http\Controllers\v1\Utilities\BeneficiaryController;
+use App\Http\Controllers\v1\Utilities\DataServiceController;
 use App\Http\Controllers\v1\Utilities\PaymentController;
 use Illuminate\Support\Facades\Route;
 
@@ -122,6 +123,13 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
                 Route::get('networks', [AirtimeServiceController::class, 'getNetworks']);
                 Route::post('buy', [AirtimeServiceController::class, 'buyAirtime']);
                 // Route::get('history', [AirtimeServiceController::class, 'airtimeHistory']);
+            });
+
+            Route::prefix('data')->group(function () {
+                Route::get('networks', [DataServiceController::class, 'getNetworks']);
+                Route::post('plans', [DataServiceController::class, 'getPlans']);
+                Route::post('buy', [DataServiceController::class, 'buyAirtime']);
+                // Route::get('history', [DataServiceController::class, 'dataHistory']);
             });
     
         });

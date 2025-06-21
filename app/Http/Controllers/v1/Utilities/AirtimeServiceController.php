@@ -5,6 +5,7 @@ namespace App\Http\Controllers\v1\Utilities;
 use App\Helpers\TransactX;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\Services\BuyAirtimeServiceRequest;
+use App\Models\Transaction;
 use App\Services\Utilities\AirtimeService;
 use Exception;
 use Illuminate\Support\Facades\Auth;

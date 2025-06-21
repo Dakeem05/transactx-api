@@ -36,8 +36,8 @@ trait SafehavenRequestTrait
         }
         
         $allBillers = $this->getAllBillers();
-        if (strtolower($allBillers['statusCode']) != 200) {
-            return null;
+        if ($allBillers['statusCode'] != 200) {
+            throw new Exception($allBillers['message']);
         }
         
         $specificBillerId = "";
@@ -59,7 +59,7 @@ trait SafehavenRequestTrait
         $category = $this->getSafehavenService()->getBillerCategory($billerId);
         if ($category['statusCode'] != 200) {
             Log::error('getBillerCategory: Failed to get biller category. Reason: ' . $category['message']);
-            return null;
+            throw new Exception($category['message']);
         }
         
         return $category['data'];
@@ -70,7 +70,7 @@ trait SafehavenRequestTrait
         $product = $this->getSafehavenService()->getBillerCategoryProduct($categoryId);
         if ($product['statusCode'] != 200) {
             Log::error('getBillerCategoryProduct: Failed to get biller category product. Reason: ' . $product['message']);
-            return null;
+            throw new Exception($product['message']);
         }
         
         return $product['data'];
@@ -87,6 +87,17 @@ trait SafehavenRequestTrait
         $response = $this->getSafehavenService()->purchaseService($data, strtolower($service));
         if ($response['statusCode'] != 200) {
             Log::error('purchaseService: Failed to get Purchase Service. Reason: ' . $response['message']);
+            throw new Exception($response['message']);
+        }
+        
+        return $response['data'];
+    }
+
+    public function getPurchaseTransaction (string $id): array|null
+    {
+        $response = $this->getSafehavenService()->getPurchaseTransaction($id);
+        if ($response['statusCode'] != 200) {
+            Log::error('getPurchaseTransaction: Failed to get purchase transaction. Reason: ' . $response['message']);
             throw new Exception($response['message']);
         }
         

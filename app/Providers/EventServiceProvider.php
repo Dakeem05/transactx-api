@@ -3,6 +3,9 @@
 namespace App\Providers;
 
 use App\Events\User\Services\PurchaseAirtime;
+use App\Events\User\Services\PurchaseAirtimeUpdate;
+use App\Events\User\Services\PurchaseData;
+use App\Events\User\Services\PurchaseDataUpdate;
 use App\Events\User\SubAccountLoggedInEvent;
 use App\Events\User\Transactions\TransferFailed;
 use App\Events\User\Transactions\TransferMoney;
@@ -21,6 +24,9 @@ use App\Listeners\User\SendSubAccountLoginNotificationListener;
 use App\Listeners\User\SendUserLoginNotificationListener;
 use App\Listeners\User\SendWelcomeOnboardNotificationListener;
 use App\Listeners\User\Services\PurchaseAirtimeListener;
+use App\Listeners\User\Services\PurchaseAirtimeUpdateListener;
+use App\Listeners\User\Services\PurchaseDataListener;
+use App\Listeners\User\Services\PurchaseDataUpdateListener;
 use App\Listeners\User\Transactions\TransferFailedListener;
 use App\Listeners\User\Transactions\TransferMoneyListener;
 use App\Listeners\User\Transactions\TransferSuccessfulListener;
@@ -81,7 +87,16 @@ class EventServiceProvider extends ServiceProvider
         PurchaseAirtime::class => [
             PurchaseAirtimeListener::class
         ],
-        ];
+        PurchaseAirtimeUpdate::class => [
+            PurchaseAirtimeUpdateListener::class
+        ],
+        PurchaseData::class => [
+            PurchaseDataListener::class
+        ],
+        PurchaseDataUpdate::class => [
+            PurchaseDataUpdateListener::class
+        ],
+    ];
 
     /**
      * Register any events for your application.

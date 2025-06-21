@@ -316,4 +316,16 @@ class SafehavenService
             throw $e;
         }
     }
+
+    public function getPurchaseTransaction(string $id): array
+    {
+        try {
+            $url = self::$baseUrl . '/vas/transaction/' . $id;
+            $response = Http::talkToSafehaven($url, 'GET');
+            return $response;
+        } catch (Exception $e) {
+            Log::error('Error Encountered at getPurchaseTransaction method in Safehaven Service: ' . $e->getMessage());
+            throw $e;
+        }
+    }
 }

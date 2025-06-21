@@ -10,6 +10,8 @@ class ServiceProviderDto extends Data
     public function __construct(
         public string $name,
         public string $description,
-        public bool $status
+        public bool $status,
+        public float $percentage_charge = 0.00,
+        public float $fixed_charge = 0.00,
     ) {}
 }

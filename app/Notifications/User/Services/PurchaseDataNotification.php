@@ -12,7 +12,7 @@ use Illuminate\Notifications\Notification;
 use Kreait\Firebase\Messaging\CloudMessage;
 use NotificationChannels\FCM\FCMChannel;
 
-class PurchaseAirtimeNotification
+class PurchaseDataNotification
  extends Notification implements ShouldQueue
 {
     use Queueable;
@@ -25,6 +25,8 @@ class PurchaseAirtimeNotification
     protected float $walletAmount;
     protected string $recipient;
     protected string $network;
+    protected string $plan;
+    protected string $validity;
 
     /**
      * Create a new notification instance.
@@ -42,6 +44,8 @@ class PurchaseAirtimeNotification
         $this->walletAmount = $this->wallet->amount->getAmount()->toFloat();
         $this->recipient = $this->transaction->payload['phone_number'];
         $this->network = $this->transaction->payload['network'];
+        $this->plan = $this->transaction->payload['plan'];
+        $this->validity = $this->transaction->payload['validity'];
     }
 
     /**
@@ -68,22 +72,22 @@ class PurchaseAirtimeNotification
     public function toMail(object $notifiable): MailMessage
     {
         if ($this->status == "PENDING") {
-            return (new MailMessage)->subject('Airtime Purchase Processing')
+            return (new MailMessage)->subject('Data Purchase Processing')
                 ->markdown(
-                    'email.user.services.airtime-processing',
-                    ['user' => $notifiable, 'wallet' => $this->wallet, 'transaction' => $this->transaction, 'recipient' => $this->recipient, 'network' => $this->network]
+                    'email.user.services.data-processing',
+                    ['user' => $notifiable, 'wallet' => $this->wallet, 'transaction' => $this->transaction, 'recipient' => $this->recipient, 'network' => $this->network, 'plan' => $this->plan, 'validity' => $this->validity]
                 );
         } else if ($this->status == "SUCCESSFUL")  {
-            return (new MailMessage)->subject('Airtime Purchase Successful')
+            return (new MailMessage)->subject('Data Purchase Successful')
                 ->markdown(
-                    'email.user.services.airtime-successful',
-                    ['user' => $notifiable, 'wallet' => $this->wallet, 'transaction' => $this->transaction, 'recipient' => $this->recipient, 'network' => $this->network]
+                    'email.user.services.data-successful',
+                    ['user' => $notifiable, 'wallet' => $this->wallet, 'transaction' => $this->transaction, 'recipient' => $this->recipient, 'network' => $this->network, 'plan' => $this->plan, 'validity' => $this->validity]
                 );
         } else {
-            return (new MailMessage)->subject('Airtime Purchase Reversed')
+            return (new MailMessage)->subject('Data Purchase Reversed')
                 ->markdown(
-                    'email.user.services.airtime-reversed',
-                    ['user' => $notifiable, 'wallet' => $this->wallet, 'transaction' => $this->transaction, 'recipient' => $this->recipient, 'network' => $this->network]
+                    'email.user.services.data-reversed',
+                    ['user' => $notifiable, 'wallet' => $this->wallet, 'transaction' => $this->transaction, 'recipient' => $this->recipient, 'network' => $this->network, 'plan' => $this->plan, 'validity' => $this->validity]
                 );
         }
     }
@@ -96,7 +100,7 @@ class PurchaseAirtimeNotification
      */
     public function databaseType(object $notifiable): string
     {
-        return 'airtime';
+        return 'data';
     }
 
 
@@ -106,9 +110,9 @@ class PurchaseAirtimeNotification
     public function toFCM(object $notifiable): CloudMessage
     {
         if ($this->status == "PENDING") {
-            $title = "Airtime Purchase Processing";
+            $title = "Data Purchase Processing";
 
-            $body = "Your $this->network airtime purchase of $this->transactionCurrency $this->transactionAmount to $this->recipient is processing.";
+            $body = "Your $this->validity $this->network $this->plan data bundle purchase to $this->recipient costing $this->transactionCurrency $this->transactionAmount is processing.";
 
             return CloudMessage::new()
                 ->withDefaultSounds()
@@ -120,9 +124,9 @@ class PurchaseAirtimeNotification
                     'notification_key' => 'airtime',
                 ]);
         } else if ($this->status == "SUCCESSFUL") {
-            $title = "Airtime Purchase Successful";
+            $title = "Data Purchase Successful";
 
-            $body = "Your $this->network airtime purchase of $this->transactionCurrency $this->transactionAmount to $this->recipient is successful.";
+            $body = "Your $this->validity $this->network $this->plan data bundle purchase to $this->recipient costing $this->transactionCurrency $this->transactionAmount is successful.";
 
             return CloudMessage::new()
                 ->withDefaultSounds()
@@ -134,9 +138,9 @@ class PurchaseAirtimeNotification
                     'notification_key' => 'airtime',
                 ]);
         } else {
-            $title = "Airtime Purchase Reversed";
+            $title = "Data Purchase Reversed";
 
-            $body = "Your $this->network airtime purchase of $this->transactionCurrency $this->transactionAmount to $this->recipient failed and your funds reversed.";
+            $body = "Your $this->validity $this->network $this->plan data bundle purchase to $this->recipient costing $this->transactionCurrency $this->transactionAmount failed and your funds reversed.";
 
             return CloudMessage::new()
                 ->withDefaultSounds()
@@ -160,8 +164,8 @@ class PurchaseAirtimeNotification
     {
         if ($this->status == "PENDING") {
             return [
-                'title' => 'Airtime Purchase Processing',
-                'message' => "Your $this->network airtime purchase of $this->transactionCurrency $this->transactionAmount to $this->recipient is processing",
+                'title' => 'Data Purchase Processing',
+                'message' => "Your $this->validity $this->network $this->plan data bundle purchase to $this->recipient costing $this->transactionCurrency $this->transactionAmount is processing",
                 'data' => [
                     'user_id' => $notifiable->id,
                     'transaction' => $this->transaction,
@@ -172,8 +176,8 @@ class PurchaseAirtimeNotification
             ];
         } else if ($this->status == "SUCCESSFUL") {
             return [
-                'title' => 'Airtime Purchase Successful',
-                'message' => "Your $this->network airtime purchase of $this->transactionCurrency $this->transactionAmount to $this->recipient is successful",
+                'title' => 'Data Purchase Successful',
+                'message' => "Your $this->validity $this->network $this->plan data bundle purchase to $this->recipient costing $this->transactionCurrency $this->transactionAmount is successful",
                 'data' => [
                     'user_id' => $notifiable->id,
                     'transaction' => $this->transaction,
@@ -184,8 +188,8 @@ class PurchaseAirtimeNotification
             ];
         } else {
             return [
-                'title' => 'Airtime Purchase Reversed',
-                'message' => "Your $this->network airtime purchase of $this->transactionCurrency $this->transactionAmount to $this->recipient failed and your funds reversed",
+                'title' => 'Data Purchase Reversed',
+                'message' => "Your $this->validity $this->network $this->plan data bundle purchase to $this->recipient costing $this->transactionCurrency $this->transactionAmount failed and your funds reversed",
                 'data' => [
                     'user_id' => $notifiable->id,
                     'transaction' => $this->transaction,

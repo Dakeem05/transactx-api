@@ -14,10 +14,18 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')->hourly();
         // Run queue worker continuously for webhooks
-        $schedule->command('queue:work --queue=webhooks --once')
-        ->everyMinute()
-        ->withoutOverlapping()
-        ->runInBackground();
+        // $schedule->command('queue:work --queue=webhooks --once')
+        // ->everyMinute()
+        // ->withoutOverlapping()
+        // ->runInBackground();
+        $schedule->command('app:airtime-service-command')
+            ->everyMinute()
+            ->withoutOverlapping()
+            ->runInBackground();
+        $schedule->command('app:data-service-command')
+            ->everyMinute()
+            ->withoutOverlapping()
+            ->runInBackground();
     }
 
     /**
