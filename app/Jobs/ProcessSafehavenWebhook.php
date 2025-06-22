@@ -74,7 +74,7 @@ class ProcessSafehavenWebhook implements ShouldQueue
 
     protected function processInwardTransfer()
     {
-        $external_transaction_reference = $this->payload['data']['paymentReference'];
+        $external_transaction_reference = $this->payload['data']['paymentReference'] ?? $this->payload['data']['sessionId'];
         $account_number = $this->payload['data']['creditAccountNumber'];
         $amount = $this->payload['data']['amount'];
         $fees = $this->payload['data']['fees'];
@@ -91,7 +91,7 @@ class ProcessSafehavenWebhook implements ShouldQueue
 
     protected function processSuccessfulOutwardTransfer()
     {
-        $external_transaction_reference = $this->payload['data']['paymentReference'];
+        $external_transaction_reference = $this->payload['data']['paymentReference'] ?? $this->payload['data']['sessionId'];
         $account_number = $this->payload['data']['creditAccountNumber'];
         
         $sender_transaction = Transaction::where('external_transaction_reference', $external_transaction_reference)
@@ -111,7 +111,7 @@ class ProcessSafehavenWebhook implements ShouldQueue
 
     protected function processFailedTransfer()
     {
-        $external_transaction_reference = $this->payload['data']['paymentReference'];
+        $external_transaction_reference = $this->payload['data']['paymentReference'] ?? $this->payload['data']['sessionId'];
         $account_number = $this->payload['data']['creditAccountNumber'];
         
         $sender_transaction = Transaction::where('external_transaction_reference', $external_transaction_reference)
