@@ -46,9 +46,9 @@ class BuyDataServiceRequest extends FormRequest
             'amount' => ['bail', 'required', 'numeric'],
             'total_amount' => ['bail', 'required', 'numeric'],
             'phone_number' => ['bail', 'required', 'digits:11'],
+            'network' => ['bail', 'required', 'string'],
             'plan' => ['bail', 'required', 'string'],
             'validity' => ['bail', 'required', 'string'],
-            'network' => ['bail', 'required', 'string'],
             'add_beneficiary' => ['bail', 'boolean', 'required'],
         ];
     }

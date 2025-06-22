@@ -128,7 +128,7 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
             Route::prefix('data')->group(function () {
                 Route::get('networks', [DataServiceController::class, 'getNetworks']);
                 Route::post('plans', [DataServiceController::class, 'getPlans']);
-                Route::post('buy', [DataServiceController::class, 'buyAirtime']);
+                Route::post('buy', [DataServiceController::class, 'buyData']);
                 // Route::get('history', [DataServiceController::class, 'dataHistory']);
             });
     
