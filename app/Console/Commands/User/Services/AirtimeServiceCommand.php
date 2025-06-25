@@ -5,6 +5,7 @@ namespace App\Console\Commands\User\Services;
 use App\Models\Transaction;
 use App\Services\Utilities\AirtimeService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 
 use function PHPUnit\Framework\isEmpty;
 
@@ -30,6 +31,11 @@ class AirtimeServiceCommand extends Command
     public function handle()
     {
         $transactions = Transaction::where('type', 'AIRTIME')->where('status', 'PENDING')->with(['feeTransactions'])->get();
+        Log::info('AirtimeServiceCommand: Processing pending transactions', [
+            'transactions' => $transactions,
+        ]);
+
+         // Check if there are any pending transactions
         if(!$transactions->isEmpty()) {
             foreach ($transactions as $transaction) {
                 $airtimeService = resolve(AirtimeService::class);
