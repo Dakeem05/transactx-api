@@ -4,7 +4,7 @@ namespace App\Http\Controllers\v1\Utilities;
 
 use App\Helpers\TransactX;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\User\Services\BuydataServiceRequest;
+use App\Http\Requests\User\Services\BuyDataServiceRequest;
 use App\Http\Requests\User\Services\RetrieveCategoryProductRequest;
 use App\Models\Transaction;
 use App\Services\Utilities\DataService;
@@ -59,7 +59,7 @@ class DataServiceController extends Controller
             return TransactX::response(false, $e->getMessage(), 400);
         } catch (Exception $e) {
             Log::error('Buy data: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(false, 'Failed to buy data', 500);
+            return TransactX::response(false, 'Failed to buy data' . $e->getMessage(), 500);
         }
     }
 

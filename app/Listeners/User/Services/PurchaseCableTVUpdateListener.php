@@ -2,8 +2,8 @@
 
 namespace App\Listeners\User\Services;
 
-use App\Events\User\Services\PurchaseDataUpdate;
-use App\Notifications\User\Services\PurchaseDataNotification;
+use App\Events\User\Services\PurchaseCableTVUpdate;
+use App\Notifications\User\Services\PurchaseCableTVNotification;
 use App\Services\TransactionService;
 use App\Services\User\WalletService;
 use Exception;
@@ -11,7 +11,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class PurchaseDataUpdateListener implements ShouldQueue
+class PurchaseCableTVUpdateListener implements ShouldQueue
 {
     /**
      * Create the event listener.
@@ -26,7 +26,7 @@ class PurchaseDataUpdateListener implements ShouldQueue
     /**
      * Handle the event.
      */
-    public function handle(PurchaseDataUpdate $event): void
+    public function handle(PurchaseCableTVUpdate $event): void
     {
         $transaction = $event->transaction;
         $status = $event->status;
@@ -46,18 +46,18 @@ class PurchaseDataUpdateListener implements ShouldQueue
                     'SUCCESSFUL',
                 );
     
-                $user->notify(new PurchaseDataNotification($transaction, $wallet));
+                $user->notify(new PurchaseCableTVNotification($transaction, $wallet));
                 DB::commit();
     
             } else if ($status == "processing") {
-                $user->notify(new PurchaseDataNotification($transaction, $wallet));
+                $user->notify(new PurchaseCableTVNotification($transaction, $wallet));
             } else {
                 $this->walletService->deposit($wallet, $transaction->amount->getAmount()->toFloat() + $transaction->feeTransactions()->first()->amount->getAmount()->toFloat());
 
                 $walletTransaction = $wallet->walletTransactions()->latest()->first();
 
                 if (!$walletTransaction && $walletTransaction->wallet_id != $wallet->id && $walletTransaction->amount_change != $transaction->amount->getAmount()->toFloat() + $transaction->feeTransactions()->first()->amount->getAmount()->toFloat()) {
-                    Log::error('PurchaseDataUpdateListener.handle() - Could not find matching transaction for wallet: ' . $wallet->id);
+                    Log::error('PurchaseCableTVUpdateListener.handle() - Could not find matching transaction for wallet: ' . $wallet->id);
                     return;
                 }
 
@@ -70,14 +70,14 @@ class PurchaseDataUpdateListener implements ShouldQueue
                     $transaction->feeTransactions()->first(),
                     'REVERSED',
                 );
-                $user->notify(new PurchaseDataNotification($transaction, $wallet));
+                $user->notify(new PurchaseCableTVNotification($transaction, $wallet));
                 DB::commit();
             }
             
 
         } catch (Exception $e) {
             DB::rollBack();
-            Log::error("PurchaseDataUpdateListener.handle() - Error Encountered - " . $e->getMessage());
+            Log::error("PurchaseCableTVUpdateListener.handle() - Error Encountered - " . $e->getMessage());
             throw $e;
         }
     }

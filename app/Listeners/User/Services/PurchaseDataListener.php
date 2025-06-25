@@ -77,8 +77,8 @@ class PurchaseDataListener implements ShouldQueue
                 // Associate wallet transaction
                 $this->transactionService->attachWalletTransactionFor($transaction, $wallet, $walletTransaction->id);
                 
-                DB::commit();
                 $user->notify(new PurchaseDataNotification($transaction, $wallet));
+                DB::commit();
             } else if ($status == "processing") {
                 $transaction = $this->transactionService->createPendingTransaction(
                     $user,
@@ -107,8 +107,8 @@ class PurchaseDataListener implements ShouldQueue
                 // Associate wallet transaction
                 $this->transactionService->attachWalletTransactionFor($transaction, $wallet, $walletTransaction->id);
     
-                DB::commit();
                 $user->notify(new PurchaseDataNotification($transaction, $wallet));
+                DB::commit();
             }
             
 

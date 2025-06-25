@@ -12,7 +12,7 @@ use Illuminate\Notifications\Notification;
 use Kreait\Firebase\Messaging\CloudMessage;
 use NotificationChannels\FCM\FCMChannel;
 
-class PurchaseDataNotification
+class PurchaseUtilityNotification
  extends Notification implements ShouldQueue
 {
     use Queueable;
@@ -24,9 +24,8 @@ class PurchaseDataNotification
     protected string $transactionCurrency;
     protected float $walletAmount;
     protected string $recipient;
-    protected string $network;
-    protected string $plan;
-    protected string $validity;
+    protected string $company;
+    protected string $vendType;
 
     /**
      * Create a new notification instance.
@@ -42,10 +41,9 @@ class PurchaseDataNotification
         $this->transactionCurrency = $this->transaction->currency;
         $this->status = $this->transaction->status;
         $this->walletAmount = $this->wallet->amount->getAmount()->toFloat();
-        $this->recipient = $this->transaction->payload['phone_number'];
-        $this->network = $this->transaction->payload['network'];
-        $this->plan = $this->transaction->payload['plan'];
-        $this->validity = $this->transaction->payload['validity'];
+        $this->recipient = $this->transaction->payload['number'];
+        $this->company = $this->transaction->payload['company'];
+        $this->vendType = $this->transaction->payload['vendType'];
     }
 
     /**
@@ -72,22 +70,22 @@ class PurchaseDataNotification
     public function toMail(object $notifiable): MailMessage
     {
         if ($this->status == "PENDING") {
-            return (new MailMessage)->subject('Data Purchase Processing')
+            return (new MailMessage)->subject('Utility Recharge Processing')
                 ->markdown(
-                    'email.user.services.data-processing',
-                    ['user' => $notifiable, 'wallet' => $this->wallet, 'transaction' => $this->transaction, 'recipient' => $this->recipient, 'network' => $this->network, 'plan' => $this->plan, 'validity' => $this->validity]
+                    'email.user.services.utility-processing',
+                    ['user' => $notifiable, 'wallet' => $this->wallet, 'transaction' => $this->transaction, 'recipient' => $this->recipient, 'company' => $this->company, 'vendType' => $this->vendType]
                 );
         } else if ($this->status == "SUCCESSFUL")  {
-            return (new MailMessage)->subject('Data Purchase Successful')
+            return (new MailMessage)->subject('Utility Recharge Successful')
                 ->markdown(
-                    'email.user.services.data-successful',
-                    ['user' => $notifiable, 'wallet' => $this->wallet, 'transaction' => $this->transaction, 'recipient' => $this->recipient, 'network' => $this->network, 'plan' => $this->plan, 'validity' => $this->validity]
+                    'email.user.services.utility-successful',
+                    ['user' => $notifiable, 'wallet' => $this->wallet, 'transaction' => $this->transaction, 'recipient' => $this->recipient, 'company' => $this->company, 'vendType' => $this->vendType]
                 );
         } else {
-            return (new MailMessage)->subject('Data Purchase Reversed')
+            return (new MailMessage)->subject('Utility Recharge Reversed')
                 ->markdown(
-                    'email.user.services.data-reversed',
-                    ['user' => $notifiable, 'wallet' => $this->wallet, 'transaction' => $this->transaction, 'recipient' => $this->recipient, 'network' => $this->network, 'plan' => $this->plan, 'validity' => $this->validity]
+                    'email.user.services.utility-reversed',
+                    ['user' => $notifiable, 'wallet' => $this->wallet, 'transaction' => $this->transaction, 'recipient' => $this->recipient, 'company' => $this->company, 'vendType' => $this->vendType]
                 );
         }
     }
@@ -100,7 +98,7 @@ class PurchaseDataNotification
      */
     public function databaseType(object $notifiable): string
     {
-        return 'data';
+        return 'utility';
     }
 
 
@@ -110,9 +108,9 @@ class PurchaseDataNotification
     public function toFCM(object $notifiable): CloudMessage
     {
         if ($this->status == "PENDING") {
-            $title = "Data Purchase Processing";
+            $title = "Utility Recharge Processing";
 
-            $body = "Your $this->validity $this->network $this->plan data bundle purchase to $this->recipient costing $this->transactionCurrency $this->transactionAmount is processing.";
+            $body = "Your $this->company $this->vendType recharge to $this->recipient costing $this->transactionCurrency $this->transactionAmount is processing.";
 
             return CloudMessage::new()
                 ->withDefaultSounds()
@@ -121,12 +119,12 @@ class PurchaseDataNotification
                     'body' => $body,
                 ])
                 ->withData([
-                    'notification_key' => 'data',
+                    'notification_key' => 'utility',
                 ]);
         } else if ($this->status == "SUCCESSFUL") {
-            $title = "Data Purchase Successful";
+            $title = "Utility Recharge Successful";
 
-            $body = "Your $this->validity $this->network $this->plan data bundle purchase to $this->recipient costing $this->transactionCurrency $this->transactionAmount is successful.";
+            $body = "Your $this->company $this->vendType recharge to $this->recipient costing $this->transactionCurrency $this->transactionAmount is successful.";
 
             return CloudMessage::new()
                 ->withDefaultSounds()
@@ -135,12 +133,12 @@ class PurchaseDataNotification
                     'body' => $body,
                 ])
                 ->withData([
-                    'notification_key' => 'data',
+                    'notification_key' => 'utility',
                 ]);
         } else {
-            $title = "Data Purchase Reversed";
+            $title = "Utility Recharge Reversed";
 
-            $body = "Your $this->validity $this->network $this->plan data bundle purchase to $this->recipient costing $this->transactionCurrency $this->transactionAmount failed and your funds reversed.";
+            $body = "Your $this->company $this->vendType recharge to $this->recipient costing $this->transactionCurrency $this->transactionAmount failed and your funds reversed.";
 
             return CloudMessage::new()
                 ->withDefaultSounds()
@@ -149,7 +147,7 @@ class PurchaseDataNotification
                     'body' => $body,
                 ])
                 ->withData([
-                    'notification_key' => 'data',
+                    'notification_key' => 'utility',
                 ]);
         }
     }
@@ -164,8 +162,8 @@ class PurchaseDataNotification
     {
         if ($this->status == "PENDING") {
             return [
-                'title' => 'Data Purchase Processing',
-                'message' => "Your $this->validity $this->network $this->plan data bundle purchase to $this->recipient costing $this->transactionCurrency $this->transactionAmount is processing",
+                'title' => 'Utility Recharge Processing',
+                'message' => "Your $this->company $this->vendType recharge to $this->recipient costing $this->transactionCurrency $this->transactionAmount is processing",
                 'data' => [
                     'user_id' => $notifiable->id,
                     'transaction' => $this->transaction,
@@ -176,8 +174,8 @@ class PurchaseDataNotification
             ];
         } else if ($this->status == "SUCCESSFUL") {
             return [
-                'title' => 'Data Purchase Successful',
-                'message' => "Your $this->validity $this->network $this->plan data bundle purchase to $this->recipient costing $this->transactionCurrency $this->transactionAmount is successful",
+                'title' => 'Utility Recharge Successful',
+                'message' => "Your $this->company $this->vendType recharge to $this->recipient costing $this->transactionCurrency $this->transactionAmount is successful",
                 'data' => [
                     'user_id' => $notifiable->id,
                     'transaction' => $this->transaction,
@@ -188,8 +186,8 @@ class PurchaseDataNotification
             ];
         } else {
             return [
-                'title' => 'Data Purchase Reversed',
-                'message' => "Your $this->validity $this->network $this->plan data bundle purchase to $this->recipient costing $this->transactionCurrency $this->transactionAmount failed and your funds reversed",
+                'title' => 'Utility Recharge Reversed',
+                'message' => "Your $this->company $this->vendType recharge to $this->recipient costing $this->transactionCurrency $this->transactionAmount failed and your funds reversed",
                 'data' => [
                     'user_id' => $notifiable->id,
                     'transaction' => $this->transaction,

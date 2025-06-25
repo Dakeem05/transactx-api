@@ -39,10 +39,9 @@ trait SafehavenRequestTrait
         if ($allBillers['statusCode'] != 200) {
             throw new Exception($allBillers['message']);
         }
-        
         $specificBillerId = "";
         foreach ($allBillers['data'] as $key => $value) {
-            if (strtoupper($value['identifier']) == strtoupper($service)) {
+            if (strtoupper($value['identifier']) == strtoupper(str_replace('-', '', $service))) {
                 $specificBillerId = $value['_id'];
                 break;
             }
@@ -50,7 +49,7 @@ trait SafehavenRequestTrait
         if (empty($specificBillerId)) {
             return null;
         }
-
+        
         return $this->getSafehavenService()->getBillerById($specificBillerId)['data'];
     }
 
@@ -61,7 +60,6 @@ trait SafehavenRequestTrait
             Log::error('getBillerCategory: Failed to get biller category. Reason: ' . $category['message']);
             throw new Exception($category['message']);
         }
-        
         return $category['data'];
     }
 
@@ -74,6 +72,17 @@ trait SafehavenRequestTrait
         }
         
         return $product['data'];
+    }
+
+    public function verifyBillerCategoryNumber (string $categoryId, string $number): array|null
+    {
+        $data = $this->getSafehavenService()->verifyBillerCategoryNumber($categoryId, $number);
+        if ($data['statusCode'] != 200) {
+            Log::error('verifyBillerCategoryNumber: Failed to verify biller category number. Reason: ' . $data['message']);
+            throw new Exception($data['message']);
+        }
+        
+        return $data['data'];
     }
 
     public function purchaseService (array $data, string $service): array|null

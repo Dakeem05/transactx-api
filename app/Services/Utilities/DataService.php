@@ -93,6 +93,7 @@ class DataService
                 
                 return [
                     'validity' => $plan['validity'],
+                    'name' => $plan['bundleCode'],
                     'plan' => $plan['bundleCode'],
                     'amount' => $plan['amount'],
                     'total_amount' => $totalAmount,
@@ -169,10 +170,11 @@ class DataService
         event(new PurchaseDataUpdate($transaction, $status));
     }
 
+
     private function createDataPayload(array $data, User $user)
     {
         return [
-            'amount' => (int)$data['amount'],
+            'amount' => (float)$data['amount'],
             'channel' => "WEB",
             'serviceCategoryId' => $data['id'],
             'bundleCode' => $data['plan'],

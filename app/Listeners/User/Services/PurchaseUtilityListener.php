@@ -2,9 +2,9 @@
 
 namespace App\Listeners\User\Services;
 
-use App\Events\User\Services\PurchaseAirtime;
+use App\Events\User\Services\PurchaseUtility;
 use App\Models\Transaction;
-use App\Notifications\User\Services\PurchaseAirtimeNotification;
+use App\Notifications\User\Services\PurchaseUtilityNotification;
 use App\Services\TransactionService;
 use App\Services\User\WalletService;
 use Exception;
@@ -12,7 +12,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class PurchaseAirtimeListener implements ShouldQueue
+class PurchaseUtilityListener implements ShouldQueue
 {
     /**
      * Create the event listener.
@@ -27,7 +27,7 @@ class PurchaseAirtimeListener implements ShouldQueue
     /**
      * Handle the event.
      */
-    public function handle(PurchaseAirtime $event): void
+    public function handle(PurchaseUtility $event): void
     {
         $wallet = $event->wallet;
         $amount = $event->amount;
@@ -47,7 +47,7 @@ class PurchaseAirtimeListener implements ShouldQueue
             $walletTransaction = $wallet->walletTransactions()->latest()->first();
             
             if (!$walletTransaction && $walletTransaction->wallet_id != $wallet->id && $walletTransaction->amount_change != $amount + $fees) {
-                Log::error('PurchaseAirtimeListener.handle() - Could not find matching transaction for wallet: ' . $wallet->id);
+                Log::error('PurchaseUtilityListener.handle() - Could not find matching transaction for wallet: ' . $wallet->id);
                 return;
             }
 
@@ -57,7 +57,7 @@ class PurchaseAirtimeListener implements ShouldQueue
                     $wallet->id,
                     $amount,
                     $currency,
-                    'AIRTIME',
+                    'UTILITY',
                     null,
                     $external_reference,
                     $payload,
@@ -69,7 +69,7 @@ class PurchaseAirtimeListener implements ShouldQueue
                     $wallet->id,
                     $fees,
                     $currency,
-                    'AIRTIME_FEE',
+                    'UTILITY_FEE',
                     $transaction->id
                 );
                 $transaction->feeTransactions()->save($feeTransaction);
@@ -77,14 +77,14 @@ class PurchaseAirtimeListener implements ShouldQueue
                 // Associate wallet transaction
                 $this->transactionService->attachWalletTransactionFor($transaction, $wallet, $walletTransaction->id);
                 
-                $user->notify(new PurchaseAirtimeNotification($transaction, $wallet));
+                $user->notify(new PurchaseUtilityNotification($transaction, $wallet));
                 DB::commit();
             } else if ($status == "processing") {
                 $transaction = $this->transactionService->createPendingTransaction(
                     $user,
                     $amount,
                     $currency,
-                    'AIRTIME',
+                    'UTILITY',
                     $reference,
                     $payload,
                     $wallet->id,
@@ -97,7 +97,7 @@ class PurchaseAirtimeListener implements ShouldQueue
                     $user,
                     $fees,
                     $currency,
-                    'AIRTIME_FEE',
+                    'UTILITY_FEE',
                     $reference,
                     $wallet->id,
                     $transaction->id
@@ -107,14 +107,14 @@ class PurchaseAirtimeListener implements ShouldQueue
                 // Associate wallet transaction
                 $this->transactionService->attachWalletTransactionFor($transaction, $wallet, $walletTransaction->id);
     
-                $user->notify(new PurchaseAirtimeNotification($transaction, $wallet));
+                $user->notify(new PurchaseUtilityNotification($transaction, $wallet));
                 DB::commit();
             }
             
 
         } catch (Exception $e) {
             DB::rollBack();
-            Log::error("PurchaseAirtimeListener.handle() - Error Encountered - " . $e->getMessage());
+            Log::error("PurchaseUtilityListener.handle() - Error Encountered - " . $e->getMessage());
             throw $e;
         }
     }

@@ -22,8 +22,10 @@ use App\Http\Controllers\v1\User\UserSubscriptionModelController;
 use App\Http\Controllers\v1\User\Wallet\UserWalletController;
 use App\Http\Controllers\v1\Utilities\AirtimeServiceController;
 use App\Http\Controllers\v1\Utilities\BeneficiaryController;
+use App\Http\Controllers\v1\Utilities\CableTVServiceController;
 use App\Http\Controllers\v1\Utilities\DataServiceController;
 use App\Http\Controllers\v1\Utilities\PaymentController;
+use App\Http\Controllers\v1\Utilities\UtilityServiceController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -122,14 +124,38 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
             Route::prefix('airtime')->group(function () {
                 Route::get('networks', [AirtimeServiceController::class, 'getNetworks']);
                 Route::post('buy', [AirtimeServiceController::class, 'buyAirtime']);
-                // Route::get('history', [AirtimeServiceController::class, 'airtimeHistory']);
+                // Route::get('history', [AirtimeServiceController::class, 'history']);
             });
 
             Route::prefix('data')->group(function () {
                 Route::get('networks', [DataServiceController::class, 'getNetworks']);
                 Route::post('plans', [DataServiceController::class, 'getPlans']);
                 Route::post('buy', [DataServiceController::class, 'buyData']);
-                // Route::get('history', [DataServiceController::class, 'dataHistory']);
+                // Route::get('history', [DataServiceController::class, 'history']);
+            });
+
+            Route::prefix('cabletv')->group(function () {
+                Route::get('companies', [CableTVServiceController::class, 'getCompanies']);
+                Route::post('packages', [CableTVServiceController::class, 'getPackages']);
+                Route::post('verify', [CableTVServiceController::class, 'verifyNumber']);
+                Route::post('buy', [CableTVServiceController::class, 'buySubscription']);
+                // Route::get('history', [DataServiceController::class, 'history']);
+            });
+
+            Route::prefix('cabletv')->group(function () {
+                Route::get('companies', [CableTVServiceController::class, 'getCompanies']);
+                Route::post('packages', [CableTVServiceController::class, 'getPackages']);
+                Route::post('verify', [CableTVServiceController::class, 'verifyNumber']);
+                Route::post('buy', [UtilityServiceController::class, 'buySubscription']);
+                // Route::get('history', [UtilityServiceController::class, 'history']);
+            });
+
+            Route::prefix('utility')->group(function () {
+                Route::get('companies', [UtilityServiceController::class, 'getCompanies']);
+                Route::post('packages', [UtilityServiceController::class, 'getPackages']);
+                Route::post('verify', [UtilityServiceController::class, 'verifyNumber']);
+                Route::post('buy', [UtilityServiceController::class, 'buySubscription']);
+                // Route::get('history', [UtilityServiceController::class, 'history']);
             });
     
         });

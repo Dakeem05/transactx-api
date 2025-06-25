@@ -305,6 +305,22 @@ class SafehavenService
         }
     }
 
+    public function verifyBillerCategoryNumber(string $id, string $number): array
+    {
+        try {
+            $url = self::$baseUrl . '/vas/verify/';
+            $data = [
+                'serviceCategoryId' => $id,
+                'entityNumber' => $number,
+            ];
+            $response = Http::talkToSafehaven($url, 'POST', $data);
+            return $response;
+        } catch (Exception $e) {
+            Log::error('Error Encountered at verifyBillerCategoryNumber method in Safehaven Service: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
     public function purchaseService(array $data, string $service): array
     {
         try {

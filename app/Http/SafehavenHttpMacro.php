@@ -28,12 +28,12 @@ class SafehavenHttpMacro
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
             ])->{$method}($url, $data);
-
+            
             if ($response->failed()) {
                 $statusCode = $response->status();
                 $responseBody = $response->body();
                 $responseHeaders = $response->headers();
-    
+                
                 throw new Exception("Safehaven API request failed with status code $statusCode. Response body: $responseBody, Headers: " . json_encode($responseHeaders));
             }
     

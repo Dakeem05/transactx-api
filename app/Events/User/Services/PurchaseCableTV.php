@@ -8,7 +8,7 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class PurchaseAirtime
+class PurchaseCableTV
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -18,7 +18,6 @@ class PurchaseAirtime
     public function __construct(
         public Wallet $wallet,
         public float $amount,
-        public float $fees,
         public string $status,
         public string $currency,
         public string $reference,

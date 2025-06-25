@@ -12,7 +12,6 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
         // Run queue worker continuously for webhooks
         // $schedule->command('queue:work --queue=webhooks --once')
         // ->everyMinute()
@@ -23,6 +22,14 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->runInBackground();
         $schedule->command('app:data-service-command')
+            ->everyMinute()
+            ->withoutOverlapping()
+            ->runInBackground();
+        $schedule->command('app:cabletv-service-command')
+            ->everyMinute()
+            ->withoutOverlapping()
+            ->runInBackground();
+        $schedule->command('app:utility-service-command')
             ->everyMinute()
             ->withoutOverlapping()
             ->runInBackground();

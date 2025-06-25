@@ -50,7 +50,9 @@ class AirtimeService
             $provider = new ServiceProviderDto(
                 name: $provider->name ?? null,
                 description: $provider->description ?? null,
-                status: $provider->status ?? false
+                status: $provider->status ?? false,
+                percentage_charge: $provider->percentage_charge ?? 0.00,
+                fixed_charge: $provider->fixed_charge ?? 0.00,
             );
         }
         return $provider;
@@ -78,6 +80,21 @@ class AirtimeService
     public function buyAirtime(array $data, User $user)
     {
         $transactionService = resolve(TransactionService::class);
+
+        $provider = $this->getAirtimeServiceProvider();  
+        $percentage = $provider->percentage_charge ?? 0.00;
+        $fixed = $provider->fixed_charge ?? 0.00;
+        $charge_type = $fixed > 0 ? 'fixed' : 'percentage';
+        $totalAmount = $charge_type === 'fixed' 
+                ? $data['amount'] + $fixed 
+                : $data['amount'] + ($data['amount'] * ($percentage / 100));
+        $fees = $charge_type === 'fixed' 
+                ? $fixed 
+                : $data['amount'] * ($percentage / 100);
+        
+        $data['total_amount'] = $totalAmount;
+        $data['fees'] = $fees;
+
         $transactionService->verifyTransaction($data, $user);
 
         if ($data['add_beneficiary']) {
@@ -133,7 +150,7 @@ class AirtimeService
             'phone_number' => $data['phone_number'],
             'network' => $data['network'],
         ];
-        event(new PurchaseAirtime($user->wallet, $data['amount'], $status, Settings::where('name', 'currency')->first()->value, $response['id'], $response['reference'], $payload));
+        event(new PurchaseAirtime($user->wallet, $data['amount'], $data['fees'], $status, Settings::where('name', 'currency')->first()->value, $response['id'], $response['reference'], $payload));
     }
 
     private function handleUpdatedPurchase(Transaction $transaction, string $status)

@@ -479,7 +479,7 @@ class TransactionService
 
         $walletService = resolve(WalletService::class);
         $potential_charges = 25;
-        if (!$walletService->checkBalance($user->wallet, $data['amount'] + $potential_charges)) {
+        if (!$walletService->checkBalance($user->wallet, isset($data['total_amount']) ? $data['total_amount'] : $data['amount'] + $potential_charges)) {
             throw new Exception('Insufficient balance for that transaction');
         }
     }
@@ -496,6 +496,10 @@ class TransactionService
             'AIRTIME_FEE' => "Charged $currency fee",
             'DATA' => "Purchased $currency",
             'DATA_FEE' => "Charged $currency fee",
+            'CABLETV' => "Subscribed $currency",
+            'CABLETV_FEE' => "Charged $currency fee",
+            'UTILITY' => "Recharged $currency",
+            'UTILITY_FEE' => "Charged $currency fee",
             default => null,
         };
     }

@@ -46,8 +46,8 @@ class PurchaseAirtimeUpdateListener implements ShouldQueue
                     'SUCCESSFUL',
                 );
     
-                DB::commit();
                 $user->notify(new PurchaseAirtimeNotification($transaction, $wallet));
+                DB::commit();
     
             } else if ($status == "processing") {
                 $user->notify(new PurchaseAirtimeNotification($transaction, $wallet));
@@ -70,8 +70,8 @@ class PurchaseAirtimeUpdateListener implements ShouldQueue
                     $transaction->feeTransactions()->first(),
                     'REVERSED',
                 );
-                DB::commit();
                 $user->notify(new PurchaseAirtimeNotification($transaction, $wallet));
+                DB::commit();
             }
             
 

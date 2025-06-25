@@ -2,13 +2,13 @@
 
 namespace App\Events\User\Services;
 
-use App\Models\User\Wallet;
+use App\Models\Transaction;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class PurchaseAirtime
+class PurchaseCableTVUpdate
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -16,14 +16,8 @@ class PurchaseAirtime
      * Create a new event instance.
      */
     public function __construct(
-        public Wallet $wallet,
-        public float $amount,
-        public float $fees,
+        public Transaction $transaction,
         public string $status,
-        public string $currency,
-        public string $reference,
-        public string $external_reference,
-        public array $payload,
     ) {
         //
     }

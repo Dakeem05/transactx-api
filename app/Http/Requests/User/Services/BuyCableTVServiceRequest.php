@@ -9,7 +9,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class BuyDataServiceRequest extends FormRequest
+class BuyCableTVServiceRequest extends FormRequest
 {
 
     private string $request_uuid;
@@ -28,7 +28,7 @@ class BuyDataServiceRequest extends FormRequest
         $this->request_uuid = Str::uuid()->toString();
 
         Log::channel('daily')->info(
-            'BUY DATA SERVICE REQUEST: START',
+            'BUY CABLE TV SERVICE REQUEST: START',
             ["uid" => $this->request_uuid, "request" => $this->all()]
         );
     }
@@ -45,10 +45,10 @@ class BuyDataServiceRequest extends FormRequest
             'id' => ['bail', 'required', 'string'],
             'amount' => ['bail', 'required', 'numeric'],
             'total_amount' => ['bail', 'required', 'numeric'],
-            'phone_number' => ['bail', 'required', 'digits:11'],
-            'network' => ['bail', 'required', 'string'],
-            'plan' => ['bail', 'required', 'string'],
-            'validity' => ['bail', 'required', 'string'],
+            'number' => ['bail', 'required', 'string'],
+            'company' => ['bail', 'required', 'string'],
+            'package' => ['bail', 'required', 'string'],
+            'name' => ['bail', 'required', 'string'],
             'add_beneficiary' => ['bail', 'boolean', 'required'],
         ];
     }
@@ -66,7 +66,7 @@ class BuyDataServiceRequest extends FormRequest
         $firstError = collect($errors)->flatten()->first();
 
         Log::channel('daily')->info(
-            'BUY DATA SERVICE REQUEST',
+            'BUY CABLE TV SERVICE REQUEST',
             ["uid" => $this->request_uuid, "response" => ['errors' => $errors]]
         );
 

@@ -12,7 +12,7 @@ use Illuminate\Notifications\Notification;
 use Kreait\Firebase\Messaging\CloudMessage;
 use NotificationChannels\FCM\FCMChannel;
 
-class PurchaseDataNotification
+class PurchaseCableTVNotification
  extends Notification implements ShouldQueue
 {
     use Queueable;
@@ -24,9 +24,8 @@ class PurchaseDataNotification
     protected string $transactionCurrency;
     protected float $walletAmount;
     protected string $recipient;
-    protected string $network;
-    protected string $plan;
-    protected string $validity;
+    protected string $company;
+    protected string $package;
 
     /**
      * Create a new notification instance.
@@ -42,10 +41,9 @@ class PurchaseDataNotification
         $this->transactionCurrency = $this->transaction->currency;
         $this->status = $this->transaction->status;
         $this->walletAmount = $this->wallet->amount->getAmount()->toFloat();
-        $this->recipient = $this->transaction->payload['phone_number'];
-        $this->network = $this->transaction->payload['network'];
-        $this->plan = $this->transaction->payload['plan'];
-        $this->validity = $this->transaction->payload['validity'];
+        $this->recipient = $this->transaction->payload['number'];
+        $this->company = $this->transaction->payload['company'];
+        $this->package = $this->transaction->payload['name'];
     }
 
     /**
@@ -72,22 +70,22 @@ class PurchaseDataNotification
     public function toMail(object $notifiable): MailMessage
     {
         if ($this->status == "PENDING") {
-            return (new MailMessage)->subject('Data Purchase Processing')
+            return (new MailMessage)->subject('Cable TV Subcription Processing')
                 ->markdown(
-                    'email.user.services.data-processing',
-                    ['user' => $notifiable, 'wallet' => $this->wallet, 'transaction' => $this->transaction, 'recipient' => $this->recipient, 'network' => $this->network, 'plan' => $this->plan, 'validity' => $this->validity]
+                    'email.user.services.cabletv-processing',
+                    ['user' => $notifiable, 'wallet' => $this->wallet, 'transaction' => $this->transaction, 'recipient' => $this->recipient, 'company' => $this->company, 'package' => $this->package]
                 );
         } else if ($this->status == "SUCCESSFUL")  {
-            return (new MailMessage)->subject('Data Purchase Successful')
+            return (new MailMessage)->subject('Cable TV Subcription Successful')
                 ->markdown(
-                    'email.user.services.data-successful',
-                    ['user' => $notifiable, 'wallet' => $this->wallet, 'transaction' => $this->transaction, 'recipient' => $this->recipient, 'network' => $this->network, 'plan' => $this->plan, 'validity' => $this->validity]
+                    'email.user.services.cabletv-successful',
+                    ['user' => $notifiable, 'wallet' => $this->wallet, 'transaction' => $this->transaction, 'recipient' => $this->recipient, 'company' => $this->company, 'package' => $this->package]
                 );
         } else {
-            return (new MailMessage)->subject('Data Purchase Reversed')
+            return (new MailMessage)->subject('Cable TV Subcription Reversed')
                 ->markdown(
-                    'email.user.services.data-reversed',
-                    ['user' => $notifiable, 'wallet' => $this->wallet, 'transaction' => $this->transaction, 'recipient' => $this->recipient, 'network' => $this->network, 'plan' => $this->plan, 'validity' => $this->validity]
+                    'email.user.services.cabletv-reversed',
+                    ['user' => $notifiable, 'wallet' => $this->wallet, 'transaction' => $this->transaction, 'recipient' => $this->recipient, 'company' => $this->company, 'package' => $this->package]
                 );
         }
     }
@@ -100,7 +98,7 @@ class PurchaseDataNotification
      */
     public function databaseType(object $notifiable): string
     {
-        return 'data';
+        return 'cabletv';
     }
 
 
@@ -110,9 +108,9 @@ class PurchaseDataNotification
     public function toFCM(object $notifiable): CloudMessage
     {
         if ($this->status == "PENDING") {
-            $title = "Data Purchase Processing";
+            $title = "Cable TV Subcription Processing";
 
-            $body = "Your $this->validity $this->network $this->plan data bundle purchase to $this->recipient costing $this->transactionCurrency $this->transactionAmount is processing.";
+            $body = "Your $this->company subscription of $this->package to $this->recipient costing $this->transactionCurrency $this->transactionAmount is processing.";
 
             return CloudMessage::new()
                 ->withDefaultSounds()
@@ -121,12 +119,12 @@ class PurchaseDataNotification
                     'body' => $body,
                 ])
                 ->withData([
-                    'notification_key' => 'data',
+                    'notification_key' => 'cabletv',
                 ]);
         } else if ($this->status == "SUCCESSFUL") {
-            $title = "Data Purchase Successful";
+            $title = "Cable TV Subcription Successful";
 
-            $body = "Your $this->validity $this->network $this->plan data bundle purchase to $this->recipient costing $this->transactionCurrency $this->transactionAmount is successful.";
+            $body = "Your $this->company subscription of $this->package to $this->recipient costing $this->transactionCurrency $this->transactionAmount is successful.";
 
             return CloudMessage::new()
                 ->withDefaultSounds()
@@ -135,12 +133,12 @@ class PurchaseDataNotification
                     'body' => $body,
                 ])
                 ->withData([
-                    'notification_key' => 'data',
+                    'notification_key' => 'cabletv',
                 ]);
         } else {
-            $title = "Data Purchase Reversed";
+            $title = "Cable TV Subcription Reversed";
 
-            $body = "Your $this->validity $this->network $this->plan data bundle purchase to $this->recipient costing $this->transactionCurrency $this->transactionAmount failed and your funds reversed.";
+            $body = "Your $this->company subscription of $this->package to $this->recipient costing $this->transactionCurrency $this->transactionAmount failed and your funds reversed.";
 
             return CloudMessage::new()
                 ->withDefaultSounds()
@@ -149,7 +147,7 @@ class PurchaseDataNotification
                     'body' => $body,
                 ])
                 ->withData([
-                    'notification_key' => 'data',
+                    'notification_key' => 'cabletv',
                 ]);
         }
     }
@@ -164,8 +162,8 @@ class PurchaseDataNotification
     {
         if ($this->status == "PENDING") {
             return [
-                'title' => 'Data Purchase Processing',
-                'message' => "Your $this->validity $this->network $this->plan data bundle purchase to $this->recipient costing $this->transactionCurrency $this->transactionAmount is processing",
+                'title' => 'Cable TV Subcription Processing',
+                'message' => "Your $this->company subscription of $this->package to $this->recipient costing $this->transactionCurrency $this->transactionAmount is processing",
                 'data' => [
                     'user_id' => $notifiable->id,
                     'transaction' => $this->transaction,
@@ -176,8 +174,8 @@ class PurchaseDataNotification
             ];
         } else if ($this->status == "SUCCESSFUL") {
             return [
-                'title' => 'Data Purchase Successful',
-                'message' => "Your $this->validity $this->network $this->plan data bundle purchase to $this->recipient costing $this->transactionCurrency $this->transactionAmount is successful",
+                'title' => 'Cable TV Subcription Successful',
+                'message' => "Your $this->company subscription of $this->package to $this->recipient costing $this->transactionCurrency $this->transactionAmount is successful",
                 'data' => [
                     'user_id' => $notifiable->id,
                     'transaction' => $this->transaction,
@@ -188,8 +186,8 @@ class PurchaseDataNotification
             ];
         } else {
             return [
-                'title' => 'Data Purchase Reversed',
-                'message' => "Your $this->validity $this->network $this->plan data bundle purchase to $this->recipient costing $this->transactionCurrency $this->transactionAmount failed and your funds reversed",
+                'title' => 'Cable TV Subcription Reversed',
+                'message' => "Your $this->company subscription of $this->package to $this->recipient costing $this->transactionCurrency $this->transactionAmount failed and your funds reversed",
                 'data' => [
                     'user_id' => $notifiable->id,
                     'transaction' => $this->transaction,

@@ -9,7 +9,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class BuyDataServiceRequest extends FormRequest
+class BuyUtilityServiceRequest extends FormRequest
 {
 
     private string $request_uuid;
@@ -28,7 +28,7 @@ class BuyDataServiceRequest extends FormRequest
         $this->request_uuid = Str::uuid()->toString();
 
         Log::channel('daily')->info(
-            'BUY DATA SERVICE REQUEST: START',
+            'BUY UTILITY SERVICE REQUEST: START',
             ["uid" => $this->request_uuid, "request" => $this->all()]
         );
     }
@@ -44,11 +44,11 @@ class BuyDataServiceRequest extends FormRequest
         return [
             'id' => ['bail', 'required', 'string'],
             'amount' => ['bail', 'required', 'numeric'],
-            'total_amount' => ['bail', 'required', 'numeric'],
-            'phone_number' => ['bail', 'required', 'digits:11'],
-            'network' => ['bail', 'required', 'string'],
-            'plan' => ['bail', 'required', 'string'],
-            'validity' => ['bail', 'required', 'string'],
+            'number' => ['bail', 'required', 'string'],
+            'min_vend_amount' => ['bail', 'required', 'numeric'],
+            'max_vend_amount' => ['bail', 'required', 'numeric'],
+            'company' => ['bail', 'required', 'string'],
+            'vend_type' => ['bail', 'required', 'string'],
             'add_beneficiary' => ['bail', 'boolean', 'required'],
         ];
     }
@@ -66,7 +66,7 @@ class BuyDataServiceRequest extends FormRequest
         $firstError = collect($errors)->flatten()->first();
 
         Log::channel('daily')->info(
-            'BUY DATA SERVICE REQUEST',
+            'BUY UTILITY SERVICE REQUEST',
             ["uid" => $this->request_uuid, "response" => ['errors' => $errors]]
         );
 
