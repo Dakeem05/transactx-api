@@ -21,7 +21,7 @@ class TransferMoney
         public float $fees,
         public string $currency,
         public string $reference,
-        public string $external_reference,
+        public string $external_transaction_reference,
         public ?string $narration,
         public ?string $ip_address,
         public ?string $name,

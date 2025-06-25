@@ -34,7 +34,7 @@ class PurchaseDataListener implements ShouldQueue
         $status = $event->status;
         $currency = $event->currency;
         $reference = $event->reference;
-        $external_reference = $event->external_reference;
+        $external_transaction_reference = $event->external_transaction_reference;
         $payload = $event->payload;
         $fees = 0;
 
@@ -59,7 +59,7 @@ class PurchaseDataListener implements ShouldQueue
                     $currency,
                     'DATA',
                     null,
-                    $external_reference,
+                    $external_transaction_reference,
                     $payload,
                     $reference,
                 );
@@ -90,7 +90,7 @@ class PurchaseDataListener implements ShouldQueue
                     $wallet->id,
                     null,
                     null,
-                    $external_reference,
+                    $external_transaction_reference,
                 );
 
                 $feeTransaction = $this->transactionService->createPendingFeeTransaction(

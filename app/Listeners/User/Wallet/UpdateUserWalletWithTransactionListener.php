@@ -33,7 +33,7 @@ class UpdateUserWalletWithTransactionListener implements ShouldQueue
         $amount = $event->amount;
         $fees = $event->fees;
         $currency = $event->currency;
-        $external_reference = $event->external_reference;
+        $external_transaction_reference = $event->external_transaction_reference;
 
         try {
             DB::beginTransaction();
@@ -70,7 +70,7 @@ class UpdateUserWalletWithTransactionListener implements ShouldQueue
                 $currency,
                 'FUND_WALLET',
                 null,
-                $external_reference,
+                $external_transaction_reference,
                 null
             );
 

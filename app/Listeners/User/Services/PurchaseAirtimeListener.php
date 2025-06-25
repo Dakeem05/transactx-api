@@ -34,7 +34,7 @@ class PurchaseAirtimeListener implements ShouldQueue
         $status = $event->status;
         $currency = $event->currency;
         $reference = $event->reference;
-        $external_reference = $event->external_reference;
+        $external_transaction_reference = $event->external_transaction_reference;
         $payload = $event->payload;
         $fees = $event->fees;
 
@@ -59,7 +59,7 @@ class PurchaseAirtimeListener implements ShouldQueue
                     $currency,
                     'AIRTIME',
                     null,
-                    $external_reference,
+                    $external_transaction_reference,
                     $payload,
                     $reference,
                 );
@@ -90,7 +90,7 @@ class PurchaseAirtimeListener implements ShouldQueue
                     $wallet->id,
                     null,
                     null,
-                    $external_reference,
+                    $external_transaction_reference,
                 );
 
                 $feeTransaction = $this->transactionService->createPendingFeeTransaction(

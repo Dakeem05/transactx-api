@@ -22,7 +22,7 @@ class WalletTransactionReceived
         public float $amount,
         public float $fees,
         public string $currency,
-        public string $external_reference,
+        public string $external_transaction_reference,
     ) {
         //
     }

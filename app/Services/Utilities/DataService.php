@@ -143,7 +143,7 @@ class DataService
         $provider = $this->getDataServiceProvider();
 
         if ($provider->name == 'safehaven') {
-            $response = $this->getPurchaseTransaction($transaction->external_reference);
+            $response = $this->getPurchaseTransaction($transaction->external_transaction_reference);
             if (strtolower($response['status']) == "processing") {
                 $this->handleUpdatedPurchase($transaction, 'processing');
             } else if (strtolower($response['status']) == "successful")  {

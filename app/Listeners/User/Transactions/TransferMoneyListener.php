@@ -34,7 +34,7 @@ class TransferMoneyListener implements ShouldQueue
         $fees = $event->fees;
         $currency = $event->currency;
         $reference = $event->reference;
-        $external_reference = $event->external_reference;
+        $external_transaction_reference = $event->external_transaction_reference;
         $narration = $event->narration ?? null;
         $ip_address = $event->ip_address ?? null;
         $name = $event->name;
@@ -63,7 +63,7 @@ class TransferMoneyListener implements ShouldQueue
                 $wallet->id,
                 $narration,
                 $ip_address,
-                $external_reference,
+                $external_transaction_reference,
             );
 
             $feeTransaction = $this->transactionService->createPendingFeeTransaction(

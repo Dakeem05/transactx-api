@@ -22,7 +22,7 @@ class PurchaseAirtime
         public string $status,
         public string $currency,
         public string $reference,
-        public string $external_reference,
+        public string $external_transaction_reference,
         public array $payload,
     ) {
         //
