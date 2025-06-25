@@ -189,7 +189,7 @@ class CableTVService
             'amount' => (float)$data['amount'],
             'channel' => "WEB",
             'serviceCategoryId' => $data['id'],
-            'bundleCode' => $data['plan'],
+            'bundleCode' => $data['package'],
             'debitAccountNumber' => $user->wallet->virtualBankAccount->account_number,
             'cardNumber' => $data['number'],
         ];
