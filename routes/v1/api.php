@@ -139,15 +139,7 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
                 Route::post('packages', [CableTVServiceController::class, 'getPackages']);
                 Route::post('verify', [CableTVServiceController::class, 'verifyNumber']);
                 Route::post('buy', [CableTVServiceController::class, 'buySubscription']);
-                // Route::get('history', [DataServiceController::class, 'history']);
-            });
-
-            Route::prefix('cabletv')->group(function () {
-                Route::get('companies', [CableTVServiceController::class, 'getCompanies']);
-                Route::post('packages', [CableTVServiceController::class, 'getPackages']);
-                Route::post('verify', [CableTVServiceController::class, 'verifyNumber']);
-                Route::post('buy', [UtilityServiceController::class, 'buySubscription']);
-                // Route::get('history', [UtilityServiceController::class, 'history']);
+                // Route::get('history', [CableTVServiceController::class, 'history']);
             });
 
             Route::prefix('utility')->group(function () {
