@@ -13,6 +13,7 @@ use App\Http\Requests\User\Transactions\SendMoneyToUsernameRequest;
 use App\Services\TransactionService;
 use Exception;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -185,6 +186,23 @@ class TransactionsController extends Controller
         } catch (Exception $e) {
             Log::error('SEND MONEY TO USERNAME: Error Encountered: ' . $e->getMessage());
             return TransactX::response(false, 'Failed to request money: ' . $e->getMessage(), 500);
+        }
+    }
+
+    public function transactionHistory(Request $request)
+    {
+        try {
+            $user = Auth::user();
+
+            $history = $this->transactionService->transactionHistory((array)$request, $user);
+            
+            return TransactX::response(true, 'Transaction history retrieved successfully', 200, $history);
+        } catch (InvalidArgumentException $e) {
+            Log::error('Get Transaction History: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(false, $e->getMessage(), 400);
+        } catch (Exception $e) {
+            Log::error('Get Transaction History: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(false, 'Failed to get transaction history: ' . $e->getMessage(), 500);
         }
     }
 }

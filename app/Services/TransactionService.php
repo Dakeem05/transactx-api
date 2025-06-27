@@ -45,6 +45,61 @@ class TransactionService
         return $modifiedUsers;
     }
 
+    public function transactionHistory(array $data, User $user) 
+    {
+        if(isset($request['type'])) {
+            $histories = Transaction::where('user_id', $user->id)
+            ->latest()
+            ->whereMonth('created_at', isset($request['month']) ? $request['month'] : now()->month)
+            ->whereYear('created_at', isset($request['year']) ? $request['year'] : now()->year)
+            ->whereType($request['type'])
+            ->with(['feeTransactions'])
+            ->get();
+        }else {
+            $histories = Transaction::where('user_id', $user->id)
+            ->latest()
+            ->whereMonth('created_at', isset($request['month']) ? $request['month'] : now()->month)
+            ->whereYear('created_at', isset($request['year']) ? $request['year'] : now()->year)
+            ->with(['feeTransactions'])
+            ->get();
+        }
+
+        $in = $histories->where('type', 'FUND_WALLET')
+        ->sum(function ($transaction) {
+            return $transaction->amount->getAmount()->toFloat();
+        });
+
+        $out = $histories->where('type', '!=', 'FUND_WALLET')
+        ->sum(function ($transaction) {
+            return $transaction->amount->getAmount()->toFloat();
+        });
+        
+        $groupedHistories = $histories->map(function ($history) {
+            return [
+                'type' => $history->type,
+                'amount' => $history->amount->getAmount()->toFloat(),
+                'currency' => $history->currency,
+                'status' => $history->status,
+                'reference' => $history->reference,
+                'description' => $history->description,
+                'narration' => $history->narration,
+                'date' => $history->created_at->format('F j, Y g:i:s A'),
+                'payload' => $history->payload,
+                'fee' => $history->feeTransactions->sum(function ($feeTransaction) {
+                    return $feeTransaction->amount->getAmount()->toFloat(); 
+                }),
+            ];
+        })->groupBy(function ($item) {
+            return \Carbon\Carbon::parse($item['date'])->format('F j');
+        });
+
+        return [
+            'in' => $in,
+            'out' => $out,
+            'data' => $groupedHistories
+        ];
+    }
+
     public function sendMoneyToUsername(array $data, User $user, string $ip_address) 
     {
         $recipient = User::where('username', $data['username'])->first();
