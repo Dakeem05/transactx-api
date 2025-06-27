@@ -194,7 +194,7 @@ class TransactionsController extends Controller
         try {
             $user = Auth::user();
 
-            $history = $this->transactionService->transactionHistory((array)$request, $user);
+            $history = $this->transactionService->transactionHistory($request, $user);
             
             return TransactX::response(true, 'Transaction history retrieved successfully', 200, $history);
         } catch (InvalidArgumentException $e) {

@@ -45,24 +45,24 @@ class TransactionService
         return $modifiedUsers;
     }
 
-    public function transactionHistory(array $data, User $user) 
+    public function transactionHistory($request, User $user) 
     {
-        if(isset($request['type'])) {
+        if(isset($request->type)) {
             $histories = Transaction::where('user_id', $user->id)
             ->latest()
-            ->whereMonth('created_at', isset($request['month']) ? $request['month'] : now()->month)
-            ->whereYear('created_at', isset($request['year']) ? $request['year'] : now()->year)
-            ->whereType($request['type'])
+            ->whereMonth('created_at', isset($request->month) ? $request->month : now()->month)
+            ->whereYear('created_at', isset($request->year) ? $request->year : now()->year)
+            ->whereType($request->type)
             ->wherePrincipalTransactionId(null)
             ->with(['feeTransactions'])
             ->get();
         }else {
             $histories = Transaction::where('user_id', $user->id)
             ->latest()
-            ->whereMonth('created_at', isset($request['month']) ? $request['month'] : now()->month)
-            ->whereYear('created_at', isset($request['year']) ? $request['year'] : now()->year)
-            ->with(['feeTransactions'])
+            ->whereMonth('created_at', isset($request->month) ? $request->month : now()->month)
+            ->whereYear('created_at', isset($request->year) ? $request->year : now()->year)
             ->wherePrincipalTransactionId(null)
+            ->with(['feeTransactions'])
             ->get();
         }
 
