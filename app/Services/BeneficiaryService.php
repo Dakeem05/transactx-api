@@ -174,4 +174,62 @@ class BeneficiaryService
             ->orderBy('created_at', 'desc')
             ->get();
     }
+
+    public function searchAirtimeOrDataBeneficiaries(
+        string $userId, 
+        string $query, 
+        ?string $service = null
+    ): \Illuminate\Database\Eloquent\Collection {
+        $searchTerm = "%{$query}%";
+        
+        return Beneficiary::when($service, function ($q) use ($service) {
+                $q->where('service', $service);
+            })
+            ->where('user_id', $userId)
+            ->where(function ($q) use ($searchTerm) {
+                if (config('database.default') === 'pgsql') {
+                    // PostgreSQL JSON search syntax
+                    $q->whereRaw("payload::json->>'id' LIKE ?", [$searchTerm])
+                      ->orWhereRaw("payload::json->>'network' LIKE ?", [$searchTerm])
+                      ->orWhereRaw("payload::json->>'phone_number' LIKE ?", [$searchTerm]);
+                } else {
+                    // MySQL/MariaDB JSON search syntax
+                    $q->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(payload, '$.id')) LIKE ?", [$searchTerm])
+                      ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(payload, '$.network')) LIKE ?", [$searchTerm])
+                      ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(payload, '$.phone_number')) LIKE ?", [$searchTerm]);
+                }
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
+    }
+
+    public function searchCableTVOrUtilityBeneficiaries(
+        string $userId, 
+        string $query, 
+        ?string $service = null
+    ): \Illuminate\Database\Eloquent\Collection {
+        $searchTerm = "%{$query}%";
+        
+        return Beneficiary::when($service, function ($q) use ($service) {
+                $q->where('service', $service);
+            })
+            ->where('user_id', $userId)
+            ->where(function ($q) use ($searchTerm) {
+                if (config('database.default') === 'pgsql') {
+                    // PostgreSQL JSON search syntax
+                    $q->whereRaw("payload::json->>'id' LIKE ?", [$searchTerm])
+                      ->orWhereRaw("payload::json->>'company' LIKE ?", [$searchTerm])
+                      ->orWhereRaw("payload::json->>'number' LIKE ?", [$searchTerm])
+                      ->orWhereRaw("payload::json->>'vendType' LIKE ?", [$searchTerm]);
+                } else {
+                    // MySQL/MariaDB JSON search syntax
+                    $q->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(payload, '$.id')) LIKE ?", [$searchTerm])
+                      ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(payload, '$.company')) LIKE ?", [$searchTerm])
+                      ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(payload, '$.number')) LIKE ?", [$searchTerm])
+                      ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(payload, '$.vendType')) LIKE ?", [$searchTerm]);
+                }
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
+    }
 }

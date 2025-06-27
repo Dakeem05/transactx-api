@@ -124,29 +124,53 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
             Route::prefix('airtime')->group(function () {
                 Route::get('networks', [AirtimeServiceController::class, 'getNetworks']);
                 Route::post('buy', [AirtimeServiceController::class, 'buyAirtime']);
+                Route::prefix('beneficiary')->group(function () {
+                    Route::get('/', [BeneficiaryController::class, 'getAirtimeBeneficiaries'])->name('user.services.airtime.beneficiary');
+                    Route::get('/{query}', [BeneficiaryController::class, 'searchAirtimeBeneficiaries'])->name('user.services.airtime.search.beneficiary');
+                    Route::delete('/{id}', [BeneficiaryController::class, 'deleteBeneficiary'])->name('user.services.airtime.beneficiary.delete');
+                    Route::post('/buy', [BeneficiaryController::class, 'buyAirtime'])->name('user.services.airtime.beneficiary.buy.airtime');
+                });
                 // Route::get('history', [AirtimeServiceController::class, 'history']);
             });
-
+            
             Route::prefix('data')->group(function () {
                 Route::get('networks', [DataServiceController::class, 'getNetworks']);
                 Route::post('plans', [DataServiceController::class, 'getPlans']);
                 Route::post('buy', [DataServiceController::class, 'buyData']);
+                Route::prefix('beneficiary')->group(function () {
+                    Route::get('/', [BeneficiaryController::class, 'getDataBeneficiaries'])->name('user.services.data.beneficiary');
+                    Route::get('/{query}', [BeneficiaryController::class, 'searchDataBeneficiaries'])->name('user.services.data.search.beneficiary');
+                    Route::delete('/{id}', [BeneficiaryController::class, 'deleteBeneficiary'])->name('user.services.data.beneficiary.delete');
+                    Route::post('/buy', [BeneficiaryController::class, 'buyData'])->name('user.services.data.beneficiary.buy.data');
+                });
                 // Route::get('history', [DataServiceController::class, 'history']);
             });
-
+            
             Route::prefix('cabletv')->group(function () {
                 Route::get('companies', [CableTVServiceController::class, 'getCompanies']);
                 Route::post('packages', [CableTVServiceController::class, 'getPackages']);
                 Route::post('verify', [CableTVServiceController::class, 'verifyNumber']);
                 Route::post('buy', [CableTVServiceController::class, 'buySubscription']);
+                Route::prefix('beneficiary')->group(function () {
+                    Route::get('/', [BeneficiaryController::class, 'getCableTVBeneficiaries'])->name('user.services.cabletv.beneficiary');
+                    Route::get('/{query}', [BeneficiaryController::class, 'searchCableTVBeneficiaries'])->name('user.services.cabletv.search.beneficiary');
+                    Route::delete('/{id}', [BeneficiaryController::class, 'deleteBeneficiary'])->name('user.services.cabletv.beneficiary.delete');
+                    Route::post('/buy', [BeneficiaryController::class, 'buyCableTVSub'])->name('user.services.cabletv.beneficiary.buy');
+                });
                 // Route::get('history', [CableTVServiceController::class, 'history']);
             });
-
+            
             Route::prefix('utility')->group(function () {
                 Route::get('companies', [UtilityServiceController::class, 'getCompanies']);
                 Route::post('packages', [UtilityServiceController::class, 'getPackages']);
                 Route::post('verify', [UtilityServiceController::class, 'verifyNumber']);
                 Route::post('buy', [UtilityServiceController::class, 'buySubscription']);
+                Route::prefix('beneficiary')->group(function () {
+                    Route::get('/', [BeneficiaryController::class, 'getUtilityBeneficiaries'])->name('user.services.utility.beneficiary');
+                    Route::get('/{query}', [BeneficiaryController::class, 'searchUtilityBeneficiaries'])->name('user.services.utility.search.beneficiary');
+                    Route::delete('/{id}', [BeneficiaryController::class, 'deleteBeneficiary'])->name('user.services.utility.beneficiary.delete');
+                    Route::post('/buy', [BeneficiaryController::class, 'buyUtilitySub'])->name('user.services.utility.beneficiary.buy');
+                });
                 // Route::get('history', [UtilityServiceController::class, 'history']);
             });
     

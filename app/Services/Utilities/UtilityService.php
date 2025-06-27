@@ -136,6 +136,44 @@ class UtilityService
         return $this->handleSubscriptionPurchase($data, $user);
     }
 
+    public function buyToBeneficiary(array $data, User $user)
+    {
+        $beneficiary = resolve(BeneficiaryService::class)->getBeneficiary($user->id, $data['beneficiary_id']);
+        $data['number'] = $beneficiary->payload['number'] ?? null;
+        $data['company'] = $beneficiary->payload['company'] ?? null;
+        $data['id'] = $beneficiary->payload['id'] ?? null;
+        $data['vend_type'] = $beneficiary->payload['vendType'] ?? null;
+        $data['min_vend_amount'] = $beneficiary->payload['minVendAmount'] ?? null;
+        $data['max_vend_amount'] = $beneficiary->payload['maxVendAmount'] ?? null;
+
+        if (!$data['number'] || !$data['company'] || !$data['id'] || !$data['vend_type'] || !$data['min_vend_amount'] || !$data['max_vend_amount']) {
+            throw new InvalidArgumentException('Beneficiary details are incomplete.');
+        }
+
+        $transactionService = resolve(TransactionService::class);
+
+        if ($data['amount'] < $data['min_vend_amount'] || $data['amount'] > $data['max_vend_amount']) {
+            throw new InvalidArgumentException('Amount must be between ' . $data['min_vend_amount'] . ' and ' . $data['max_vend_amount']);
+        }
+
+        $provider = $this->getUtilityServiceProvider();  
+        $percentage = $provider->percentage_charge ?? 0.00;
+        $fixed = $provider->fixed_charge ?? 0.00;
+        $charge_type = $fixed > 0 ? 'fixed' : 'percentage';
+        $totalAmount = $charge_type === 'fixed' 
+                ? $data['amount'] + $fixed 
+                : $data['amount'] + ($data['amount'] * ($percentage / 100));
+        $fees = $charge_type === 'fixed' 
+                ? $fixed 
+                : $data['amount'] * ($percentage / 100);
+        
+        $data['total_amount'] = $totalAmount;
+        $data['fees'] = $fees;
+
+        $transactionService->verifyTransaction($data, $user);
+        return $this->handleSubscriptionPurchase($data, $user);
+    }
+
     public function handleSubscriptionPurchase(array $data, User $user)
     {
         try {

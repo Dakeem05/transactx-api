@@ -74,7 +74,7 @@ class CableTVServiceController extends Controller
             return TransactX::response(false, $e->getMessage(), 400);
         } catch (Exception $e) {
             Log::error('Buy cable tv subscription: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(false, 'Failed to buy cable tv subscription' . $e->getMessage(), 500);
+            return TransactX::response(false, 'Failed to buy cable tv subscription', 500);
         }
     }
 

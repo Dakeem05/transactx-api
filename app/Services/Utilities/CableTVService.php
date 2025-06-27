@@ -13,6 +13,7 @@ use App\Services\BeneficiaryService;
 use App\Services\TransactionService;
 use App\Traits\SafehavenRequestTrait;
 use Exception;
+use InvalidArgumentException;
 
 class CableTVService
 {
@@ -129,6 +130,22 @@ class CableTVService
             $beneficiaryService->addCableTVAndUtiltyBeneficiary($user->id, 'cabletv', $payload);
         }
 
+        return $this->handleSubscriptionPurchase($data, $user);
+    }
+
+    public function buyToBeneficiary(array $data, User $user)
+    {
+        $beneficiary = resolve(BeneficiaryService::class)->getBeneficiary($user->id, $data['beneficiary_id']);
+        $data['number'] = $beneficiary->payload['number'] ?? null;
+        $data['company'] = $beneficiary->payload['company'] ?? null;
+        $data['id'] = $beneficiary->payload['id'] ?? null;
+
+        if (!$data['number'] || !$data['company'] || !$data['id']) {
+            throw new InvalidArgumentException('Beneficiary details are incomplete.');
+        }
+
+        $transactionService = resolve(TransactionService::class);
+        $transactionService->verifyTransaction($data, $user);
         return $this->handleSubscriptionPurchase($data, $user);
     }
 

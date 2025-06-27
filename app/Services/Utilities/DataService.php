@@ -13,6 +13,7 @@ use App\Services\BeneficiaryService;
 use App\Services\TransactionService;
 use App\Traits\SafehavenRequestTrait;
 use Exception;
+use InvalidArgumentException;
 
 class DataService
 {
@@ -116,6 +117,23 @@ class DataService
             ];
             $beneficiaryService->addAirtimeAndDataBeneficiary($user->id, 'data', $payload);
         }
+
+        return $this->handleDataPurchase($data, $user);
+    }
+
+    public function buyDataToBeneficiary(array $data, User $user)
+    {
+        $beneficiary = resolve(BeneficiaryService::class)->getBeneficiary($user->id, $data['beneficiary_id']);
+        $data['phone_number'] = $beneficiary->payload['phone_number'] ?? null;
+        $data['network'] = $beneficiary->payload['network'] ?? null;
+        $data['id'] = $beneficiary->payload['id'] ?? null;
+
+        if (!$data['phone_number'] || !$data['network'] || !$data['id']) {
+            throw new InvalidArgumentException('Beneficiary details are incomplete.');
+        }
+        
+        $transactionService = resolve(TransactionService::class);
+        $transactionService->verifyTransaction($data, $user);
 
         return $this->handleDataPurchase($data, $user);
     }

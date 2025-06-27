@@ -28,6 +28,7 @@ class SafehavenHttpMacro
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
             ])->{$method}($url, $data);
+            // dd($response);
             
             if ($response->failed()) {
                 $statusCode = $response->status();
