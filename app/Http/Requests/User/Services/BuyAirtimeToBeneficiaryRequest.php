@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\User\Transactions\Services;
+namespace App\Http\Requests\User\Services;
 
 use App\Helpers\TransactX;
 use Illuminate\Support\Str;

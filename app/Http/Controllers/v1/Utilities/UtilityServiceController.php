@@ -63,18 +63,4 @@ class UtilityServiceController extends Controller
             return TransactX::response(false, 'Failed to buy utility subscription' . $e->getMessage(), 500);
         }
     }
-    public function history(string $id)
-    {
-        try {
-            $this->utilityService->pendingPurchase($id, Auth::user());
-            return TransactX::response(true, 'Utility subscription bought successfully', 200);
-        } catch (InvalidArgumentException $e) {
-            Log::error('Buy utility subscription: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(false, $e->getMessage(), 400);
-        } catch (Exception $e) {
-            Log::error('Buy utility subscription: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(false, 'Failed to buy utility subscription' . $e->getMessage(), 500);
-        }
-    }
-
 }

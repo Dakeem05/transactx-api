@@ -216,9 +216,9 @@ class UtilityService
             'company' => $data['company'],
             'number' => $data['number'],
             'vendType' => $data['vend_type'],
-            'token' => $response['metaData']['token'] ?? null,
-            'units' => $response['metaData']['units'] ?? null,
-            'vendTime' => $response['metaData']['vendTime'] ?? null,
+            'token' => $response['utilityToken'] ?? null,
+            'units' => $response['units'] ?? null,
+            'vendTime' => $response['vendTime'] ?? null,
         ];
         event(new PurchaseUtility($user->wallet, $data['amount'], $data['fees'], $status, Settings::where('name', 'currency')->first()->value, $response['id'], $response['reference'], $payload));
     }
