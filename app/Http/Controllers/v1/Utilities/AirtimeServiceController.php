@@ -48,4 +48,25 @@ class AirtimeServiceController extends Controller
         }
     }
 
+    // public function airtimeHistory()
+    // {
+    //     $user = auth()->guard('api')->user();
+    //     $data_history = TransactionHistory::whereUserId($user->id)
+    //         ->whereType('airtime')
+    //         ->whereStatus('successful')
+    //         ->latest()
+    //         ->get()
+    //         ->map(function ($history) {
+    //             return [
+    //                 'type' => $history->type,
+    //                 'amount' => $history->amount,
+    //                 'status' => $history->status,
+    //                 'reference' => $history->reference,
+    //                 'narration' => $history->additional_info,
+    //                 'date' => $history->created_at->format('d F, Y H:iA'),
+    //             ];
+    //         });
+
+    //     return $this->successResponse($data_history);
+    // }
 }

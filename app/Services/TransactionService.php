@@ -52,7 +52,7 @@ class TransactionService
             ->latest()
             ->whereMonth('created_at', isset($request->month) ? $request->month : now()->month)
             ->whereYear('created_at', isset($request->year) ? $request->year : now()->year)
-            ->whereType($request->type)
+            ->whereType(strtoupper($request->type))
             ->wherePrincipalTransactionId(null)
             ->with(['feeTransactions'])
             ->get();
