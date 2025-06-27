@@ -195,16 +195,17 @@ class UtilityService
 
     public function pendingPurchase(Transaction $transaction)
     {
+
         $provider = $this->getUtilityServiceProvider();
 
         if ($provider->name == 'safehaven') {
             $response = $this->getPurchaseTransaction($transaction->external_transaction_reference);
             if (strtolower($response['status']) == "processing") {
-                $this->handleUpdatedPurchase($transaction, 'processing');
+                $this->handleUpdatedPurchase($transaction, $response, 'processing');
             } else if (strtolower($response['status']) == "successful")  {
-                $this->handleUpdatedPurchase($transaction, 'successful');
+                $this->handleUpdatedPurchase($transaction, $response, 'successful');
             } else {
-                $this->handleUpdatedPurchase($transaction, 'failed');
+                $this->handleUpdatedPurchase($transaction, $response, 'failed');
             }
         }
     }
@@ -215,12 +216,25 @@ class UtilityService
             'company' => $data['company'],
             'number' => $data['number'],
             'vendType' => $data['vend_type'],
+            'token' => $response['metaData']['token'] ?? null,
+            'units' => $response['metaData']['units'] ?? null,
+            'vendTime' => $response['metaData']['vendTime'] ?? null,
         ];
         event(new PurchaseUtility($user->wallet, $data['amount'], $data['fees'], $status, Settings::where('name', 'currency')->first()->value, $response['id'], $response['reference'], $payload));
     }
 
-    private function handleUpdatedPurchase(Transaction $transaction, string $status)
+    private function handleUpdatedPurchase(Transaction $transaction, array $response, string $status)
     {
+        $payload = [
+            'company' => $transaction->payload['company'],
+            'number' => $transaction->payload['number'],
+            'vendType' => $transaction->payload['vendType'],
+            'token' => $response['metaData']['token'] ?? null,
+            'units' => $response['metaData']['units'] ?? null,
+            'vendTime' => $response['metaData']['vendTime'] ?? null,
+        ];
+        $transaction->payload = $payload;
+        $transaction->save();
         event(new PurchaseUtilityUpdate($transaction, $status));
     }
 

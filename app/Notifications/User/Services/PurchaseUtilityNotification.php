@@ -26,6 +26,8 @@ class PurchaseUtilityNotification
     protected string $recipient;
     protected string $company;
     protected string $vendType;
+    protected string $units;
+    protected string $token;
 
     /**
      * Create a new notification instance.
@@ -44,6 +46,8 @@ class PurchaseUtilityNotification
         $this->recipient = $this->transaction->payload['number'];
         $this->company = $this->transaction->payload['company'];
         $this->vendType = $this->transaction->payload['vendType'];
+        $this->token = $this->transaction->payload['token'];
+        $this->units = $this->transaction->payload['units'];
     }
 
     /**
@@ -79,7 +83,7 @@ class PurchaseUtilityNotification
             return (new MailMessage)->subject('Utility Recharge Successful')
                 ->markdown(
                     'email.user.services.utility-successful',
-                    ['user' => $notifiable, 'wallet' => $this->wallet, 'transaction' => $this->transaction, 'recipient' => $this->recipient, 'company' => $this->company, 'vendType' => $this->vendType]
+                    ['user' => $notifiable, 'wallet' => $this->wallet, 'transaction' => $this->transaction, 'recipient' => $this->recipient, 'company' => $this->company, 'vendType' => $this->vendType, 'units' => $this->units, 'token' => $this->token]
                 );
         } else {
             return (new MailMessage)->subject('Utility Recharge Reversed')
@@ -124,7 +128,7 @@ class PurchaseUtilityNotification
         } else if ($this->status == "SUCCESSFUL") {
             $title = "Utility Recharge Successful";
 
-            $body = "Your $this->company $this->vendType recharge to $this->recipient costing $this->transactionCurrency $this->transactionAmount is successful.";
+            $body = "Your $this->company $this->vendType recharge to $this->recipient costing $this->transactionCurrency $this->transactionAmount is successful. Your token is $this->token and you have received $this->units units.";
 
             return CloudMessage::new()
                 ->withDefaultSounds()
@@ -175,7 +179,7 @@ class PurchaseUtilityNotification
         } else if ($this->status == "SUCCESSFUL") {
             return [
                 'title' => 'Utility Recharge Successful',
-                'message' => "Your $this->company $this->vendType recharge to $this->recipient costing $this->transactionCurrency $this->transactionAmount is successful",
+                'message' => "Your $this->company $this->vendType recharge to $this->recipient costing $this->transactionCurrency $this->transactionAmount is successful. Your token is $this->token and you have received $this->units units.",
                 'data' => [
                     'user_id' => $notifiable->id,
                     'transaction' => $this->transaction,

@@ -21,14 +21,12 @@ class SafehavenHttpMacro
     {
         try {
             $accessTokens = self::generateAccessToken($base_url);
-    
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $accessTokens['access_token'],
                 'ClientID' => $accessTokens['ibs_client_id'],
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
             ])->{$method}($url, $data);
-            // dd($response);
             
             if ($response->failed()) {
                 $statusCode = $response->status();
@@ -56,7 +54,6 @@ class SafehavenHttpMacro
                 'client_assertion_type' => 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
                 'client_assertion' => config('services.safehaven.mode') === 'SANDBOX' ? config('services.safehaven.sandbox_client_assertion') : config('services.safehaven.client_assertion')
             ]);
-
             if ($response->failed()) {
                 $statusCode = $response->status();
                 $responseBody = $response->body();

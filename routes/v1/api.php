@@ -172,7 +172,7 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
                     Route::delete('/{id}', [BeneficiaryController::class, 'deleteBeneficiary'])->name('user.services.utility.beneficiary.delete');
                     Route::post('/buy', [BeneficiaryController::class, 'buyUtilitySub'])->name('user.services.utility.beneficiary.buy');
                 });
-                // Route::get('history', [UtilityServiceController::class, 'history']);
+                Route::get('history/{id}', [UtilityServiceController::class, 'history']);
             });
     
         });
