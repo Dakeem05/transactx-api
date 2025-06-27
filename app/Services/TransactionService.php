@@ -53,6 +53,7 @@ class TransactionService
             ->whereMonth('created_at', isset($request['month']) ? $request['month'] : now()->month)
             ->whereYear('created_at', isset($request['year']) ? $request['year'] : now()->year)
             ->whereType($request['type'])
+            ->wherePrincipalTransactionId(null)
             ->with(['feeTransactions'])
             ->get();
         }else {
@@ -61,6 +62,7 @@ class TransactionService
             ->whereMonth('created_at', isset($request['month']) ? $request['month'] : now()->month)
             ->whereYear('created_at', isset($request['year']) ? $request['year'] : now()->year)
             ->with(['feeTransactions'])
+            ->wherePrincipalTransactionId(null)
             ->get();
         }
 
@@ -99,7 +101,7 @@ class TransactionService
             'data' => $groupedHistories
         ];
     }
-
+    // (Optional) Month, 1 = January, 3 = March ...
     public function sendMoneyToUsername(array $data, User $user, string $ip_address) 
     {
         $recipient = User::where('username', $data['username'])->first();
