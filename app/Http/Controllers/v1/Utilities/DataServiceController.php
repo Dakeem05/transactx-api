@@ -59,7 +59,7 @@ class DataServiceController extends Controller
             return TransactX::response(false, $e->getMessage(), 400);
         } catch (Exception $e) {
             Log::error('Buy data: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(false, 'Failed to buy data' . $e->getMessage(), 500);
+            return TransactX::response(false, 'Failed to buy data', 500);
         }
     }
 

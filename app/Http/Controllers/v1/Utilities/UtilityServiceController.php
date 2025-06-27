@@ -60,7 +60,7 @@ class UtilityServiceController extends Controller
             return TransactX::response(false, $e->getMessage(), 400);
         } catch (Exception $e) {
             Log::error('Buy utility subscription: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(false, 'Failed to buy utility subscription' . $e->getMessage(), 500);
+            return TransactX::response(false, 'Failed to buy utility subscription', 500);
         }
     }
 }
