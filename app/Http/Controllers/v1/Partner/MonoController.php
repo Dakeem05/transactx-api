@@ -69,6 +69,7 @@ class MonoController extends Controller
     {
         try {
             $payload = $request->all();
+            Log::info('Mono webhook request headers', $request->header());
             Log::info('Mono webhook received!', compact("payload"));
             
             if ((strtoupper($_SERVER['REQUEST_METHOD']) != 'POST') || !isset($_SERVER['HTTP_MONO_WEBHOOK_SECRET'])) {
