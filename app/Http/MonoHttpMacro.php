@@ -17,15 +17,13 @@ class MonoHttpMacro
      *
      * @return array|mixed
      */
-    public static function makeApiCall(string $url, string $base_url, string $method = 'GET', array $data = [])
+    public static function makeApiCall(string $url, string $method = 'GET', array $data = [])
     {
         try {
-            $accessTokens = self::generateAccessToken($base_url);
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $accessTokens['access_token'],
-                'ClientID' => $accessTokens['ibs_client_id'],
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
+                'Mono-Sec-Key' => config('services.mono.mode') === 'SANDBOX' ? config('services.mono.mono_sandbox_secret_key') : config('services.mono.mono_live_secret_key'),
             ])->{$method}($url, $data);
             
             if ($response->failed()) {
@@ -33,34 +31,9 @@ class MonoHttpMacro
                 $responseBody = $response->body();
                 $responseHeaders = $response->headers();
                 
-                throw new Exception("Safehaven API request failed with status code $statusCode. Response body: $responseBody, Headers: " . json_encode($responseHeaders));
+                throw new Exception("Mono API request failed with status code $statusCode. Response body: $responseBody, Headers: " . json_encode($responseHeaders));
             }
     
-            return $response->json();
-        } catch (Exception $e) {
-            throw $e;
-        }
-    }
-
-    private static function generateAccessToken (string $base_url) 
-    {
-        try {
-            $response = Http::withHeaders([
-                'Accept' => 'application/json',
-                'Content-Type' => 'application/json',
-            ])->{'POST'}($base_url . '/oauth2/token', [
-                'grant_type' => 'client_credentials',
-                'client_id' => config('services.safehaven.mode') === 'SANDBOX' ? config('services.safehaven.sandbox_client_id') : config('services.safehaven.client_id'),
-                'client_assertion_type' => 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-                'client_assertion' => config('services.safehaven.mode') === 'SANDBOX' ? config('services.safehaven.sandbox_client_assertion') : config('services.safehaven.client_assertion')
-            ]);
-            if ($response->failed()) {
-                $statusCode = $response->status();
-                $responseBody = $response->body();
-                $responseHeaders = $response->headers();
-
-                throw new Exception("Safehaven API request failed with status code $statusCode. Response body: $responseBody, Headers: " . json_encode($responseHeaders));
-            }
             return $response->json();
         } catch (Exception $e) {
             throw $e;
