@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\v1\User\Auth;
 
+use App\Events\User\UserCreatedEvent;
 use App\Helpers\TransactX;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\v1\User\Otp\UserOtpController;
@@ -46,6 +47,8 @@ class VerifyRegisterOtp extends Controller
             $userService->updateUserAccount(User::where('email', $validatedData['email'])->first(), [
                 'email_verified_at' => Carbon::now(),
             ]);
+
+            event(new UserCreatedEvent($user));
 
             return TransactX::response(true, 'Otp has been verified', 200);
         } catch (Exception $e) {

@@ -5,7 +5,6 @@ namespace App\Actions\Auth;
 use App\Dtos\User\CreateUserDto;
 use App\Enums\UserStatusEnum;
 use App\Enums\UserTypeEnum;
-use App\Events\User\UserCreatedEvent;
 use App\Models\Role;
 use App\Models\User;
 use Exception;
@@ -39,8 +38,6 @@ class RegisterUserAction
             ]);
 
             //$user->generate_referral_code(); TO BE CALLED AFTER UPDATING PROFILE
-
-            event(new UserCreatedEvent($user));
 
             Log::channel('daily')->info('REGISTER: END', [
                 "uid" => $createUserDto->request_uuid,

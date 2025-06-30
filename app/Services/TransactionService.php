@@ -68,14 +68,15 @@ class TransactionService
 
         $in = $histories->where('type', 'FUND_WALLET')
         ->where('status', '!=', 'REVERSED')
-        ->orWhere('status', '!=', 'FAILED')
+        ->where('status', '!=', 'FAILED')
         ->sum(function ($transaction) {
             return $transaction->amount->getAmount()->toFloat();
         });
         
         $out = $histories->where('type', '!=', 'FUND_WALLET')
+        ->where('type', '!=', 'REQUEST_MONEY')
         ->where('status', '!=', 'REVERSED')
-        ->orWhere('status', '!=', 'FAILED')
+        ->where('status', '!=', 'FAILED')
         ->sum(function ($transaction) {
             return $transaction->amount->getAmount()->toFloat();
         });

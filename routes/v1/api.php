@@ -79,7 +79,7 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
     });
 
     /* -------------------------- Verified User Routes ------------------------- */
-    Route::middleware('user.is.verified')->group(function () {   
+    Route::middleware('user.is.verified')->group(function () {          
         Route::middleware(['user.is.main.account', 'user.is.organization'])->prefix('sub-account')->group(function () {
             Route::post('/', CreateSubAccountController::class)->name('user.create.sub-account');
             Route::get('/', [SubAccountController::class, 'show'])->name('user.sub-accounts');
