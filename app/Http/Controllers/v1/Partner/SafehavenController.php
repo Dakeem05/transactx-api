@@ -2,22 +2,15 @@
 
 namespace App\Http\Controllers\v1\Partner;
 
-use App\Enums\PartnersEnum;
-use App\Events\User\Transactions\TransferFailed;
-use App\Events\User\Transactions\TransferSuccessful;
-use App\Events\User\Wallet\WalletTransactionReceived;
 use App\Helpers\TransactX;
 use App\Http\Controllers\Controller;
 use App\Jobs\ProcessSafehavenWebhook;
-use App\Models\Settings;
-use App\Models\Transaction;
 use App\Services\External\SafehavenService;
 use App\Services\UserService;
 use App\Services\WebhookService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
@@ -79,7 +72,7 @@ class SafehavenController extends Controller
             $ipAddress = $request->ip();
 
             // Log initial receipt
-            Log::info('Webhook received!', compact("payload"));
+            Log::info('Safehaven webhook received!', compact("payload"));
 
             // Dispatch to queue
             ProcessSafehavenWebhook::dispatch($payload, $ipAddress);
@@ -87,7 +80,7 @@ class SafehavenController extends Controller
             return response()->json(['message' => 'Webhook queued for processing'], 202);
 
         } catch (Exception $e) {
-            Log::error('Webhook handling failed', [
+            Log::error('Safehaven webhook handling failed', [
                 'error' => $e->getMessage(),
                 'payload' => $request->all() ?? null
             ]);

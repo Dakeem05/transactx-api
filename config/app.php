@@ -179,6 +179,8 @@ return [
         App\Providers\CustomProviders\PaymentProviders\FlutterwaveHttpMacroServiceProvider::class,
         App\Providers\CustomProviders\PaymentProviders\SafehavenServiceProvider::class,
         App\Providers\CustomProviders\PaymentProviders\SafehavenHttpMacroServiceProvider::class,
+        App\Providers\CustomProviders\PaymentProviders\MonoServiceProvider::class,
+        App\Providers\CustomProviders\PaymentProviders\MonoHttpMacroServiceProvider::class,
     ])->toArray(),
 
     /*

@@ -56,5 +56,13 @@ return [
         'client_assertion' => env('SAFEHAVEN_CLIENT_ASSERTION'),
         'sandbox_client_assertion' => env('SAFEHAVEN_SANDBOX_CLIENT_ASSERTION'),
         'account_number' => env('SAFEHAVEN_DEBIT_ACCOUNT_NUMBER'),
-    ]
+    ],
+    'mono' => [
+        'mode' => env('MONO_MODE'),
+        'url' => env('MONO_URL'),
+        'mono_sandbox_public_key' => env('MONO_SANDBOX_PUBLIC_KEY'),
+        'mono_sandbox_secret_key' => env('MONO_SANDBOX_SECRET_KEY'),
+        'mono_live_public_key' => env('MONO_LIVE_PUBLIC_KEY'),
+        'mono_live_secret_key' => env('MONO_LIVE_SECRET_KEY'),
+    ],
 ];
