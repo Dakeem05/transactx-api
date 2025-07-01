@@ -74,6 +74,8 @@ class MonoController extends Controller
             Log::info('Mono webhook request collection', ['request' => $request->collect() ?? null]);
             Log::info('Mono webhook request headers', $request->header());
             Log::info('Mono webhook received!', compact("payload"));
+            Log::info('Mono webhook received!', compact("payload"));
+            Log::info('Mono HTTP_MONO_WEBHOOK_SECRET!', ['HTTP_MONO_WEBHOOK_SECRET' => $_SERVER['HTTP_MONO_WEBHOOK_SECRET'] ?? null]);
             
             if ((strtoupper($_SERVER['REQUEST_METHOD']) != 'POST') || !isset($_SERVER['HTTP_MONO_WEBHOOK_SECRET'])) {
                 throw new Exception('Invalid signature');
