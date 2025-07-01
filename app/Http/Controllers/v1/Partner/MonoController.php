@@ -68,27 +68,32 @@ class MonoController extends Controller
     public function handleWebhook(Request $request)
     {
         try {
-            $payload = $request->getContent();
-            Log::info('Mono webhook received! 1', ['payload' => $payload]);
+            $payload = $request->all();
+            Log::info('Mono webhook request payload', ['payload' => $payload]);
+            Log::info('Mono webhook request', ['request' => $request]);
+            Log::info('Mono webhook request getContent', ['request' => $request->getContent() ?? null]);
+            Log::info('Mono webhook request collection', ['request' => $request->collect() ?? null]);
+            Log::info('Mono webhook request headers', $request->header());
+            Log::info('Mono webhook received!', compact("payload"));
+            Log::info('Mono webhook received!', compact("payload"));
+            Log::info('Mono HTTP_MONO_WEBHOOK_SECRET!', ['HTTP_MONO_WEBHOOK_SECRET' => $_SERVER['HTTP_MONO_WEBHOOK_SECRET'] ?? null]);
+            Log::info('Mono REQUEST_METHOD!', ['REQUEST_METHOD' => $_SERVER['REQUEST_METHOD'] ?? null]);
             
             if ((strtoupper($_SERVER['REQUEST_METHOD']) != 'POST') || !isset($_SERVER['HTTP_MONO_WEBHOOK_SECRET'])) {
                 throw new Exception('Invalid signature');
             }
-            Log::info('Mono webhook received! 2', ['payload' => $payload]);
 
             $secret_webhook_hash = config('services.secret.mode') == "SANDBOX" ? config('services.secret.mono_test_webhook_hash') : config('services.secret.mono_live_webhook_hash');
 
             if ($_SERVER['HTTP_MONO_WEBHOOK_SECRET'] != $secret_webhook_hash) {
                 throw new Exception('Invalid signature');
             }
-            Log::info('Mono webhook received! 3', ['payload' => $payload]);
 
             $ipAddress = $request->ip();
 
-            Log::info('Mono webhook received! 4', ['payload' => $payload]);
-            
+            Log::info('Mono webhook received! 2', compact("payload"));
+
             ProcessMonoWebhook::dispatch($payload, $ipAddress);
-            Log::info('Mono webhook received! 5', ['payload' => $payload]);
 
             return response()->json(['message' => 'Webhook queued for processing'], 202);
 
@@ -100,4 +105,40 @@ class MonoController extends Controller
             return response()->json(['message' => 'Processing error'], 500);
         }
     }
+
+    // public function handleWebhook(Request $request)
+    // {
+    //     try {
+    //         $payload = $request->getContent();
+    //         Log::info('Mono webhook received! 1', ['payload' => $payload]);
+            
+    //         if ((strtoupper($_SERVER['REQUEST_METHOD']) != 'POST') || !isset($_SERVER['HTTP_MONO_WEBHOOK_SECRET'])) {
+    //             throw new Exception('Invalid signature');
+    //         }
+    //         Log::info('Mono webhook received! 2', ['payload' => $payload]);
+
+    //         $secret_webhook_hash = config('services.secret.mode') == "SANDBOX" ? config('services.secret.mono_test_webhook_hash') : config('services.secret.mono_live_webhook_hash');
+
+    //         if ($_SERVER['HTTP_MONO_WEBHOOK_SECRET'] != $secret_webhook_hash) {
+    //             throw new Exception('Invalid signature');
+    //         }
+    //         Log::info('Mono webhook received! 3', ['payload' => $payload]);
+
+    //         $ipAddress = $request->ip();
+
+    //         Log::info('Mono webhook received! 4', ['payload' => $payload]);
+            
+    //         ProcessMonoWebhook::dispatch($payload, $ipAddress);
+    //         Log::info('Mono webhook received! 5', ['payload' => $payload]);
+
+    //         return response()->json(['message' => 'Webhook queued for processing'], 202);
+
+    //     } catch (Exception $e) {
+    //         Log::error('Mono webhook handling failed', [
+    //             'error' => $e->getMessage(),
+    //             'payload' => $request->all() ?? null
+    //         ]);
+    //         return response()->json(['message' => 'Processing error'], 500);
+    //     }
+    // }
 }
