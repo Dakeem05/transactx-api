@@ -68,15 +68,28 @@ class MonoController extends Controller
     public function handleWebhook(Request $request)
     {
         try {
+            // Get all input data
             $payload = $request->all();
-            Log::info('Mono webhook request payload', ['payload' => $payload]);
-            Log::info('Mono webhook request', ['request' => $request]);
-            Log::info('Mono webhook request collection', ['request' => $request->collect() ?? null]);
-            Log::info('Mono webhook request headers', $request->header());
-            Log::info('Mono webhook received!', compact("payload"));
-            Log::info('Mono webhook received!', compact("payload"));
-            Log::info('Mono HTTP_MONO_WEBHOOK_SECRET!', ['HTTP_MONO_WEBHOOK_SECRET' => $_SERVER['HTTP_MONO_WEBHOOK_SECRET'] ?? null]);
-            Log::info('Mono REQUEST_METHOD!', ['REQUEST_METHOD' => $_SERVER['REQUEST_METHOD'] ?? null]);
+            
+            // Structured logging
+            Log::channel('webhooks')->info('Mono Webhook Received', [
+                'headers' => $request->headers->all(),
+                'payload' => $payload,
+                'method' => $request->method(),
+                'ip' => $request->ip(),
+                'full_url' => $request->fullUrl(),
+                'server' => $request->server()
+            ]);
+    
+            // // Verify webhook secret
+            // $secret = $request->header('mono-webhook-secret');
+            // if ($secret !== config('services.mono.webhook_secret')) {
+            //     Log::channel('webhooks')->error('Invalid webhook secret', [
+            //         'received' => $secret,
+            //         'expected' => config('services.mono.webhook_secret')
+            //     ]);
+            //     return response()->json(['error' => 'Unauthorized'], 401);
+            // }
             
             if ((strtoupper($_SERVER['REQUEST_METHOD']) != 'POST') || !isset($_SERVER['HTTP_MONO_WEBHOOK_SECRET'])) {
                 throw new Exception('Invalid signature');
