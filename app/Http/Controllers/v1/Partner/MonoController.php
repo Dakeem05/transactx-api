@@ -68,8 +68,8 @@ class MonoController extends Controller
     public function handleWebhook(Request $request)
     {
         try {
-            $payload = $request->getContent() ?? null;
-            Log::info('Mono webhook received!', ['payload' => $payload]);
+            $payload = $request->all();
+            $content = $request->getContent() ?? null;
             
             if ((strtoupper($_SERVER['REQUEST_METHOD']) != 'POST') || !isset($_SERVER['HTTP_MONO_WEBHOOK_SECRET'])) {
                 throw new Exception('Invalid signature');
@@ -81,9 +81,15 @@ class MonoController extends Controller
                 throw new Exception('Invalid signature');
             }
             
-            Log::info('Mono webhook after verification!', ['payload' => $payload]);
+            Log::info('Mono webhook request content 2', ['content' => $content]);
             $ipAddress = $request->ip();
+            
+            Log::info('Mono webhook request content 3', ['content' => $content]);
+            Log::info('Mono webhook received! 2', compact("payload"));
+            
             ProcessMonoWebhook::dispatch($payload, $ipAddress);
+            
+            Log::info('Mono webhook request content 4', ['content' => $content]);
             return response()->json(['message' => 'Webhook queued for processing'], 202);
 
         } catch (Exception $e) {
@@ -94,4 +100,34 @@ class MonoController extends Controller
             return response()->json(['message' => 'Processing error'], 500);
         }
     }
+
+    // public function handleWebhook(Request $request)
+    // {
+    //     try {
+    //         $payload = $request->getContent() ?? null;
+    //         Log::info('Mono webhook received!', ['payload' => $payload]);
+            
+    //         if ((strtoupper($_SERVER['REQUEST_METHOD']) != 'POST') || !isset($_SERVER['HTTP_MONO_WEBHOOK_SECRET'])) {
+    //             throw new Exception('Invalid signature');
+    //         }
+            
+    //         $secret_webhook_hash = config('services.mono.mode') == "SANDBOX" ? config('services.mono.mono_test_webhook_hash') : config('services.mono.mono_live_webhook_hash');
+            
+    //         if ($_SERVER['HTTP_MONO_WEBHOOK_SECRET'] != $secret_webhook_hash) {
+    //             throw new Exception('Invalid signature');
+    //         }
+            
+    //         Log::info('Mono webhook after verification!', ['payload' => $payload]);
+    //         $ipAddress = $request->ip();
+    //         ProcessMonoWebhook::dispatch($payload, $ipAddress);
+    //         return response()->json(['message' => 'Webhook queued for processing'], 202);
+
+    //     } catch (Exception $e) {
+    //         Log::error('Mono webhook handling failed', [
+    //             'error' => $e->getMessage(),
+    //             'payload' => $request->all() ?? null
+    //         ]);
+    //         return response()->json(['message' => 'Processing error'], 500);
+    //     }
+    // }
 }
