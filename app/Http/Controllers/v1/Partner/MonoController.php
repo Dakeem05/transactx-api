@@ -71,7 +71,7 @@ class MonoController extends Controller
             $payload = $request->all();
             Log::info('Mono webhook request payload', ['payload' => $payload]);
             Log::info('Mono webhook request', ['request' => $request]);
-            Log::info('Mono webhook request all', ['request' => $request->all() ?? null]);
+            Log::info('Mono webhook request collection', ['request' => $request->collect() ?? null]);
             Log::info('Mono webhook request headers', $request->header());
             Log::info('Mono webhook received!', compact("payload"));
             
