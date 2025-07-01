@@ -69,7 +69,7 @@ class MonoController extends Controller
     {
         try {
             $payload = $request->getContent() ?? null;
-            Log::info('Mono webhook received!', compact("payload"));
+            Log::info('Mono webhook received!', ['payload' => $payload]);
             
             if ((strtoupper($_SERVER['REQUEST_METHOD']) != 'POST') || !isset($_SERVER['HTTP_MONO_WEBHOOK_SECRET'])) {
                 throw new Exception('Invalid signature');
@@ -80,7 +80,8 @@ class MonoController extends Controller
             if ($_SERVER['HTTP_MONO_WEBHOOK_SECRET'] != $secret_webhook_hash) {
                 throw new Exception('Invalid signature');
             }
-
+            
+            Log::info('Mono webhook after verification!', ['payload' => $payload]);
             $ipAddress = $request->ip();
             ProcessMonoWebhook::dispatch($payload, $ipAddress);
             return response()->json(['message' => 'Webhook queued for processing'], 202);
