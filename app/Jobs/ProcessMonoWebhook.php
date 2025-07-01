@@ -33,7 +33,7 @@ class ProcessMonoWebhook implements ShouldQueue
     {
         try {
             Log::info('Processing Mono webhook in queue', ['payload' => $this->payload]);
-
+            
             $responseData = ['message' => 'Webhook processed'];
             $webhookService->recordIncomingWebhook(
                 PartnersEnum::MONO->value,
@@ -42,8 +42,9 @@ class ProcessMonoWebhook implements ShouldQueue
                 200,
                 $this->ipAddress
             );
-
+            
             // $event_type = $this->payload['type'] ?? null;
+            Log::info('Mono webhook event', ['event' => $this->payload['event']]);
 
             // // Payout subaccount funding webhook
             // if (in_array($event_type, ['transfer']) && $this->payload['data']['type'] === 'Inwards' && $this->payload['data']['status'] === 'Completed') {
