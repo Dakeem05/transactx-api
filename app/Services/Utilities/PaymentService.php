@@ -63,7 +63,9 @@ class PaymentService
             $provider = new ServiceProviderDto(
                 name: $provider->name ?? null,
                 description: $provider->description ?? null,
-                status: $provider->status ?? false
+                status: $provider->status ?? false,
+                percentage_charge: $provider->percentage_charge ?? 0.00,
+                fixed_charge: $provider->fixed_charge ?? 0.00,
             );
         }
         return $provider;

@@ -22,11 +22,12 @@ class ServiceProvidersSeeder extends Seeder
         // }
 
         // Get existing service IDs
-        $paymentServiceId = DB::table('services')->where('name', 'payments')->value('id');
-        $airtimeServiceId = DB::table('services')->where('name', 'airtime')->value('id');
-        $dataServiceId = DB::table('services')->where('name', 'data')->value('id');
-        $cabletvServiceId = DB::table('services')->where('name', 'cabletv')->value('id');
-        $electricityServiceId = DB::table('services')->where('name', 'electricity')->value('id');
+        // $paymentServiceId = DB::table('services')->where('name', 'payments')->value('id');
+        // $airtimeServiceId = DB::table('services')->where('name', 'airtime')->value('id');
+        // $dataServiceId = DB::table('services')->where('name', 'data')->value('id');
+        // $cabletvServiceId = DB::table('services')->where('name', 'cabletv')->value('id');
+        // $electricityServiceId = DB::table('services')->where('name', 'electricity')->value('id');
+        $bankingServiceId = DB::table('services')->where('name', 'banking')->value('id');
 
         $serviceProviders = [
             // Payment Service Providers
@@ -57,39 +58,48 @@ class ServiceProvidersSeeder extends Seeder
             //     'created_at' => now(),
             //     'updated_at' => now(),
             // ],
+            // [
+            //     'id' => Str::uuid(),
+            //     'name' => 'safehaven',
+            //     'service_id' => $airtimeServiceId,
+            //     'status' => true,
+            //     'description' => 'Safehaven airtime provider',
+            //     'created_at' => now(),
+            //     'updated_at' => now(),
+            // ],
+            // [
+            //     'id' => Str::uuid(),
+            //     'name' => 'safehaven',
+            //     'service_id' => $dataServiceId,
+            //     'status' => true,
+            //     'description' => 'Safehaven data provider',
+            //     'created_at' => now(),
+            //     'updated_at' => now(),
+            // ],
+            // [
+            //     'id' => Str::uuid(),
+            //     'name' => 'safehaven',
+            //     'service_id' => $cabletvServiceId,
+            //     'status' => true,
+            //     'description' => 'Safehaven cabletv provider',
+            //     'created_at' => now(),
+            //     'updated_at' => now(),
+            // ],
+            // [
+            //     'id' => Str::uuid(),
+            //     'name' => 'safehaven',
+            //     'service_id' => $electricityServiceId,
+            //     'status' => true,
+            //     'description' => 'Safehaven electricity provider',
+            //     'created_at' => now(),
+            //     'updated_at' => now(),
+            // ],
             [
                 'id' => Str::uuid(),
-                'name' => 'safehaven',
-                'service_id' => $airtimeServiceId,
+                'name' => 'mono',
+                'service_id' => $bankingServiceId,
                 'status' => true,
-                'description' => 'Safehaven airtime provider',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'id' => Str::uuid(),
-                'name' => 'safehaven',
-                'service_id' => $dataServiceId,
-                'status' => true,
-                'description' => 'Safehaven data provider',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'id' => Str::uuid(),
-                'name' => 'safehaven',
-                'service_id' => $cabletvServiceId,
-                'status' => true,
-                'description' => 'Safehaven cabletv provider',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'id' => Str::uuid(),
-                'name' => 'safehaven',
-                'service_id' => $electricityServiceId,
-                'status' => true,
-                'description' => 'Safehaven electricity provider',
+                'description' => 'Mono banking provider',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],

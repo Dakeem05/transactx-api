@@ -154,9 +154,7 @@ class UserAccountController extends Controller
             return TransactX::response(false, $e->getMessage(), 400);
         } catch (Exception $e) {
             Log::error('VERIFY USER BVN: Error Encountered: ' . $e->getMessage());
-            // return TransactX::response(false, 'Failed to verify user bvn', 500);
-
-            return TransactX::response(false, 'Failed to validate user bvn'.$e->getMessage(), 500);
+            return TransactX::response(false, 'Failed to validate user bvn', 500);
 
         }
     }
@@ -192,7 +190,7 @@ class UserAccountController extends Controller
             return TransactX::response(false, $e->getMessage(), 400);
         } catch (Exception $e) {
             Log::error('VERIFY USER BVN: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(false, 'Failed to validate user bvn' , 500);
+            return TransactX::response(false, 'Failed to validate user bvn', 500);
         }
     }
 
@@ -226,7 +224,7 @@ class UserAccountController extends Controller
             );
 
             if (!$response->status) {
-                throw new Exception('Failed to send verification code');
+                throw new InvalidArgumentException('Failed to send verification code');
             }
             return TransactX::response(true, 'Otp has been sent to your email', 200, (object)['expires_at' => $response->expires_at]);
         } catch (InvalidArgumentException $e) {
@@ -258,13 +256,13 @@ class UserAccountController extends Controller
             $response = $otpService->verifyAppliedCode($user->email, $validatedData['verification_code'], null, 'delete_user_account');
 
             if (!$response->status) {
-                throw new Exception('Failed to verify otp');
+                throw new InvalidArgumentException('Failed to verify otp');
             }
 
             $verification_code = VerificationCode::find($response->verification_code->id);
 
             if (!$verification_code) {
-                throw new Exception('Could not find verification code');
+                throw new InvalidArgumentException('Could not find verification code');
             }
 
             if (!is_null($wallet)) {

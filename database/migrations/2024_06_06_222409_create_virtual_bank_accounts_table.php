@@ -12,7 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('virtual_bank_accounts', function (Blueprint $table) {
-            // $table->id();
             $table->uuid('id')->primary();
             $table->foreignUuid('wallet_id')->index()->references('id')->on('wallets')->onDelete('no action');
             $table->string('currency')->index()->nullable();

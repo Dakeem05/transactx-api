@@ -10,6 +10,7 @@ use App\Contracts\PaymentGateway;
 use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Http\Client\Response;
+use InvalidArgumentException;
 
 /**
  * Class FlutterwaveService
@@ -110,7 +111,7 @@ class FlutterwaveService
             $reference = $response['data']['reference'] ?? null; 
             
             if (!$reference) {
-                throw new Exception('Error verifying BVN: No reference found in response');
+                throw new InvalidArgumentException('Error verifying BVN: No reference found in response');
             }
             
             // Send the reference gotten to retrieve the BVN information 
@@ -130,11 +131,11 @@ class FlutterwaveService
             }
             
             if ($response_data['firstName'] !== $verification_data->user->first_name || $response_data['surname'] !== $verification_data->user->last_name) {
-                throw new Exception('Error verifying BVN: Name mismatch');
+                throw new InvalidArgumentException('Error verifying BVN: Name mismatch');
             }
             
             if ($response_data['nin'] !== $verification_data->nin) {
-                throw new Exception('Error verifying BVN: NIN mismatch');
+                throw new InvalidArgumentException('Error verifying BVN: NIN mismatch');
             }
             
             $userService = resolve(UserService::class);

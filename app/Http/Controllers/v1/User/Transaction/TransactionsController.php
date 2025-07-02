@@ -46,7 +46,7 @@ class TransactionsController extends Controller
             return TransactX::response(false, $e->getMessage(), 400);
         } catch (Exception $e) {
             Log::error('QUERY USERS: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(false, 'Failed to query users'. $e->getMessage(), 500);
+            return TransactX::response(false, 'Failed to query users', 500);
         }
     }
     
@@ -64,7 +64,7 @@ class TransactionsController extends Controller
             return TransactX::response(false, $e->getMessage(), 400);
         } catch (Exception $e) {
             Log::error('SEND MONEY TO USERNAME: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(false, 'Failed to send money: ' . $e->getMessage(), 500);
+            return TransactX::response(false, 'Failed to send money.', 500);
         }
     }
     
@@ -86,7 +86,7 @@ class TransactionsController extends Controller
             return TransactX::response(false, $e->getMessage(), 400);
         } catch (Exception $e) {
             Log::error('SEND MONEY TO EMAIL: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(false, 'Failed to send money: ' . $e->getMessage(), 500);
+            return TransactX::response(false, 'Failed to send money.', 500);
         }
     }
     
@@ -104,7 +104,7 @@ class TransactionsController extends Controller
             return TransactX::response(false, $e->getMessage(), 400);
         } catch (Exception $e) {
             Log::error('SEND MONEY: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(false, 'Failed to send money: ' . $e->getMessage(), 500);
+            return TransactX::response(false, 'Failed to send money.', 500);
         }
     }
 
@@ -167,7 +167,7 @@ class TransactionsController extends Controller
             return TransactX::response(false, $e->getMessage(), 400);
         } catch (Exception $e) {
             Log::error('SEND MONEY TO USERNAME: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(false, 'Failed to request money: ' . $e->getMessage(), 500);
+            return TransactX::response(false, 'Failed to request money', 500);
         }
     }
 
@@ -185,7 +185,7 @@ class TransactionsController extends Controller
             return TransactX::response(false, $e->getMessage(), 400);
         } catch (Exception $e) {
             Log::error('SEND MONEY TO USERNAME: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(false, 'Failed to request money: ' . $e->getMessage(), 500);
+            return TransactX::response(false, 'Failed to request money', 500);
         }
     }
 
@@ -202,7 +202,7 @@ class TransactionsController extends Controller
             return TransactX::response(false, $e->getMessage(), 400);
         } catch (Exception $e) {
             Log::error('Get Transaction History: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(false, 'Failed to get transaction history: ' . $e->getMessage(), 500);
+            return TransactX::response(false, 'Failed to get transaction history' , 500);
         }
     }
 }

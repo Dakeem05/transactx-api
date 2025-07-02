@@ -22,6 +22,7 @@ use Brick\Money\Money;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
 
 class TransactionService
 {
@@ -114,16 +115,16 @@ class TransactionService
         $this->verifyTransaction($data, $user);
 
         if (is_null($recipient)) {
-            throw new Exception('Recipient not found');
+            throw new InvalidArgumentException('Recipient not found');
         }
         if (!$recipient->kycVerified()) {
-            throw new Exception('Recipient account not verifed');
+            throw new InvalidArgumentException('Recipient account not verifed');
         }
         if (is_null($recipient->wallet)) {
-            throw new Exception('Recipient does not have a wallet');
+            throw new InvalidArgumentException('Recipient does not have a wallet');
         }
         if (is_null($recipient->wallet->virtualBankAccount)) {
-            throw new Exception('Recipient does not have a virtual bank account');
+            throw new InvalidArgumentException('Recipient does not have a virtual bank account');
         }
 
         $paymentService = resolve(PaymentService::class);
@@ -148,7 +149,7 @@ class TransactionService
                 $recipient->wallet->virtualBankAccount->account_name = $resolvedAccount['data']['account_name'];
                 $recipient->wallet->virtualBankAccount->save();
             } else {
-                throw new Exception('Failed to resolve recipient account name');
+                throw new InvalidArgumentException('Failed to resolve recipient account name');
             }
         }
 
@@ -176,16 +177,16 @@ class TransactionService
         $this->verifyTransaction($data, $user);
         
         if (is_null($recipient)) {
-            throw new Exception('Recipient not found');
+            throw new InvalidArgumentException('Recipient not found');
         }
         if (!$recipient->kycVerified()) {
-            throw new Exception('Recipient account not verifed');
+            throw new InvalidArgumentException('Recipient account not verifed');
         }
         if (is_null($recipient->wallet)) {
-            throw new Exception('Recipient does not have a wallet');
+            throw new InvalidArgumentException('Recipient does not have a wallet');
         }
         if (is_null($recipient->wallet->virtualBankAccount)) {
-            throw new Exception('Recipient does not have a virtual bank account');
+            throw new InvalidArgumentException('Recipient does not have a virtual bank account');
         }
         
         $paymentService = resolve(PaymentService::class);
@@ -210,7 +211,7 @@ class TransactionService
                 $recipient->wallet->virtualBankAccount->account_name = $resolvedAccount['data']['account_name'];
                 $recipient->wallet->virtualBankAccount->save();
             } else {
-                throw new Exception('Failed to resolve recipient account name');
+                throw new InvalidArgumentException('Failed to resolve recipient account name');
             }
         }
 
@@ -255,7 +256,7 @@ class TransactionService
                 $beneficiary->payload['bank_code']
             );
             if (!isset($resolvedAccount['data']['account_name'])) {
-                throw new Exception('Failed to resolve recipient account name');
+                throw new InvalidArgumentException('Failed to resolve recipient account name');
             }
         }
         
@@ -386,16 +387,16 @@ class TransactionService
         $this->verifyRequest($data, $user);
         
         if (is_null($requestee)) {
-            throw new Exception('Requestee not found');
+            throw new InvalidArgumentException('Requestee not found');
         }
         if (!$requestee->kycVerified()) {
-            throw new Exception('Requestee account not verifed');
+            throw new InvalidArgumentException('Requestee account not verifed');
         }
         if (is_null($requestee->wallet)) {
-            throw new Exception('Requestee does not have a wallet');
+            throw new InvalidArgumentException('Requestee does not have a wallet');
         }
         if (is_null($requestee->wallet->virtualBankAccount)) {
-            throw new Exception('Requestee does not have a virtual bank account');
+            throw new InvalidArgumentException('Requestee does not have a virtual bank account');
         }
         
         return $this->request($data['amount'], $data['request_style_id'], $user, $requestee, $data['content'] ?? null, $ip_address ?? null);
@@ -407,16 +408,16 @@ class TransactionService
         $this->verifyRequest($data, $user);
         
         if (is_null($requestee)) {
-            throw new Exception('Requestee not found');
+            throw new InvalidArgumentException('Requestee not found');
         }
         if (!$requestee->kycVerified()) {
-            throw new Exception('Requestee account not verifed');
+            throw new InvalidArgumentException('Requestee account not verifed');
         }
         if (is_null($requestee->wallet)) {
-            throw new Exception('Requestee does not have a wallet');
+            throw new InvalidArgumentException('Requestee does not have a wallet');
         }
         if (is_null($requestee->wallet->virtualBankAccount)) {
-            throw new Exception('Requestee does not have a virtual bank account');
+            throw new InvalidArgumentException('Requestee does not have a virtual bank account');
         }
         
         return $this->request($data['amount'], $data['request_style_id'], $user, $requestee, $data['content'] ?? null, $ip_address ?? null);
@@ -432,7 +433,7 @@ class TransactionService
             $request_style = MoneyRequestStyles::find($request_style_id);
 
             if (is_null($request_style)) {
-                throw new Exception('Invalid request style id provided');
+                throw new InvalidArgumentException('Invalid request style id provided');
             }
             
             $content = '';
@@ -452,7 +453,7 @@ class TransactionService
                 );
             } else {
                 if (is_null($request_content)) {
-                    throw new Exception('Request content must be provided for Custom style');
+                    throw new InvalidArgumentException('Request content must be provided for Custom style');
                 }
                 $content = $request_content;
             }
@@ -516,33 +517,33 @@ class TransactionService
     private function verifyRequest(array $data, User $user)
     {
         if (is_null($user->wallet)) {
-            throw new Exception('Create and fund your wallet');
+            throw new InvalidArgumentException('Create and fund your wallet');
         }
 
         $min_transfer = Settings::where('name', 'min_transaction')->first()->value;
 
         if ($data['amount'] < $min_transfer) {
-            throw new Exception('Transaction amount is below minimum transaction');
+            throw new InvalidArgumentException('Transaction amount is below minimum transaction');
         }
     }
 
     public function verifyTransaction (array $data, User $user)
     {
         if (is_null($user->wallet)) {
-            throw new Exception('Create and fund your wallet');
+            throw new InvalidArgumentException('Create and fund your wallet');
         }
 
         $min_transfer = Settings::where('name', 'min_transaction')->first()->value;
 
         // Uncomment the following lines if you want to enforce minimum transfer amount
         // if ($data['amount'] < $min_transfer) {
-        //     throw new Exception('Transaction amount is below minimum transaction');
+        //     throw new InvalidArgumentException('Transaction amount is below minimum transaction');
         // }
 
         $walletService = resolve(WalletService::class);
         $potential_charges = 25;
         if (!$walletService->checkBalance($user->wallet, isset($data['total_amount']) ? $data['total_amount'] : $data['amount'] + $potential_charges)) {
-            throw new Exception('Insufficient balance for that transaction');
+            throw new InvalidArgumentException('Insufficient balance for that transaction');
         }
     }
 

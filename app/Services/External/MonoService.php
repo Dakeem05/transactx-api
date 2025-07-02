@@ -39,42 +39,27 @@ class MonoService
         self::$callbackUrl = env('APP_URL') . '/api/v1/webhooks/mono';
     }
 
-    public function validateBVN (object $verification_data)
+    public function linkAccount (User $user, string $reference)
     {
         try {
-            // Initiate the BVN verification consent process
-            $url = self::$baseUrl . '/identity/v2/validate';
+            $url = self::$baseUrl . '/accounts/initiate';
             
             $data = [
-                'type' => 'BVN',
-                'identityId' => $verification_data->verification_id,
-                'otp' => $verification_data->otp,
+                'customer' => [
+                    "name" => $user->name,
+                    "email" => $user->email,
+                ],
+                'meta' => [
+                    'ref' => $reference,
+                ],
+                'scope' => "auth",
+                'redirect_url' => self::$callbackUrl,
             ];
 
             $response = Http::talkToMono($url, 'POST', $data);
-            if (strtolower($response['data']['status']) !== 'success') {
-                throw new Exception('Error verifying BVN: Invalid BVN or other verification error.');
-            }
-            $response_data = $response['data']['providerResponse'] ?? null;
-            
-            if (is_null($response_data)) {
-                throw new Exception('Error verifying BVN: No data found in response');
-            }
-            
-            if (strtolower($response_data['firstName']) !== strtolower($verification_data->user->first_name) || strtolower($response_data['lastName']) !== strtolower($verification_data->user->last_name)) {
-                throw new InvalidArgumentException('Error verifying BVN: Name mismatch');
-            }
-            
-            $userService = resolve(UserService::class);
-            $userService->updateUserAccount($verification_data->user, [
-                'bvn_status' => 'SUCCESSFUL',
-                'kyc_status' => 'SUCCESSFUL',
-                'bvn' => Crypt::encryptString($verification_data->bvn),
-            ]);
-            
-            return 'BVN verified successfully';
+            return $response;
         } catch (Exception $e) {
-            Log::error('Error Encountered at Verify BVN method in Mono Service: ' . $e->getMessage());
+            Log::error('Error Encountered at link account method in Mono Service: ' . $e->getMessage());
             throw $e;
         }
     }

@@ -66,7 +66,7 @@ class TransactionPinController extends Controller
             );
 
             if (!$response->status) {
-                throw new Exception('Failed to send verification code');
+                throw new InvalidArgumentException('Failed to send verification code');
             }
 
             return TransactX::response(true, 'Otp has been sent to your email', 200, (object)['expires_at' => $response->expires_at]);
@@ -107,7 +107,7 @@ class TransactionPinController extends Controller
             );
 
             if (!$response->status) {
-                throw new Exception('Failed to send verification code');
+                throw new InvalidArgumentException('Failed to send verification code');
             }
 
             return TransactX::response(true, 'Otp has been resent', 200, (object)['expires_at' => $response->expires_at]);
@@ -135,7 +135,7 @@ class TransactionPinController extends Controller
 
 
             if (!$response->status) {
-                throw new Exception('Failed to verify otp');
+                throw new InvalidArgumentException('Failed to verify otp');
             }
 
             return TransactX::response(true, 'Otp has been verified', 200);

@@ -112,7 +112,7 @@ class SafehavenService
             $response = Http::talkToSafehaven($url, 'POST', $data);
             
             if (strtolower($response['data']['status']) !== 'success') {
-                throw new Exception('Error verifying BVN: Invalid BVN or other verification error.');
+                throw new InvalidArgumentException('Error verifying BVN: Invalid BVN or other verification error.');
             }
             
             return [
@@ -141,12 +141,12 @@ class SafehavenService
 
             $response = Http::talkToSafehaven($url, 'POST', $data);
             if (strtolower($response['data']['status']) !== 'success') {
-                throw new Exception('Error verifying BVN: Invalid BVN or other verification error.');
+                throw new InvalidArgumentException('Error verifying BVN: Invalid BVN or other verification error.');
             }
             $response_data = $response['data']['providerResponse'] ?? null;
             
             if (is_null($response_data)) {
-                throw new Exception('Error verifying BVN: No data found in response');
+                throw new InvalidArgumentException('Error verifying BVN: No data found in response');
             }
             
             if (strtolower($response_data['firstName']) !== strtolower($verification_data->user->first_name) || strtolower($response_data['lastName']) !== strtolower($verification_data->user->last_name)) {
