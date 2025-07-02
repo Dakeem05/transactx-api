@@ -3,7 +3,7 @@
 namespace App\Providers\CustomProviders\PaymentProviders;
 
 use App\Http\MonoHttpMacro;
-use Exception;
+use Exception; 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\ServiceProvider;
 

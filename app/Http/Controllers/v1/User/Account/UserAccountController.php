@@ -131,9 +131,9 @@ class UserAccountController extends Controller
             }
 
             // SUPPOSED TO CHECK IF VN HAS BEEN VERIFIED BEFORE 
-            if (User::withBvn($validatedData['bvn'])->exists()) {
-                throw new InvalidArgumentException("BVN already exists");
-            }
+            // if (User::withBvn($validatedData['bvn'])->exists()) {
+            //     throw new InvalidArgumentException("BVN already exists");
+            // }
 
             $verification_data = (object) [
                 'user' => $user,
@@ -172,9 +172,9 @@ class UserAccountController extends Controller
             }
 
             // SUPPOSED TO CHECK IF VN HAS BEEN VERIFIED BEFORE 
-            if (User::withBvn($validatedData['bvn'])->exists()) {
-                throw new InvalidArgumentException("BVN already exists");
-            }
+            // if (User::withBvn($validatedData['bvn'])->exists()) {
+            //     throw new InvalidArgumentException("BVN already exists");
+            // }
 
             $verification_data = (object) [
                 'user' => $user,

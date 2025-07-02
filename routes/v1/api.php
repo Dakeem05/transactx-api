@@ -22,6 +22,7 @@ use App\Http\Controllers\v1\User\Transaction\TransactionsController;
 use App\Http\Controllers\v1\User\UserSubscriptionModelController;
 use App\Http\Controllers\v1\User\Wallet\UserWalletController;
 use App\Http\Controllers\v1\Utilities\AirtimeServiceController;
+use App\Http\Controllers\v1\Utilities\BankAccountController;
 use App\Http\Controllers\v1\Utilities\BeneficiaryController;
 use App\Http\Controllers\v1\Utilities\CableTVServiceController;
 use App\Http\Controllers\v1\Utilities\DataServiceController;
@@ -100,7 +101,7 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
             Route::get('/{id}', [UserSubscriptionModelController::class, 'show'])->name('user.show.sub-model');
         });
         
-        Route::prefix(('transactions'))->group(function () {
+        Route::prefix('transactions')->group(function () {
             Route::get('/query-users', [TransactionsController::class, 'queryUsers'])->name('user.transactions.query.username');
             Route::post('/send-money-to-username', [TransactionsController::class, 'sendMoneyToUsername'])->name('user.transactions.send.money.to.username');
             Route::post('/send-money-to-email', [TransactionsController::class, 'sendMoneyToEmail'])->name('user.transactions.send.money.to.email');
@@ -133,7 +134,6 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
                     Route::delete('/{id}', [BeneficiaryController::class, 'deleteBeneficiary'])->name('user.services.airtime.beneficiary.delete');
                     Route::post('/buy', [BeneficiaryController::class, 'buyAirtime'])->name('user.services.airtime.beneficiary.buy.airtime');
                 });
-                // Route::get('history', [AirtimeServiceController::class, 'history']);
             });
             
             Route::prefix('data')->group(function () {
@@ -146,7 +146,6 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
                     Route::delete('/{id}', [BeneficiaryController::class, 'deleteBeneficiary'])->name('user.services.data.beneficiary.delete');
                     Route::post('/buy', [BeneficiaryController::class, 'buyData'])->name('user.services.data.beneficiary.buy.data');
                 });
-                // Route::get('history', [DataServiceController::class, 'history']);
             });
             
             Route::prefix('cabletv')->group(function () {
@@ -160,7 +159,6 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
                     Route::delete('/{id}', [BeneficiaryController::class, 'deleteBeneficiary'])->name('user.services.cabletv.beneficiary.delete');
                     Route::post('/buy', [BeneficiaryController::class, 'buyCableTVSub'])->name('user.services.cabletv.beneficiary.buy');
                 });
-                // Route::get('history', [CableTVServiceController::class, 'history']);
             });
             
             Route::prefix('utility')->group(function () {
@@ -174,10 +172,13 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
                     Route::delete('/{id}', [BeneficiaryController::class, 'deleteBeneficiary'])->name('user.services.utility.beneficiary.delete');
                     Route::post('/buy', [BeneficiaryController::class, 'buyUtilitySub'])->name('user.services.utility.beneficiary.buy');
                 });
-                Route::get('history/{id}', [UtilityServiceController::class, 'history']);
             });
     
         });
+
+        Route::prefix('accounts')->group(function () {
+            Route::get('/link', [BankAccountController::class, 'link'])->name('user.link.bank.account');
+        })
     });
 });
 
