@@ -37,4 +37,18 @@ class BankAccountController extends Controller
             return TransactX::response(false, 'Failed to link bank account', 500);
         }
     }
+
+    public function listAccounts(): JsonResponse
+    {
+        try {
+            $response = $this->bankAccountService->linkAccount(Auth::user());
+            return TransactX::response(true, 'Bank accounts fetched successfully', 200, $response);
+        } catch (InvalidArgumentException $e) {
+            Log::error('LINK BANK ACCOUNT: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(false, $e->getMessage(), 400);
+        } catch (Exception $e) {
+            Log::error('LINK BANK ACCOUNT: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(false, 'Failed to link bank account', 500);
+        }
+    }
 }

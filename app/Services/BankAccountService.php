@@ -62,7 +62,7 @@ class BankAccountService
             $monoService = resolve(MonoService::class);
             $response = $monoService->linkAccount($user, $reference);
 
-            if (!isset($response['data']['status']) && strtolower($response['data']['status']) !== 'successful') {
+            if (!isset($response['status']) && strtolower($response['status']) !== 'successful') {
                 throw new Exception('Failed to link bank account: ' . ($response['message'] ?? 'Unknown error'));
             }
 
