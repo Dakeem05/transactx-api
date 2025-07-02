@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignUuid('user_id')->index()->references('id')->on('users')->onDelete('no action');
             $table->string('customer')->nullable();
             $table->string('account_id')->nullable();
+            $table->bigInteger('balance')->default(0);
             $table->string('data_status')->nullable();
             $table->string('auth_method')->nullable();
             $table->string('account_number')->index()->nullable();
