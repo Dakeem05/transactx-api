@@ -4,7 +4,7 @@ namespace App\Jobs;
 
 use App\Enums\PartnersEnum;
 use App\Events\User\Banking\ProcessBankAccountConnected;
-use App\Events\User\Banking\ProcessBankAccountUpdate;
+use App\Events\User\Banking\ProcessBankAccountupdate;
 use App\Events\User\Transactions\TransferFailed;
 use App\Events\User\Transactions\TransferSuccessful;
 use App\Events\User\Wallet\WalletTransactionReceived;
@@ -74,7 +74,7 @@ class ProcessMonoWebhook implements ShouldQueue
 
         if ($account) {
             Log::info('Processing Account update', ['payload', $this->payload]);            
-            event(new ProcessBankAccountUpdate($this->payload, $account));
+            event(new ProcessBankAccountupdate($this->payload, $account));
         }
     }
 

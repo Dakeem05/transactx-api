@@ -11,7 +11,7 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
-class ProcessBankAccountUpdate implements ShouldBroadcast
+class ProcessBankAccountupdate implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, Queueable, InteractsWithQueue, SerializesModels;
 
