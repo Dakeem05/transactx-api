@@ -24,7 +24,7 @@ class ProcessBankAccountupdateListener implements ShouldQueue
         $wallet = $user->wallet;
         DB::beginTransaction();
         try {
-            if ($account->account_id == null) {
+            if ($account->account_number == null) {
                 $account->update([
                     'account_id' => $payload['data']['account']['_id'] ?? $account->account_id,
                     'account_number' => $payload['data']['account']['accountNumber'] ?? $account->account_number,
