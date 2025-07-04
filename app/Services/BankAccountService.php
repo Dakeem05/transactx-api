@@ -150,15 +150,12 @@ class BankAccountService
         if ($provider->name == 'mono') {
             DB::beginTransaction();
             $account = $this->fetchLinkedBankAccountRecord($user, $ref);
-
-            // $callLogs = $this->logAndCheckRateLimit($account, 'transactions');
-
+            
+            $callLogs = $this->logAndCheckRateLimit($account, 'transactions');
+            
             $monoService = resolve(MonoService::class);
             $response = $monoService->fetchTransactions($account->account_id);
-            dd([
-                'response' => $response,
-                'header' => $response->headers,
-            ]);
+            dd($response);
             $responseJson = $response->json();
 
             if (!isset($responseJson['status']) || strtolower($responseJson['status']) !== 'successful') {
@@ -166,15 +163,15 @@ class BankAccountService
                 throw new Exception('Failed to fetch transactions: ' . ($responseJson['message'] ?? 'Unknown error'));
             }
 
-            if (!isset($response->headers['x-has-new-data']) || !isset($response->headers['x-job-id']) || !isset($response->headers['x-job-status'])) {
+            if (!isset($response->headers()['x-has-new-data']) || !isset($response->headers()['x-job-id']) || !isset($response->headers()['x-job-status'])) {
                 DB::rollBack();
                 throw new Exception('Failed to fetch transactions');
             }
-            // $callLogs->update([
-            //     'has_new_data' => $response->headers['x-has-new-data'] === 'true',
-            //     'job_status' => $response->headers['x-job-status'],
-            //     'job_id' => $response->headers['x-job-id'],
-            // ]);
+            $callLogs->update([
+                'has_new_data' => $response->headers()['x-has-new-data'] === 'true',
+                'job_status' => $response->headers()['x-job-status'],
+                'job_id' => $response->headers()['x-job-id'],
+            ]);
             DB::commit();
         } else {
             throw new \Exception('Unsupported provider');
