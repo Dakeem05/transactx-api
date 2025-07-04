@@ -2,7 +2,7 @@
 
 namespace App\Listeners\User\Banking;
 
-use App\Events\User\Banking\ProcessBankAccountupdate;
+use App\Events\User\Banking\ProcessBankAccountUpdate;
 use App\Notifications\User\Banking\BankAccountLinkedNotification;
 use Brick\Money\Money;
 use Exception;
@@ -10,13 +10,13 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class ProcessBankAccountupdateListener implements ShouldQueue
+class ProcessBankAccountUpdateListener implements ShouldQueue
 {
 
     /**
      * Handle the event.
      */
-    public function handle(ProcessBankAccountupdate $event): void
+    public function handle(ProcessBankAccountUpdate $event): void
     {
         $payload = $event->payload;
         $account = $event->account;
@@ -29,7 +29,7 @@ class ProcessBankAccountupdateListener implements ShouldQueue
                 'account_number' => $payload['data']['account']['accountNumber'] ?? $account->account_number,
                 'account_name' => $payload['data']['account']['name'] ?? $account->account_name,
                 'balance' => Money::of(($payload['data']['account']['balance']) / 100, $wallet->currency) ?? $account->balance,
-                'bank_name' => $payload['data']['account']['institution']['_name'] ?? $account->bank_name,
+                'bank_name' => $payload['data']['account']['institution']['name'] ?? $account->bank_name,
                 'bank_code' => $payload['data']['account']['institution']['bankCode'] ?? $account->bank_code,
                 'type' => $payload['data']['account']['institution']['type'] ?? $account->type,
                 'currency' => $payload['data']['account']['currency'] ?? $account->currency,
@@ -41,7 +41,7 @@ class ProcessBankAccountupdateListener implements ShouldQueue
             DB::commit();
         } catch (Exception $e) {
             DB::rollBack();
-            Log::error("TransferSuccessfulListener.handle() - Error Encountered - " . $e->getMessage());
+            Log::error("ProcessBankAccountUpdateListener.handle() - Error Encountered - " . $e->getMessage());
         }
     }
 }

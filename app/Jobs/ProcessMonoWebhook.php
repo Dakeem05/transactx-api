@@ -3,7 +3,7 @@
 namespace App\Jobs;
 
 use App\Enums\PartnersEnum;
-use App\Events\User\Banking\ProcessBankAccountupdate;
+use App\Events\User\Banking\ProcessBankAccountUpdate;
 use App\Events\User\Transactions\TransferFailed;
 use App\Events\User\Transactions\TransferSuccessful;
 use App\Events\User\Wallet\WalletTransactionReceived;
@@ -48,7 +48,7 @@ class ProcessMonoWebhook implements ShouldQueue
             $event_type = $this->payload['event'] ?? null;
             Log::info('Mono webhook event', ['event' => $event_type]);
 
-            if (in_array($event_type, ['mono.events.account_updated'])) {
+            if ($event_type === 'mono.events.account_updated') {
                 $this->processAccountUpdate();
                 return;
             }
@@ -80,7 +80,7 @@ class ProcessMonoWebhook implements ShouldQueue
 
         if ($account) {
             Log::info('Processing Account update', ['payload', $this->payload]);            
-            event(new ProcessBankAccountupdate($this->payload, $account));
+            event(new ProcessBankAccountUpdate($this->payload, $account));
         }
     }
 

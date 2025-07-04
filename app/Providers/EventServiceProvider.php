@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Events\User\Banking\ProcessBankAccountupdate;
+use App\Events\User\Banking\ProcessBankAccountUpdate;
 use App\Events\User\Services\PurchaseAirtime;
 use App\Events\User\Services\PurchaseAirtimeUpdate;
 use App\Events\User\Services\PurchaseCableTV;
@@ -23,7 +23,7 @@ use App\Events\User\Wallet\FundWalletSuccessful;
 use App\Events\User\Wallet\UserWalletCreated;
 use App\Events\User\Wallet\WalletTransactionReceived;
 use App\Listeners\Referral\SendNewReferralNotificationListener;
-use App\Listeners\User\Banking\ProcessBankAccountupdateListener;
+use App\Listeners\User\Banking\ProcessBankAccountUpdateListener;
 use App\Listeners\User\CreateDefaultUserAvatarListener;
 use App\Listeners\User\CreateUserAsCustomerOnPaystack;
 use App\Listeners\User\SendSubAccountLoginNotificationListener;
@@ -118,8 +118,8 @@ class EventServiceProvider extends ServiceProvider
         PurchaseUtilityUpdate::class => [
             PurchaseUtilityUpdateListener::class
         ],
-        ProcessBankAccountupdate::class => [
-            ProcessBankAccountupdateListener::class
+        ProcessBankAccountUpdate::class => [
+            ProcessBankAccountUpdateListener::class
         ],
     ];
 
