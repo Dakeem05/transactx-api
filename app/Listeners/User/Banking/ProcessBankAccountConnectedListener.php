@@ -2,7 +2,7 @@
 
 namespace App\Listeners\User\Banking;
 
-use App\Events\User\Banking\ProcessBankAccountupdate;
+use App\Events\User\Banking\ProcessBankAccountConnected;
 use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\DB;
@@ -14,7 +14,7 @@ class ProcessBankAccountConnectedListener implements ShouldQueue
     /**
      * Handle the event.
      */
-    public function handle(ProcessBankAccountupdate $event): void
+    public function handle(ProcessBankAccountConnected $event): void
     {
         $payload = $event->payload;
         $account = $event->account;
