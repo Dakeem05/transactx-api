@@ -58,7 +58,7 @@ class MonoService
             ];
 
             $response = Http::talkToMono($url, 'POST', $data);
-            return $response->json();
+            return $response;
         } catch (Exception $e) {
             Log::error('Error Encountered at link account method in Mono Service: ' . $e->getMessage());
             throw $e;
@@ -80,18 +80,20 @@ class MonoService
             ];
 
             $response = Http::talkToMono($url, 'POST', $data);
-            return $response->json();
+            return $response;
         } catch (Exception $e) {
             Log::error('Error Encountered at relink account method in Mono Service: ' . $e->getMessage());
             throw $e;
         }
     }
 
-    public function fetchTransactions (string $id)
+    public function fetchTransactions (string $id, string $startDate, string $endDate)
     {
         try {
-            $id = '686752d1c41fad92989332fb';
-            $url = self::$baseUrl . '/accounts/' . $id . '/transactions';
+            $id = '6867e12dc41fad92989d140c';
+            // $url = self::$baseUrl . '/accounts/' . $id . '/transactions?paginate=false';
+            $url = self::$baseUrl . '/accounts/' . $id . '/transactions' . '?start=' . $startDate . '&end=' . $endDate . '&paginate=0';
+            // dd($url);
             $response = Http::talkToMono($url, 'GET');
             return $response;
         } catch (Exception $e) {

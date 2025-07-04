@@ -24,6 +24,7 @@ class MonoHttpMacro
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
                 'Mono-Sec-Key' => config('services.mono.mode') === 'SANDBOX' ? config('services.mono.mono_sandbox_secret_key') : config('services.mono.mono_live_secret_key'),
+                'x-realtime' => 'true',
             ])->{$method}($url, $data);
             
             if ($response->failed()) {
@@ -34,7 +35,8 @@ class MonoHttpMacro
                 throw new Exception("Mono API request failed with status code $statusCode. Response body: $responseBody, Headers: " . json_encode($responseHeaders));
             }
     
-            return $response;
+            // dd($response);
+            return $response->json();
         } catch (Exception $e) {
             throw $e;
         }

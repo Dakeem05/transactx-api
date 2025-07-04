@@ -116,8 +116,6 @@ class BankAccountService
             if (!isset($response['status']) && strtolower($response['status']) !== 'successful') {
                 throw new Exception('Failed to relink bank account: ' . ($response['message'] ?? 'Unknown error'));
             }
-
-            $this->createLinkedBankAccountRecord($user, $response['data']);
             
             return [
                 'url' => $response['data']['mono_url']
@@ -143,35 +141,34 @@ class BankAccountService
     /**
      * Get transactions with rate limiting
      */
-    public function fetchTransactions(User $user, string $ref)
+    public function fetchTransactions(User $user, string $ref, $request)
     {
         $provider = $this->getBankingServiceProvider();
         
         if ($provider->name == 'mono') {
             DB::beginTransaction();
-            $account = $this->fetchLinkedBankAccountRecord($user, $ref);
+            $number_of_months = 1;
+            if (isset($request->number_of_months) && is_numeric($request->number_of_months) && $request->number_of_months > 0) {
+                $number_of_months = (int)$request->number_of_months;
+            }
+
+            $endDate = now()->format('d-m-Y');
+            $startDate = now()->subMonths($number_of_months)->format('d-m-Y');
+        
+            // $account = $this->fetchLinkedBankAccountRecord($user, $ref);
             
-            $callLogs = $this->logAndCheckRateLimit($account, 'transactions');
+            // $callLogs = $this->logAndCheckRateLimit($account, 'transactions');
             
             $monoService = resolve(MonoService::class);
-            $response = $monoService->fetchTransactions($account->account_id);
+            $response = $monoService->fetchTransactions('$account->account_id', $startDate, $endDate);
+            // $response = $monoService->fetchTransactions($account->account_id);
             dd($response);
-            $responseJson = $response->json();
 
-            if (!isset($responseJson['status']) || strtolower($responseJson['status']) !== 'successful') {
+            if (!isset($response['status']) || strtolower($response['status']) !== 'successful') {
                 DB::rollBack();
-                throw new Exception('Failed to fetch transactions: ' . ($responseJson['message'] ?? 'Unknown error'));
+                throw new Exception('Failed to fetch transactions: ' . ($response['message'] ?? 'Unknown error'));
             }
 
-            if (!isset($response->headers()['x-has-new-data']) || !isset($response->headers()['x-job-id']) || !isset($response->headers()['x-job-status'])) {
-                DB::rollBack();
-                throw new Exception('Failed to fetch transactions');
-            }
-            $callLogs->update([
-                'has_new_data' => $response->headers()['x-has-new-data'] === 'true',
-                'job_status' => $response->headers()['x-job-status'],
-                'job_id' => $response->headers()['x-job-id'],
-            ]);
             DB::commit();
         } else {
             throw new \Exception('Unsupported provider');

@@ -10,9 +10,6 @@ class MonoApiCallLog extends Model
         'user_id',
         'linked_bank_account_id',
         'type',
-        'has_new_data',
-        'job_status',
-        'job_id',
     ];
 
 

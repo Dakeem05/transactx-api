@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Services\BankAccountService;
 use Exception;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
@@ -67,10 +68,10 @@ class BankAccountController extends Controller
         }
     }
 
-    public function fetchTransactions(string $ref): JsonResponse
+    public function fetchTransactions(string $ref, Request $request): JsonResponse
     {
         try {
-            $response = $this->bankAccountService->fetchTransactions(Auth::user(), $ref);
+            $response = $this->bankAccountService->fetchTransactions(Auth::user(), $ref, $request);
             return TransactX::response(true, 'Bank transactions fetched successfully', 200, $response);
         } catch (InvalidArgumentException $e) {
             Log::error('FETCH BANK TRANSACTIONS: Error Encountered: ' . $e->getMessage());
