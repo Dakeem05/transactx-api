@@ -66,4 +66,18 @@ class BankAccountController extends Controller
             return TransactX::response(false, 'Failed to get bank accounts', 500);
         }
     }
+
+    public function fetchTransactions(string $ref): JsonResponse
+    {
+        try {
+            $response = $this->bankAccountService->fetchTransactions(Auth::user(), $ref);
+            return TransactX::response(true, 'Bank transactions fetched successfully', 200, $response);
+        } catch (InvalidArgumentException $e) {
+            Log::error('FETCH BANK TRANSACTIONS: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(false, $e->getMessage(), 400);
+        } catch (Exception $e) {
+            Log::error('FETCH BANK TRANSACTIONS: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(false, 'Failed to fetch bank transactions', 500);
+        }
+    }
 }

@@ -18,8 +18,8 @@ class ProcessBankAccountConnectedListener implements ShouldQueue
     {
         $payload = $event->payload;
         $account = $event->account;
+        DB::beginTransaction();
         try {
-            DB::beginTransaction();
             $account->update([
                 'account_id' => $payload['data']['id'] ?? $account->account_id,
                 'customer' => $payload['data']['customer'] ?? $account->customer,

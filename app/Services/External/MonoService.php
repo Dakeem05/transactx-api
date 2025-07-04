@@ -58,7 +58,7 @@ class MonoService
             ];
 
             $response = Http::talkToMono($url, 'POST', $data);
-            return $response;
+            return $response->json();
         } catch (Exception $e) {
             Log::error('Error Encountered at link account method in Mono Service: ' . $e->getMessage());
             throw $e;
@@ -80,126 +80,21 @@ class MonoService
             ];
 
             $response = Http::talkToMono($url, 'POST', $data);
-            return $response;
+            return $response->json();
         } catch (Exception $e) {
             Log::error('Error Encountered at relink account method in Mono Service: ' . $e->getMessage());
             throw $e;
         }
     }
 
-    public function getISA(string $id, string $currency): array
+    public function fetchTransactions (string $id)
     {
         try {
-
-            $url = self::$baseUrl . '/accounts/' . $id;
-            $response = Http::talkToMono($url);
-            return $response;
-        } catch (Exception $e) {
-            Log::error('Error Encountered at getting ISA method in Mono Service: ' . $e->getMessage());
-            throw $e;
-        }
-    }
-
-    public function deletePSA(string $account_reference): array
-    {
-        try {
-
-            $url = self::$baseUrl . '/payout-subaccounts/' . $account_reference;
-
-            $response = Http::talkToMono($url, 'DELETE');
-
-            return $response;
-        } catch (Exception $e) {
-            Log::error('Error Encountered at delete PSA method in Mono Service: ' . $e->getMessage());
-            throw $e;
-        }
-    }
-
-    public function getBillers(): array
-    {
-        try {
-
-            $url = self::$baseUrl . '/vas/services';
+            $url = self::$baseUrl . '/accounts/' . $id . '/transactions';
             $response = Http::talkToMono($url, 'GET');
             return $response;
         } catch (Exception $e) {
-            Log::error('Error Encountered at getBillers method in Mono Service: ' . $e->getMessage());
-            throw $e;
-        }
-    }
-
-    public function getBillerById(string $id): array
-    {
-        try {
-            $url = self::$baseUrl . '/vas/service/' . $id;
-            $response = Http::talkToMono($url, 'GET');
-            return $response;
-        } catch (Exception $e) {
-            Log::error('Error Encountered at getBillerById method in Mono Service: ' . $e->getMessage());
-            throw $e;
-        }
-    }
-
-    public function getBillerCategory(string $id): array
-    {
-        try {
-            $url = self::$baseUrl . '/vas/service/' . $id . '/service-categories';
-            $response = Http::talkToMono($url, 'GET');
-            return $response;
-        } catch (Exception $e) {
-            Log::error('Error Encountered at getBillerCategory method in Mono Service: ' . $e->getMessage());
-            throw $e;
-        }
-    }
-
-    public function getBillerCategoryProduct(string $id): array
-    {
-        try {
-            $url = self::$baseUrl . '/vas/service-category/' . $id . '/products';
-            $response = Http::talkToMono($url, 'GET');
-            return $response;
-        } catch (Exception $e) {
-            Log::error('Error Encountered at getBillerCategoryProduct method in Mono Service: ' . $e->getMessage());
-            throw $e;
-        }
-    }
-
-    public function verifyBillerCategoryNumber(string $id, string $number): array
-    {
-        try {
-            $url = self::$baseUrl . '/vas/verify/';
-            $data = [
-                'serviceCategoryId' => $id,
-                'entityNumber' => $number,
-            ];
-            $response = Http::talkToMono($url, 'POST', $data);
-            return $response;
-        } catch (Exception $e) {
-            Log::error('Error Encountered at verifyBillerCategoryNumber method in Mono Service: ' . $e->getMessage());
-            throw $e;
-        }
-    }
-
-    public function purchaseService(array $data, string $service): array
-    {
-        try {
-            $url = self::$baseUrl . '/vas/pay/' . $service;
-            $response = Http::talkToMono($url, 'POST', $data);
-            return $response;
-        } catch (Exception $e) {
-            Log::error('Error Encountered at purchaseService method in Mono Service: ' . $e->getMessage());
-            throw $e;
-        }
-    }
-
-    public function getPurchaseTransaction(string $id): array
-    {
-        try {
-            $url = self::$baseUrl . '/vas/transaction/' . $id;
-            $response = Http::talkToMono($url, 'GET');
-            return $response;
-        } catch (Exception $e) {
-            Log::error('Error Encountered at getPurchaseTransaction method in Mono Service: ' . $e->getMessage());
+            Log::error('Error Encountered at get transactions method in Mono Service: ' . $e->getMessage());
             throw $e;
         }
     }

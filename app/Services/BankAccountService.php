@@ -4,11 +4,13 @@ namespace App\Services;
 
 use App\Dtos\Utilities\ServiceProviderDto;
 use App\Models\LinkedBankAccount;
+use App\Models\MonoApiCallLog;
 use App\Models\Service;
 use App\Models\User;
 use App\Services\External\MonoService;
 use Illuminate\Support\Str;
 use Exception;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 class BankAccountService
@@ -33,7 +35,13 @@ class BankAccountService
         }
     }
 
-    private function getBankingServiceProvider()
+    /**
+     * Get the banking service provider details.
+     *
+     * @return ServiceProviderDto
+     * @throws Exception
+     */
+    private function getBankingServiceProvider(): ServiceProviderDto
     {
         if (!$this->banking_service_provider) {
             throw new Exception('Banking service provider not found');
@@ -53,7 +61,14 @@ class BankAccountService
         return $provider;
     }
 
-    public function linkAccount(User $user) 
+    /**
+     * Link a bank account for a user.
+     *
+     * @param User $user
+     * @return array
+     * @throws Exception
+     */
+    public function linkAccount(User $user): array
     {
         $provider = $this->getBankingServiceProvider();
 
@@ -77,7 +92,14 @@ class BankAccountService
         }
     }
 
-    public function relinkAccount(User $user, $ref) 
+    /**
+     * Relink an existing bank account for a user.
+     *
+     * @param User $user
+     * @param string $ref
+     * @return array
+     */
+    public function relinkAccount(User $user, string $ref): array
     {
         $provider = $this->getBankingServiceProvider();
 
@@ -117,6 +139,86 @@ class BankAccountService
         }
 
         return $user->linkedBankAccounts;
+    }
+    /**
+     * Get transactions with rate limiting
+     */
+    public function fetchTransactions(User $user, string $ref)
+    {
+        $provider = $this->getBankingServiceProvider();
+        
+        if ($provider->name == 'mono') {
+            DB::beginTransaction();
+            $account = $this->fetchLinkedBankAccountRecord($user, $ref);
+
+            // $callLogs = $this->logAndCheckRateLimit($account, 'transactions');
+
+            $monoService = resolve(MonoService::class);
+            $response = $monoService->fetchTransactions($account->account_id);
+            dd([
+                'response' => $response,
+                'header' => $response->headers,
+            ]);
+            $responseJson = $response->json();
+
+            if (!isset($responseJson['status']) || strtolower($responseJson['status']) !== 'successful') {
+                DB::rollBack();
+                throw new Exception('Failed to fetch transactions: ' . ($responseJson['message'] ?? 'Unknown error'));
+            }
+
+            if (!isset($response->headers['x-has-new-data']) || !isset($response->headers['x-job-id']) || !isset($response->headers['x-job-status'])) {
+                DB::rollBack();
+                throw new Exception('Failed to fetch transactions');
+            }
+            // $callLogs->update([
+            //     'has_new_data' => $response->headers['x-has-new-data'] === 'true',
+            //     'job_status' => $response->headers['x-job-status'],
+            //     'job_id' => $response->headers['x-job-id'],
+            // ]);
+            DB::commit();
+        } else {
+            throw new \Exception('Unsupported provider');
+        }
+        
+    }
+
+    /**
+     * Log API call and check rate limits
+     */
+    private function logAndCheckRateLimit(LinkedBankAccount $account, string $type = 'transactions'): MonoApiCallLog
+    {
+        // Get today's call count
+        $dailyCalls = MonoApiCallLog::where('linked_bank_account_id', $account->id)
+            ->where('type', $type)
+            ->wheredate('created_at', now()->format('Y-m-d'))
+            ->count();
+            
+        // Get monthly call count
+        $monthlyCalls = MonoApiCallLog::where('linked_bank_account_id', $account->id)
+            ->where('type', $type)
+            ->whereYear('created_at', now()->year)
+            ->whereMonth('created_at', now()->month)
+            ->count();
+            
+        // Check against limits (adjust numbers as needed)
+        $dailyLimit = 10;
+        $monthlyLimit = 100;
+        
+        if ($dailyCalls >= $dailyLimit) {
+            DB::rollBack();
+            throw new InvalidArgumentException("Daily API call limit reached ($dailyCalls/$dailyLimit)");
+        }
+        
+        if ($monthlyCalls >= $monthlyLimit) {
+            DB::rollBack();
+            throw new InvalidArgumentException("Monthly API call limit reached ($monthlyCalls/$monthlyLimit)");
+        }
+        
+        // Log the call
+        return MonoApiCallLog::create([
+            'linked_bank_account_id' => $account->id,
+            'type' => $type,
+        ]);
     }
 
     /**

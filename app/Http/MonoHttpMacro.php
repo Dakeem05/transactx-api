@@ -34,7 +34,7 @@ class MonoHttpMacro
                 throw new Exception("Mono API request failed with status code $statusCode. Response body: $responseBody, Headers: " . json_encode($responseHeaders));
             }
     
-            return $response->json();
+            return $response;
         } catch (Exception $e) {
             throw $e;
         }

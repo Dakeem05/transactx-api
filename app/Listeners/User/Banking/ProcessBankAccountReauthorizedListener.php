@@ -18,8 +18,8 @@ class ProcessBankAccountReauthorizedListener implements ShouldQueue
     {
         $payload = $event->payload;
         $account = $event->account;
+        DB::beginTransaction();
         try {
-            DB::beginTransaction();
             $account->update([
                 'account_id' => $payload['data']['account'] ?? $account->account_id,
             ]);
