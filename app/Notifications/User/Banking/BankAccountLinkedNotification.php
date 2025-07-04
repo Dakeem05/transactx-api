@@ -59,7 +59,7 @@ class BankAccountLinkedNotification
     {
         return (new MailMessage)->subject('Bank Account Linked Successfully')
             ->markdown(
-                'email.user.banking.bank-linked',
+                'email.user.banking.linked',
                 ['user' => $notifiable, 'account' => $this->account]
             );
     }

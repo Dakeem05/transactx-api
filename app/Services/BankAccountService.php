@@ -109,9 +109,8 @@ class BankAccountService
      * List all linked bank accounts for a user.
      *
      * @param User $user
-     * @return array
      */
-    public function listAccounts(User $user): array
+    public function listAccounts(User $user)
     {
         if (!$user->linkedBankAccounts) {
             return [];

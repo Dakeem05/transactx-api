@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Enums\PartnersEnum;
+use App\Events\User\Banking\ProcessBankAccountConnected;
 use App\Events\User\Banking\ProcessBankAccountUpdate;
 use App\Events\User\Transactions\TransferFailed;
 use App\Events\User\Transactions\TransferSuccessful;
@@ -53,17 +54,10 @@ class ProcessMonoWebhook implements ShouldQueue
                 return;
             }
 
-            // // Successful transfers webhook
-            // if (in_array($event_type, ['transfer']) && $this->payload['data']['type'] === 'Outwards' && in_array($this->payload['data']['status'], ['Created', 'Completed']) && !$this->payload['data']['isReversed']) {
-            //     $this->processSuccessfulOutwardTransfer();
-            //     return;
-            // }
-            
-            // // Failed transfers webhook
-            // if (in_array($event_type, ['transfer']) && $this->payload['data']['type'] === 'Outwards' && $this->payload['data']['isReversed']) {
-            //     $this->processFailedTransfer();
-            //     return;
-            // }
+            if ($event_type === 'mono.events.account_connected') {
+                $this->processAccountConnected();
+                return;
+            }
 
         } catch (\Exception $e) {
             Log::error('Mono Webhook Processing Failed', [
@@ -84,41 +78,13 @@ class ProcessMonoWebhook implements ShouldQueue
         }
     }
 
-    protected function processSuccessfulOutwardTransfer()
+    protected function processAccountConnected()
     {
-        $external_transaction_reference = $this->payload['data']['paymentReference'] ?? $this->payload['data']['sessionId'];
-        $account_number = $this->payload['data']['creditAccountNumber'];
-        
-        $sender_transaction = Transaction::where('external_transaction_reference', $external_transaction_reference)
-            ->whereIn('status', ['PENDING', 'PROCESSING'])
-            ->with(['wallet', 'user', 'feeTransactions'])
-            ->first();
-        
-        if ($sender_transaction) {
-            event(new TransferSuccessful(
-                $sender_transaction, 
-                $account_number, 
-                Settings::where('name', 'currency')->first()->value, 
-                $this->payload['data']['creditAccountName']
-            ));
-        }
-    }
+        $account = LinkedBankAccount::where('reference', $this->payload['data']['meta']['ref'])->first();
 
-    protected function processFailedTransfer()
-    {
-        $external_transaction_reference = $this->payload['data']['paymentReference'] ?? $this->payload['data']['sessionId'];
-        $account_number = $this->payload['data']['creditAccountNumber'];
-        
-        $sender_transaction = Transaction::where('external_transaction_reference', $external_transaction_reference)
-            ->whereIn('status', ['PENDING', 'PROCESSING'])
-            ->with(['feeTransactions'])
-            ->first();
-        
-        if ($sender_transaction) {
-            event(new TransferFailed(
-                $sender_transaction, 
-                $this->payload['data']['creditAccountName']
-            ));
+        if ($account) {
+            Log::info('Processing Account connected', ['payload', $this->payload]);            
+            event(new ProcessBankAccountConnected($this->payload, $account));
         }
     }
 }
