@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Enums\PartnersEnum;
 use App\Events\User\Banking\ProcessBankAccountConnected;
+use App\Events\User\Banking\ProcessBankAccountReauthorized;
 use App\Events\User\Banking\ProcessBankAccountupdate;
 use App\Events\User\Transactions\TransferFailed;
 use App\Events\User\Transactions\TransferSuccessful;
@@ -59,6 +60,11 @@ class ProcessMonoWebhook implements ShouldQueue
                 return;
             }
 
+            if ($event_type === 'mono.events.account_reauthorized') {
+                $this->processAccountReauthorized();
+                return;
+            }
+
         } catch (\Exception $e) {
             Log::error('Mono Webhook Processing Failed', [
                 'error' => $e->getMessage(),
@@ -85,6 +91,16 @@ class ProcessMonoWebhook implements ShouldQueue
         if ($account) {
             Log::info('Processing Account connected', ['payload', $this->payload]);            
             event(new ProcessBankAccountConnected($this->payload, $account));
+        }
+    }
+    
+    protected function processAccountReauthorized()
+    {
+        $account = LinkedBankAccount::where('account_id', $this->payload['data']['account'])->first();
+
+        if ($account) {
+            Log::info('Processing Account Reauthorized', ['payload', $this->payload]);            
+            event(new ProcessBankAccountReauthorized($this->payload, $account));
         }
     }
 }
