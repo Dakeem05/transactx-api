@@ -2,6 +2,7 @@
 
 namespace App\Services\External;
 
+use App\Models\LinkedBankAccount;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
@@ -64,63 +65,24 @@ class MonoService
         }
     }
 
-    /**
-     * Create a Individual SubAccount using the Paystack API.
-     *
-     * @param User $user
-     * @param string $country
-     * @return array
-     * @throws Exception
-     */
-    public function createISA(User $user, string $country, string $bvn, string $verification_id, string $otp): array
+    public function relinkAccount (LinkedBankAccount $account)
     {
         try {
-
-            $url = self::$baseUrl . '/accounts/v2/subaccount';
-
-            $data = [
-                'phoneNumber' => $country === "NG" ? '+234' . substr($user->phone_number, 1) : $user->phone_number,
-                'emailAddress' => $user->email,
-                'externalReference' => $user->wallet->id,
-                'identityType' => 'BVN',
-                'identityNumber' => $bvn,
-                'identityId' => $verification_id,
-                'otp' => $otp,
-                'autoSweep' => false,
-                'autoSweepDetails' => [
-                    'schedule' => 'Instant'
-                ]
-            ];
-
-            $response = Http::talkToMono($url, 'POST', $data);
-            return $response;
-        } catch (Exception $e) {
-            Log::error('Error Encountered at Create ISA method in Mono Service: ' . $e->getMessage());
-            throw $e;
-        }
-    }
-    
-    public function transfer(array $data): array
-    {
-        try {
-
-            $url = self::$baseUrl . '/transfers';
-
-            $data = [
-                'nameEnquiryReference' => $data['session_id'],
-                'debitAccountNumber' => $data['debit_account_number'],
-                'beneficiaryBankCode' => $data['bank_code'],
-                'beneficiaryAccountNumber' => $data['account_number'],
-                'amount' => $data['amount'],
-                'saveBeneficiary' => false,
-                'narration' => $data['narration'],
-                'paymentReference' => $data['reference'],
-            ];
+            $url = self::$baseUrl . '/accounts/initiate';
             
+            $data = [
+                'meta' => [
+                    'ref' => $account->reference,
+                ],
+                'scope' => "reauth",
+                'account' => $account->account_id,
+                'redirect_url' => self::$callbackUrl,
+            ];
+
             $response = Http::talkToMono($url, 'POST', $data);
             return $response;
         } catch (Exception $e) {
-            Log::error('Error Encountered at transfer method in Mono Service: ' . $e->getMessage());
+            Log::error('Error Encountered at relink account method in Mono Service: ' . $e->getMessage());
             throw $e;
         }
     }

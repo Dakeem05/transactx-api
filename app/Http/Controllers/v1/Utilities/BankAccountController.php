@@ -38,17 +38,32 @@ class BankAccountController extends Controller
         }
     }
 
+    public function relinkAccount(string $ref): JsonResponse
+    {
+        try {
+            $response = $this->bankAccountService->relinkAccount(Auth::user(), $ref);
+
+            return TransactX::response(true, 'Bank account relinking initiated', 200, $response);
+        } catch (InvalidArgumentException $e) {
+            Log::error('RELINK BANK ACCOUNT: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(false, $e->getMessage(), 400);
+        } catch (Exception $e) {
+            Log::error('RELINK BANK ACCOUNT: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(false, 'Failed to relink bank account', 500);
+        }
+    }
+
     public function listAccounts(): JsonResponse
     {
         try {
-            $response = $this->bankAccountService->linkAccount(Auth::user());
+            $response = $this->bankAccountService->listAccounts(Auth::user());
             return TransactX::response(true, 'Bank accounts fetched successfully', 200, $response);
         } catch (InvalidArgumentException $e) {
-            Log::error('LINK BANK ACCOUNT: Error Encountered: ' . $e->getMessage());
+            Log::error('LIST BANK ACCOUNTS: Error Encountered: ' . $e->getMessage());
             return TransactX::response(false, $e->getMessage(), 400);
         } catch (Exception $e) {
-            Log::error('LINK BANK ACCOUNT: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(false, 'Failed to link bank account', 500);
+            Log::error('LIST BANK ACCOUNTS: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(false, 'Failed to get bank accounts', 500);
         }
     }
 }

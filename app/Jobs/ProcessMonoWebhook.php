@@ -3,10 +3,12 @@
 namespace App\Jobs;
 
 use App\Enums\PartnersEnum;
+use App\Events\User\Banking\ProcessBankAccountupdate;
 use App\Events\User\Transactions\TransferFailed;
 use App\Events\User\Transactions\TransferSuccessful;
 use App\Events\User\Wallet\WalletTransactionReceived;
 use App\Jobs\Webhook\ProcessSuccessfulOutwardTransfer;
+use App\Models\LinkedBankAccount;
 use App\Models\Settings;
 use App\Models\Transaction;
 use App\Services\WebhookService;
@@ -43,14 +45,13 @@ class ProcessMonoWebhook implements ShouldQueue
                 $this->ipAddress
             );
             
-            // $event_type = $this->payload['type'] ?? null;
-            Log::info('Mono webhook event', ['event' => $this->payload['event']]);
+            $event_type = $this->payload['event'] ?? null;
+            Log::info('Mono webhook event', ['event' => $event_type]);
 
-            // // Payout subaccount funding webhook
-            // if (in_array($event_type, ['transfer']) && $this->payload['data']['type'] === 'Inwards' && $this->payload['data']['status'] === 'Completed') {
-            //     $this->processInwardTransfer();
-            //     return;
-            // }
+            if (in_array($event_type, ['mono.events.account_updated'])) {
+                $this->processAccountUpdate();
+                return;
+            }
 
             // // Successful transfers webhook
             // if (in_array($event_type, ['transfer']) && $this->payload['data']['type'] === 'Outwards' && in_array($this->payload['data']['status'], ['Created', 'Completed']) && !$this->payload['data']['isReversed']) {
@@ -73,21 +74,14 @@ class ProcessMonoWebhook implements ShouldQueue
         }
     }
 
-    protected function processInwardTransfer()
+    protected function processAccountUpdate()
     {
-        $external_transaction_reference = $this->payload['data']['paymentReference'] ?? $this->payload['data']['sessionId'];
-        $account_number = $this->payload['data']['creditAccountNumber'];
-        $amount = $this->payload['data']['amount'];
-        $fees = $this->payload['data']['fees'];
-        $currency = Settings::where('name', 'currency')->first()->value;
-        
-        Log::info('Processing Inward Transfer', [
-            'external_transaction_reference' => $external_transaction_reference,
-            'account_number' => $account_number,
-            'amount' => $amount,
-            'currency' => $currency
-        ]);
-        event(new WalletTransactionReceived($account_number, $amount, $fees, $currency, $external_transaction_reference));
+        $account = LinkedBankAccount::where('reference', $this->payload['data']['meta']['ref'])->first();
+
+        if ($account) {
+            Log::info('Processing Account update', ['payload', $this->payload]);            
+            event(new ProcessBankAccountupdate($this->payload, $account));
+        }
     }
 
     protected function processSuccessfulOutwardTransfer()

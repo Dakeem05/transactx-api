@@ -178,6 +178,7 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
 
         Route::prefix('banking')->group(function () {
             Route::get('/link', [BankAccountController::class, 'linkAccount'])->name('user.link.bank.account');
+            Route::get('/re-link/{ref}', [BankAccountController::class, 'relinkAccount'])->name('user.relink.bank.account');
             Route::get('/list', [BankAccountController::class, 'listAccounts'])->name('user.list.bank.accounts');
         });
     });

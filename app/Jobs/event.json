@@ -1,0 +1,27 @@
+{
+    "event": "mono.events.account_updated",
+    "data": {
+        "account": {
+            "_id": "686586a6c41fad92987f948c",
+            "name": "Samuel Olamide",
+            "accountNumber": "0131883461",
+            "currency": "NGN",
+            "balance": 10000000,
+            "type": "SAVINGS_ACCOUNT",
+            "bvn": "9422",
+            "authMethod": "internet_banking",
+            "institution": {
+                "name": "ALAT by WEMA",
+                "bankCode": "035",
+                "type": "PERSONAL_BANKING"
+            },
+            "created_at": "2025-07-02T19:21:10.672Z",
+            "updated_at": "2025-07-02T19:21:10.818Z"
+        },
+        "meta": {
+            "data_status": "AVAILABLE",
+            "auth_method": "internet_banking",
+            "ref": "53cd98ab-e0b9-4659-b46d-083e5b7c5bec"
+        }
+    }
+}

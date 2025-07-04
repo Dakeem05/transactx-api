@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\External\MonoService;
 use Illuminate\Support\Str;
 use Exception;
+use InvalidArgumentException;
 
 class BankAccountService
 {
@@ -76,9 +77,73 @@ class BankAccountService
         }
     }
 
-    private function createLinkedBankAccountRecord(User $user, array $data)
+    public function relinkAccount(User $user, $ref) 
     {
-        $account = LinkedBankAccount::create([
+        $provider = $this->getBankingServiceProvider();
+
+        if ($provider->name === 'mono') {
+            $account = $this->fetchLinkedBankAccountRecord($user, $ref);
+
+            if (!$account) {
+                throw new InvalidArgumentException('Linked bank account not found');
+            }
+
+            $monoService = resolve(MonoService::class);
+            $response = $monoService->relinkAccount($account);
+
+            if (!isset($response['status']) && strtolower($response['status']) !== 'successful') {
+                throw new Exception('Failed to relink bank account: ' . ($response['message'] ?? 'Unknown error'));
+            }
+
+            $this->createLinkedBankAccountRecord($user, $response['data']);
+            
+            return [
+                'url' => $response['data']['mono_url']
+            ];
+        } else {
+            throw new Exception('Unsupported banking service provider: ' . $provider->name);
+        }
+    }
+
+    /**
+     * List all linked bank accounts for a user.
+     *
+     * @param User $user
+     * @return array
+     */
+    public function listAccounts(User $user): array
+    {
+        if (!$user->linkedBankAccounts) {
+            return [];
+        }
+
+        return $user->linkedBankAccounts;
+    }
+
+    /**
+     * Fetch a linked bank account record by user and reference.
+     *
+     * @param User $user
+     * @param string $ref
+     * @return LinkedBankAccount
+     */
+    private function fetchLinkedBankAccountRecord(User $user, string $ref): LinkedBankAccount
+    {
+        return LinkedBankAccount::where('user_id', $user->id)
+            ->where('reference', $ref)
+            ->firstOrFail();
+    }
+
+    /**
+     * Create a new linked bank account record.
+     *
+     * @param User $user
+     * @param array $data
+     * @return LinkedBankAccount
+     */
+    private function createLinkedBankAccountRecord(User $user, array $data): LinkedBankAccount
+    {
+        return LinkedBankAccount::create([
             'user_id' => $user->id,
             'customer' => $data['customer'] ?? null,
             'reference' => $data['meta']['ref'] ?? null,

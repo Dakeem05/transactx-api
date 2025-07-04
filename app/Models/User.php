@@ -104,9 +104,14 @@ class User extends Authenticatable
         return $this->hasOne(Wallet::class);
     }
 
-    public function Transactions(): HasMany
+    public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class);
+    }
+
+    public function linkedBankAccounts(): HasMany
+    {
+        return $this->hasMany(LinkedBankAccount::class);
     }
 
     /**
