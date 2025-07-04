@@ -80,7 +80,7 @@ class ProcessMonoWebhook implements ShouldQueue
 
     protected function processAccountConnected()
     {
-        $account = LinkedBankAccount::where('reference', $this->payload['data']['meta']['ref'])->first();
+        $account = LinkedBankAccount::where('customer', $this->payload['data']['customer'])->first();
 
         if ($account) {
             Log::info('Processing Account connected', ['payload', $this->payload]);            
