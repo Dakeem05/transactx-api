@@ -149,9 +149,9 @@ class SafehavenService
                 throw new InvalidArgumentException('Error verifying BVN: No data found in response');
             }
             
-            if (strtolower($response_data['firstName']) !== strtolower($verification_data->user->first_name) || strtolower($response_data['lastName']) !== strtolower($verification_data->user->last_name)) {
-                throw new InvalidArgumentException('Error verifying BVN: Name mismatch');
-            }
+            // if (strtolower($response_data['firstName']) !== strtolower($verification_data->user->first_name) || strtolower($response_data['lastName']) !== strtolower($verification_data->user->last_name)) {
+            //     throw new InvalidArgumentException('Error verifying BVN: Name mismatch');
+            // }
             
             $userService = resolve(UserService::class);
             $userService->updateUserAccount($verification_data->user, [
