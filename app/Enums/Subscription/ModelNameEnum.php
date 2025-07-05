@@ -4,9 +4,10 @@ namespace App\Enums\Subscription;
 
 enum ModelNameEnum: string
 {
-    case HYDROGEN = 'HYDROGEN';
-    case HELIUM = 'HELIUM';
-    case LITHIUM = 'LITHIUM';
+    case FREE = 'FREE';
+    case STARTUP = 'STARTUP';
+    case GROWTH = 'GROWTH';
+    case ENTERPRISE = 'ENTERPRISE';
 
     public static function toArray(): array
     {

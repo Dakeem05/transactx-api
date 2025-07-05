@@ -3,6 +3,8 @@
 namespace App\Models\Business;
 
 use App\Casts\TXAmountCast;
+use App\Enums\Subscription\ModelNameEnum;
+use App\Enums\Subscription\ModelStatusEnum;
 use App\Traits\UUID;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -26,6 +28,7 @@ class SubscriptionModel extends Model
     ];
 
     protected $casts = [
+        'name' => ModelNameEnum::class,
         'features' => 'array',
         'has_discount' => 'boolean',
         'amount' => TXAmountCast::class,

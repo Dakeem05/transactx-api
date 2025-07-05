@@ -86,7 +86,7 @@ class User extends Authenticatable
         'is_active' => 'boolean',
     ];
 
-    protected $appends = ['last_name', 'first_name'];
+    protected $appends = ['last_name', 'first_name', 'has_transaction_pin'];
 
 
     public function role(): HasOne
@@ -145,6 +145,15 @@ class User extends Authenticatable
     public function getFirstNameAttribute()
     {
         return explode(' ', $this->name)[0] ?? null;
+    }
+
+    /**
+     * Returns the user's first name
+     * @return string|null
+     */
+    public function getHasTransactionPinAttribute()
+    {
+        return is_null($this->transaction_pin) ? false : true;
     }
 
     /**

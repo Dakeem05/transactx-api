@@ -11,11 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('mono_api_call_logs', function (Blueprint $table) {
+        Schema::create('linked_bank_account_api_call_logs', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('user_id')->index()->references('id')->on('users')->onDelete('no action');
             $table->foreignUuid('linked_bank_account_id')->index()->references('id')->on('linked_bank_accounts')->onDelete('no action');
             $table->string('type')->default('transactions');
+            $table->string('provider')->default('mono');
             $table->timestamps();
         });
     }
@@ -25,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('mono_api_call_logs');
+        Schema::dropIfExists('linked_bank_account_api_call_logs');
     }
 };

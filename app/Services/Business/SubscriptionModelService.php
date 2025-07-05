@@ -47,7 +47,7 @@ class SubscriptionModelService
         $new_amount = $full_amount;
 
         if ($hasDiscount) {
-            $discount_amount = $full_amount->allocate($discount);
+            $discount_amount = $full_amount->allocate($discount)[0];
             $new_amount = $full_amount->minus($discount_amount);
         }
 

@@ -14,7 +14,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('subscription_models', function (Blueprint $table) {
-            // $table->id();
             $table->uuid('id')->primary();
             $table->enum('name', ModelNameEnum::toArray())->index()->unique()->nullable();
             $table->json('features')->nullable();

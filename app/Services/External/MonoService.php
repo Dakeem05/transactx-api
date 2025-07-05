@@ -87,17 +87,31 @@ class MonoService
         }
     }
 
-    public function fetchTransactions (string $id, string $startDate, string $endDate)
+    public function fetchTransactions (string $id, bool $realtime = false, string $startDate = null, string $endDate = null)
     {
         try {
             $id = '6867e12dc41fad92989d140c';
-            // $url = self::$baseUrl . '/accounts/' . $id . '/transactions?paginate=false';
-            $url = self::$baseUrl . '/accounts/' . $id . '/transactions' . '?start=' . $startDate . '&end=' . $endDate . '&paginate=0';
-            // dd($url);
-            $response = Http::talkToMono($url, 'GET');
+            $url = self::$baseUrl . '/accounts/' . $id . '/transactions' . '?start=' . $startDate . '&end=' . $endDate . '&paginate=false';
+            $headers = [
+                'x-realtime' => $realtime ? 'true' : 'false',
+            ];
+            $response = Http::talkToMono($url, 'GET', [], $headers);
             return $response;
         } catch (Exception $e) {
             Log::error('Error Encountered at get transactions method in Mono Service: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+    
+    public function fetchTransactionsPagination (string $id, int $page)
+    {
+        try {
+            // $id = '6867e12dc41fad92989d140c';
+            $url = self::$baseUrl . '/accounts/' . $id . '/transactions?page=' . $page;
+            $response = Http::talkToMono($url, 'GET');
+            return $response;
+        } catch (Exception $e) {
+            Log::error('Error Encountered at get transactions pagination method in Mono Service: ' . $e->getMessage());
             throw $e;
         }
     }

@@ -17,14 +17,14 @@ class MonoHttpMacro
      *
      * @return array|mixed
      */
-    public static function makeApiCall(string $url, string $method = 'GET', array $data = [])
+    public static function makeApiCall(string $url, string $method = 'GET', array $data = [], $headers = [])
     {
         try {
             $response = Http::withHeaders([
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
                 'Mono-Sec-Key' => config('services.mono.mode') === 'SANDBOX' ? config('services.mono.mono_sandbox_secret_key') : config('services.mono.mono_live_secret_key'),
-                'x-realtime' => 'true',
+                'x-realtime' => $headers['x-realtime'] ?? 'false',
             ])->{$method}($url, $data);
             
             if ($response->failed()) {

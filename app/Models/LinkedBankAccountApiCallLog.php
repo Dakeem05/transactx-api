@@ -4,12 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class MonoApiCallLog extends Model
+class LinkedBankAccountApiCallLog extends Model
 {
     protected $fillable = [
         'user_id',
         'linked_bank_account_id',
         'type',
+        'provider',
     ];
 
 

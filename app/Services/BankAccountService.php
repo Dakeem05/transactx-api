@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Dtos\Utilities\ServiceProviderDto;
 use App\Models\LinkedBankAccount;
-use App\Models\MonoApiCallLog;
+use App\Models\LinkedBankAccountApiCallLog;
 use App\Models\Service;
 use App\Models\User;
 use App\Services\External\MonoService;
@@ -138,80 +138,109 @@ class BankAccountService
 
         return $user->linkedBankAccounts;
     }
-    /**
-     * Get transactions with rate limiting
-     */
+   
+
     public function fetchTransactions(User $user, string $ref, $request)
     {
         $provider = $this->getBankingServiceProvider();
         
         if ($provider->name == 'mono') {
             DB::beginTransaction();
-            $number_of_months = 1;
-            if (isset($request->number_of_months) && is_numeric($request->number_of_months) && $request->number_of_months > 0) {
-                $number_of_months = (int)$request->number_of_months;
+            // $account = $this->fetchLinkedBankAccountRecord($user, $ref);
+
+            if (isset($request->page) && $request->page !== 1) {
+                $monoService = resolve(MonoService::class);
+                $response = $monoService->fetchTransactionsPagination('$account->account_id', $request->page);
+                dd($response);
+            } 
+            else {
+                $realtime = false;
+
+                $number_of_months = 1;
+                if (isset($request->number_of_months) && is_numeric($request->number_of_months) && $request->number_of_months > 0) {
+                    $number_of_months = (int)$request->number_of_months;
+                }
+    
+                $endDate = now()->format('d-m-Y');
+                $startDate = now()->subMonths($number_of_months)->format('d-m-Y');
+            
+                
+                // $callLogs = $this->logAndCheckRateLimit($user, $account, $provider->name, 'transactions');
+                
+                $monoService = resolve(MonoService::class);
+                $response = $monoService->fetchTransactions('$account->account_id', $realtime, $startDate, $endDate);
             }
 
-            $endDate = now()->format('d-m-Y');
-            $startDate = now()->subMonths($number_of_months)->format('d-m-Y');
-        
-            // $account = $this->fetchLinkedBankAccountRecord($user, $ref);
-            
-            // $callLogs = $this->logAndCheckRateLimit($account, 'transactions');
-            
-            $monoService = resolve(MonoService::class);
-            $response = $monoService->fetchTransactions('$account->account_id', $startDate, $endDate);
-            // $response = $monoService->fetchTransactions($account->account_id);
-            dd($response);
 
+            // $response = $monoService->fetchTransactions($account->account_id, $startDate, $endDate);
             if (!isset($response['status']) || strtolower($response['status']) !== 'successful') {
                 DB::rollBack();
                 throw new Exception('Failed to fetch transactions: ' . ($response['message'] ?? 'Unknown error'));
             }
-
             DB::commit();
+
+            $data = [];
+            foreach ($response['data'] as $transaction) {
+                $data[] = [
+                    'id' => $transaction['id'],
+                    'amount' => $transaction['amount'] / 100,
+                    'narration' => $transaction['narration'],
+                    'type' => $transaction['type'],
+                    'category' => $transaction['category'],
+                    'date' => $transaction['date'],
+                    'currency' => $transaction['currency'],
+                ];
+            }
+
+            return [
+                'data' => $data,
+                'meta' => [
+                    'total' => $response['meta']['total'] ?? 0,
+                    'page' => $response['meta']['page'] ?? 0,
+                    'next' => $response['meta']['page'] + 1,
+                    'previous' => $response['meta']['previous'],
+                ]
+            ];
         } else {
             throw new \Exception('Unsupported provider');
         }
         
     }
 
-    /**
-     * Log API call and check rate limits
-     */
-    private function logAndCheckRateLimit(LinkedBankAccount $account, string $type = 'transactions'): MonoApiCallLog
+    private function logAndCheckRateLimit(User $user, LinkedBankAccount $account, string $provider, string $type = 'transactions'): LinkedBankAccountApiCallLog
     {
-        // Get today's call count
-        $dailyCalls = MonoApiCallLog::where('linked_bank_account_id', $account->id)
-            ->where('type', $type)
+        $dailyCalls = LinkedBankAccountApiCallLog::where('user_id', $user->id)
+            ->where('provider', $provider)
             ->wheredate('created_at', now()->format('Y-m-d'))
             ->count();
             
-        // Get monthly call count
-        $monthlyCalls = MonoApiCallLog::where('linked_bank_account_id', $account->id)
+        $monthlyCalls = LinkedBankAccountApiCallLog::where('user_id', $user->id)
             ->where('type', $type)
+            ->where('provider', $provider)
             ->whereYear('created_at', now()->year)
             ->whereMonth('created_at', now()->month)
             ->count();
             
-        // Check against limits (adjust numbers as needed)
-        $dailyLimit = 10;
-        $monthlyLimit = 100;
+        // // Check against limits (adjust numbers as needed)
+        // $dailyLimit = 10;
+        // $monthlyLimit = 100;
         
-        if ($dailyCalls >= $dailyLimit) {
-            DB::rollBack();
-            throw new InvalidArgumentException("Daily API call limit reached ($dailyCalls/$dailyLimit)");
-        }
+        // if ($dailyCalls >= $dailyLimit) {
+        //     DB::rollBack();
+        //     throw new InvalidArgumentException("Daily API call limit reached ($dailyCalls/$dailyLimit)");
+        // }
         
-        if ($monthlyCalls >= $monthlyLimit) {
-            DB::rollBack();
-            throw new InvalidArgumentException("Monthly API call limit reached ($monthlyCalls/$monthlyLimit)");
-        }
+        // if ($monthlyCalls >= $monthlyLimit) {
+        //     DB::rollBack();
+        //     throw new InvalidArgumentException("Monthly API call limit reached ($monthlyCalls/$monthlyLimit)");
+        // }
         
         // Log the call
-        return MonoApiCallLog::create([
+        return LinkedBankAccountApiCallLog::create([
             'linked_bank_account_id' => $account->id,
+            'user_id' => $user->id,
             'type' => $type,
+            'provider' => $provider,
         ]);
     }
 
