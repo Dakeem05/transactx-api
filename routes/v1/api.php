@@ -182,6 +182,14 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
             Route::get('/list', [BankAccountController::class, 'listAccounts'])->name('user.list.bank.accounts');
             Route::get('/transactions/{ref}', [BankAccountController::class, 'fetchTransactions'])->name('user.fetch.bank.transactions');
         });
+
+        Route::prefix('subscription')->group(function () {
+            Route::get('/models', [UserSubscriptionModelController::class, 'fetchSubscriptionModels'])->name('user.subscription.models');
+            Route::get('/models/{id}', [UserSubscriptionModelController::class, 'show'])->name('user.subscription.model.show');
+            Route::post('/subscribe/{id}', [UserSubscriptionModelController::class, 'subscribe'])->name('user.subscribe.model');
+            Route::get('/subscription', [UserSubscriptionModelController::class, 'getUserSubscription'])->name('user.get.subscription');
+            Route::post('/cancel-subscription', [UserSubscriptionModelController::class, 'cancelSubscription'])->name('user.cancel.subscription');
+        });
     });
 });
 

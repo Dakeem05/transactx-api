@@ -407,6 +407,13 @@ class TransactionService
         $requestee = User::where('email', $data['email'])->first();
         $this->verifyRequest($data, $user);
         
+        Log::info('requestMoneyFromEmail', [
+            'requestee' => $requestee,
+            'amount' => $data['amount'],
+            'request_style_id' => $data['request_style_id'],
+            'content' => $data['content'] ?? null,
+            'ip_address' => $ip_address
+        ]);
         if (is_null($requestee)) {
             throw new InvalidArgumentException('Requestee not found');
         }
@@ -439,6 +446,13 @@ class TransactionService
             $content = '';
             $amount = Money::of($amount, Settings::where('name', 'currency')->first()->value);
 
+            Log::info('request', [
+                'amount' => $amount->getAmount()->toFloat(),
+                'currency' => $currency,
+                'request_style' => $request_style->name,
+                'content' => $request_content,
+            ]);
+
             if (strtolower($request_style->name) !== 'custom') {
                 $values = [
                     'amount' => $amount->getAmount()->toFloat(),
@@ -465,8 +479,25 @@ class TransactionService
                 'avatar' => $requestee->avatar,
             ];
 
+            Log::info('request 2', [
+                'user_id' => $user->id,
+                'requestee_id' => $requestee->id,
+                'amount' => $amount->getAmount()->toFloat(),
+                'currency' => $currency,
+                'content' => $content,
+                'ip_address' => $ip_address,
+            ]);
+            
             $transaction = $this->createSuccessfulTransaction($user, $user->wallet->id, $amount, $currency, 'REQUEST_MONEY', $ip_address, null, $payload, null);
-
+            
+            Log::info('request 3', [
+                'user_id' => $user->id,
+                'requestee_id' => $requestee->id,
+                'amount' => $amount->getAmount()->toFloat(),
+                'currency' => $currency,
+                'content' => $content,
+                'ip_address' => $ip_address,
+            ]);
             $user->notify(new MoneyRequestSentNotification($transaction, $requestee->name));
             $requestee->notify(new MoneyRequestReceivedNotification($user->name, $content));
 
