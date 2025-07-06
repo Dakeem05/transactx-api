@@ -191,9 +191,9 @@ class UserAccountController extends Controller
                 throw new InvalidArgumentException("BVN has already been verified");
             }
 
-            if (User::withBvn($validatedData['bvn'])->exists()) {
-                throw new InvalidArgumentException("BVN already exists");
-            }
+            // if (User::withBvn($validatedData['bvn'])->exists()) {
+            //     throw new InvalidArgumentException("BVN already exists");
+            // }
 
             $verification_data = (object) [
                 'user' => $user,

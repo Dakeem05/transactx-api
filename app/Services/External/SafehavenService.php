@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Http;
 use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 
 /**
@@ -149,9 +150,9 @@ class SafehavenService
                 throw new InvalidArgumentException('Error verifying BVN: No data found in response');
             }
             
-            if (strtolower($response_data['firstName']) !== strtolower($verification_data->user->first_name) || strtolower($response_data['lastName']) !== strtolower($verification_data->user->last_name)) {
-                throw new InvalidArgumentException('Error verifying BVN: Name mismatch');
-            }
+            // if (strtolower($response_data['firstName']) !== strtolower($verification_data->user->first_name) || strtolower($response_data['lastName']) !== strtolower($verification_data->user->last_name)) {
+            //     throw new InvalidArgumentException('Error verifying BVN: Name mismatch');
+            // }
             
             $userService = resolve(UserService::class);
             $userService->updateUserAccount($verification_data->user, [
@@ -184,7 +185,7 @@ class SafehavenService
             $data = [
                 'phoneNumber' => $country === "NG" ? '+234' . substr($user->phone_number, 1) : $user->phone_number,
                 'emailAddress' => $user->email,
-                'externalReference' => $user->wallet->id,
+                'externalReference' => Str::uuid()->toString(),
                 'identityType' => 'BVN',
                 'identityNumber' => $bvn,
                 'identityId' => $verification_id,
