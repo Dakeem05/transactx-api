@@ -196,6 +196,7 @@ class SafehavenService
             ];
             Log::info('Creating ISA with data: ' . json_encode($data));
             $response = Http::talkToSafehaven($url, 'POST', $data);
+            Log::info('Creating ISA with data 2: ', ['response' => $response]);
             return $response;
         } catch (Exception $e) {
             Log::error('Error Encountered at Create ISA method in Safehaven Service: ' . $e->getMessage());

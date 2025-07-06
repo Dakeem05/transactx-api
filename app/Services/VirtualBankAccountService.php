@@ -210,6 +210,7 @@ class VirtualBankAccountService
         }
 
         $data = $response['data'];
+        Log::info('Virtual Bank Account created via Safehaven: ' . json_encode($data));
 
         return VirtualBankAccount::create([
             'wallet_id' => $walletId,

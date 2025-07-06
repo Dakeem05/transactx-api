@@ -107,7 +107,7 @@ class UserWalletController extends Controller
             if ($this->walletService->getUserWallet($userId)) {
                 throw new InvalidArgumentException("User already has a wallet.");
             }
-
+            
             $wallet = $this->walletService->createWallet($userId, 
                 Settings::where('name', 'currency')->first()->value, 
                 Crypt::decryptString($user->bvn), 
