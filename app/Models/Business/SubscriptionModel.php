@@ -18,6 +18,7 @@ class SubscriptionModel extends Model
 
     protected $fillable = [
         'name',
+        'serial',
         'features',
         'has_discount',
         'discount',

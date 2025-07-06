@@ -27,6 +27,7 @@ use App\Http\Controllers\v1\Utilities\BeneficiaryController;
 use App\Http\Controllers\v1\Utilities\CableTVServiceController;
 use App\Http\Controllers\v1\Utilities\DataServiceController;
 use App\Http\Controllers\v1\Utilities\PaymentController;
+use App\Http\Controllers\v1\Utilities\SubscriptionController;
 use App\Http\Controllers\v1\Utilities\UtilityServiceController;
 use Illuminate\Support\Facades\Route;
 
@@ -62,6 +63,7 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
     Route::prefix('account')->group(function () {
         Route::get('/', [UserAccountController::class, 'show'])->name('user.show.account');
         Route::middleware('user.is.main.account')->put('/update', [UserAccountController::class, 'update'])->name('user.update.account');
+        Route::middleware('user.is.main.account')->get('/create-subscription', [UserAccountController::class, 'createSubscription'])->name('user.create.subscription.account');
         Route::middleware('user.is.main.account')->post('/update-avatar', [UserAccountController::class, 'updateAvatar'])->name('user.update.avatar');
         Route::middleware('user.is.main.account')->post('bvn/initiate-verification', [UserAccountController::class, 'initiateBvnVerification'])->name('user.bvn.initiate.verification');
         Route::middleware('user.is.main.account')->post('bvn/validate-verification', [UserAccountController::class, 'validateBvnVerification'])->name('user.bvn.validate.verification');
@@ -184,11 +186,14 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
         });
 
         Route::prefix('subscription')->group(function () {
-            Route::get('/models', [UserSubscriptionModelController::class, 'fetchSubscriptionModels'])->name('user.subscription.models');
+            Route::get('/', [SubscriptionController::class, 'fetchUserSubscription'])->name('user.get.subscription');
+            Route::get('/models', [UserSubscriptionModelController::class, 'index'])->name('user.subscription.models');
+            Route::get('/methods', [SubscriptionController::class, 'fetchSubscriptionMethods'])->name('user.subscription.methods');
+            Route::get('/models', [UserSubscriptionModelController::class, 'index'])->name('user.subscription.models');
             Route::get('/models/{id}', [UserSubscriptionModelController::class, 'show'])->name('user.subscription.model.show');
             Route::post('/subscribe/{id}', [UserSubscriptionModelController::class, 'subscribe'])->name('user.subscribe.model');
-            Route::get('/subscription', [UserSubscriptionModelController::class, 'getUserSubscription'])->name('user.get.subscription');
-            Route::post('/cancel-subscription', [UserSubscriptionModelController::class, 'cancelSubscription'])->name('user.cancel.subscription');
+            Route::post('/upgrade', [SubscriptionController::class, 'upgradeUserSubscription'])->name('user.upgrade.subscription');
+            Route::post('/cancel', [UserSubscriptionModelController::class, 'cancelSubscription'])->name('user.cancel.subscription');
         });
     });
 });

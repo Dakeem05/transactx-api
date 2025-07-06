@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Enums\Subscription\ModelNameEnum;
 use App\Enums\Subscription\ModelStatusEnum;
+use App\Models\Business\SubscriptionModel;
 use Brick\Money\Money;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -26,6 +27,7 @@ class SubscriptionModelsSeeder extends Seeder
             [
                 'id' => Str::uuid(),
                 'name' => ModelNameEnum::FREE,
+                'serial' => 1,
                 'features' => json_encode([
                     'auto_bank_transaction_sync' => [
                         'daily_limit' => 1,
@@ -47,11 +49,15 @@ class SubscriptionModelsSeeder extends Seeder
                 ]),
                 'amount' => Money::of(0, 'NGN')->getAmount(),
                 'full_amount' => Money::of(0, 'NGN')->getAmount(),
+                'has_discount' => false,
+                'discount' => 0,
+                'discount_amount' => 0,
                 'status' => ModelStatusEnum::ACTIVE
             ],
             [
                 'id' => Str::uuid(),
                 'name' => ModelNameEnum::STARTUP,
+                'serial' => 2,
                 'features' => json_encode([
                     'auto_bank_transaction_sync' => [
                         'daily_limit' => 5,
@@ -71,12 +77,20 @@ class SubscriptionModelsSeeder extends Seeder
                         'available' => false,
                     ],
                 ]),
-                'amount' => Money::of(3000, 'NGN')->getAmount(),
                 'full_amount' => Money::of(3000, 'NGN')->getAmount(),
+                'has_discount' => true,
+                'discount' => 10,
+                'discount_amount' => Money::of(3000, 'NGN')
+                    ->multipliedBy(0.10)  // 6%
+                    ->getAmount(),
+                'amount' => Money::of(3000, 'NGN')
+                    ->minus(Money::of(3000, 'NGN')->multipliedBy(0.10))
+                    ->getAmount(),
                 'status' => ModelStatusEnum::ACTIVE
             ],
             [
                 'id' => Str::uuid(),
+                'serial' => 3,
                 'name' => ModelNameEnum::GROWTH,
                 'features' => json_encode([
                     'auto_bank_transaction_sync' => [
@@ -97,13 +111,21 @@ class SubscriptionModelsSeeder extends Seeder
                         'available' => false,
                     ],
                 ]),
-                'amount' => Money::of(10000, 'NGN')->getAmount(),
                 'full_amount' => Money::of(10000, 'NGN')->getAmount(),
+                'has_discount' => true,
+                'discount' => 10,
+                'discount_amount' => Money::of(10000, 'NGN')
+                    ->multipliedBy(0.10)  // 6%
+                    ->getAmount(),
+                'amount' => Money::of(10000, 'NGN')
+                    ->minus(Money::of(10000, 'NGN')->multipliedBy(0.10))
+                    ->getAmount(),
                 'status' => ModelStatusEnum::ACTIVE
             ],
             [
                 'id' => Str::uuid(),
                 'name' => ModelNameEnum::ENTERPRISE,
+                'serial' => 4,
                 'features' => json_encode([
                     'auto_bank_transaction_sync' => [
                         'daily_limit' => 50,
@@ -129,7 +151,10 @@ class SubscriptionModelsSeeder extends Seeder
             ]
         ];
 
-        DB::table('subscription_models')->insert($subscription_models);
+        foreach ($subscription_models as $model) {
+            SubscriptionModel::create($model);
+        }
+        // DB::table('subscription_models')->insert($subscription_models);
 
         $this->command->info('Subscription Models table seeded!');
 

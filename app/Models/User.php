@@ -223,6 +223,11 @@ class User extends Authenticatable
     {
         return $this->hasMany(User::class, 'main_account_id');
     }
+    
+    public function subscription()
+    {
+        return $this->hasOne(Subscription::class, 'user_id');
+    }
 
     public function mainAccount()
     {

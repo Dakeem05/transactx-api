@@ -98,17 +98,14 @@ class UserWalletController extends Controller
 
             if (!$user->bvnVerified()) {
                 throw new InvalidArgumentException("You need to verify your BVN before you can create a wallet.");
-                // return TransactX::response(false, 'You need to verify your BVN before you can create a wallet.', 400);
             }
             
             if (is_null($user->phone_number)) {
                 throw new InvalidArgumentException("You need to update your phone number.");
-                // return TransactX::response(false, 'You need to update your phone number.', 400);
             }
             
             if ($this->walletService->getUserWallet($userId)) {
                 throw new InvalidArgumentException("User already has a wallet.");
-                // return TransactX::response(false, 'User already has a wallet.', 400);
             }
 
             $wallet = $this->walletService->createWallet($userId, 

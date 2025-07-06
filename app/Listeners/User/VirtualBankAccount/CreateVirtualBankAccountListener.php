@@ -8,6 +8,7 @@ use App\Models\Settings;
 use App\Services\Utilities\PaymentService;
 use App\Services\VirtualBankAccountService;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Log;
 
 class CreateVirtualBankAccountListener implements ShouldQueue
 {
@@ -27,7 +28,9 @@ class CreateVirtualBankAccountListener implements ShouldQueue
     {
         $wallet = $event->wallet;
         $user = $wallet->user;
-    
+
+        Log::info('CreateVirtualBankAccountListener', ['event' => $event, 'wallet' => $wallet, 'user' => $user]);
+        
         $paymentService = resolve(PaymentService::class);
         $provider = $paymentService->getPaymentServiceProvider();
         
@@ -39,18 +42,20 @@ class CreateVirtualBankAccountListener implements ShouldQueue
                 status: $provider->status ?? false
             );
         }
-    
+        
         $currency = Settings::where('name', 'currency')->first()->value;
         if (!$currency) {
             throw new \Exception('Currency not found');
         }
-    
+        
         $virtualAccount = $this->virtualBankAccountService->getWalletVirtualBankAccountForProvider(
             $wallet->id, 
             $provider->name
         );
+
+        Log::info('CreateVirtualBankAccountListener 2', ['virtualAccount' => $virtualAccount]);
         
-        if (!$virtualAccount) {
+        if (is_null($virtualAccount)) {
             $this->virtualBankAccountService->createVirtualBankAccount(
                 $user, 
                 $currency, 

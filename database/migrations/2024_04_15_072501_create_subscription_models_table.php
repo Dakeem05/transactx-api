@@ -16,6 +16,7 @@ return new class extends Migration
         Schema::create('subscription_models', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->enum('name', ModelNameEnum::toArray())->index()->unique()->nullable();
+            $table->integer('serial')->unique()->nullable()->default(0);
             $table->json('features')->nullable();
             $table->boolean('has_discount')->nullable()->default(false);
             $table->Integer('discount')->nullable()->default(0);

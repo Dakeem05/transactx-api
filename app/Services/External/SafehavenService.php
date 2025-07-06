@@ -194,7 +194,7 @@ class SafehavenService
                     'schedule' => 'Instant'
                 ]
             ];
-
+            Log::info('Creating ISA with data: ' . json_encode($data));
             $response = Http::talkToSafehaven($url, 'POST', $data);
             return $response;
         } catch (Exception $e) {

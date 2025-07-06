@@ -17,6 +17,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('user_id')->index()->references('id')->on('users')->onDelete('no action');
             $table->foreignUuid('subscription_model_id')->index()->references('id')->on('subscription_models')->onDelete('no action');
+            $table->foreignUuid('next_subscription_model_id')->index()->nullable()->references('id')->on('subscription_models')->onDelete('no action');
             $table->string('payment_gateway_id')->nullable();
             $table->string('payment_intent')->nullable();
             $table->enum('method', ModelPaymentMethodEnum::toArray())->index()->nullable()->default('WALLET');

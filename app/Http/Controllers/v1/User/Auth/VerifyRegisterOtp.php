@@ -7,8 +7,10 @@ use App\Helpers\TransactX;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\v1\User\Otp\UserOtpController;
 use App\Http\Requests\User\VerifyRegisterOtpRequest;
+use App\Models\Business\SubscriptionModel;
 use App\Models\User;
 use App\Models\VerificationCode;
+use App\Services\SubscriptionService;
 use App\Services\UserService;
 use Carbon\Carbon;
 use Exception;
@@ -24,6 +26,7 @@ class VerifyRegisterOtp extends Controller
     {
         try {
             $validatedData = $request->validated();
+            $user = User::where('email', $validatedData['email'])->first();
 
             $otpService = resolve(UserOtpController::class);
             $response = $otpService->verifyAppliedCode($validatedData['email'], $validatedData['verification_code'], null, 'verification');
@@ -44,12 +47,16 @@ class VerifyRegisterOtp extends Controller
             $verification_code->delete();
 
             $userService = resolve(UserService::class);
-            $userService->updateUserAccount(User::where('email', $validatedData['email'])->first(), [
+            $userService->updateUserAccount($user, [
                 'email_verified_at' => Carbon::now(),
             ]);
 
-            event(new UserCreatedEvent($user));
+            $free_subscription = SubscriptionModel::where('serial', 1)
+                ->where('status', true)
+                ->first();
+            resolve(SubscriptionService::class)->createSubscription($user, $free_subscription);
 
+            event(new UserCreatedEvent($user));
             return TransactX::response(true, 'Otp has been verified', 200);
         } catch (Exception $e) {
             Log::error('VERIFY REGISTER OTP: Error Encountered: ' . $e->getMessage());

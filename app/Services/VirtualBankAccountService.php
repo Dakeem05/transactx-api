@@ -200,6 +200,7 @@ class VirtualBankAccountService
     private function createVirtualBankAccountViaSafehaven(User $user, $currency, string $walletId, string $provider, string $bvn, string $verification_id, string $otp)
     {
         $safehavenService = resolve(SafehavenService::class);
+        Log::info('Creating ISA for user: ' . $user->id . ' with BVN: ' . $bvn . ', verification_id: ' . $verification_id . ', otp: ' . $otp);
 
         $response = $safehavenService->createISA($user, Settings::where('name', 'country')->first()->value, $bvn, $verification_id, $otp);
         

@@ -2,6 +2,7 @@
 
 namespace App\Services\Business;
 
+use App\Enums\Subscription\ModelStatusEnum;
 use App\Models\Business\SubscriptionModel;
 use App\Models\Settings;
 use Brick\Money\Money;
@@ -17,7 +18,7 @@ class SubscriptionModelService
      */
     public function getById(string $id)
     {
-        return SubscriptionModel::findOrFail($id)->first();
+        return SubscriptionModel::findOrFail($id);
     }
 
 
@@ -27,7 +28,7 @@ class SubscriptionModelService
      */
     public function getModels()
     {
-        return SubscriptionModel::latest()->get();
+        return SubscriptionModel::where('status', ModelStatusEnum::ACTIVE)->orderBy('serial', 'asc')->get();
     }
 
 

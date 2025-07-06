@@ -7,23 +7,84 @@ use App\Enums\Subscription\ModelUserStatusEnum;
 use App\Models\Business\SubscriptionModel;
 use App\Models\Subscription;
 use App\Models\User;
+use Exception;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 class SubscriptionService
 {
-    public function fetchSubscriptionModels()
-    {
-        // Fetch all subscription models
-        return SubscriptionModel::where('status', ModelUserStatusEnum::ACTIVE)->get();
-    }
-    
-    public function getSubscriptionMethods()
+    public function fetchSubscriptionMethods()
     {
         return ModelPaymentMethodEnum::cases();
     }
     
-    public function createSubscription(User $user, SubscriptionModel $model, array $data): Subscription
+    public function fetchUserSubscription(User $user)
+    {
+        return $user->subscription;
+    }
+    
+    public function createSubscription(User $user, SubscriptionModel $model): Subscription
+    {
+        // Check if the user already has an active subscription
+        $existingSubscription = Subscription::where('user_id', $user->id)
+            ->where('subscription_model_id', $model->id)
+            ->where('status', 'active')
+            ->first();
+
+        if ($existingSubscription) {
+            throw new InvalidArgumentException("User already has an active subscription for this model.");
+        }
+
+        $subscription = Subscription::create([
+            'user_id' => $user->id,
+            'subscription_model_id' => $model->id,
+            'start_date' => now(),
+            'end_date' => now()->addMonth(),
+            'renewal_date' => now()->addMonth(),
+            'status' => ModelUserStatusEnum::ACTIVE,
+        ]);
+
+        return $subscription->fresh();
+    }
+
+    public function upgradeUserSubscription(User $user, array $data): Subscription
+    {
+        $subscription = $user->subscription;
+
+        if (is_null($subscription) || $subscription->status !== ModelUserStatusEnum::ACTIVE) {
+            throw new InvalidArgumentException("User does not have an active subscription.");
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $subscription->update([
+                'subscription_model_id' => $data['billing'] === 'IMMEDIATE' ? $data['subscription_model_id'] : $subscription->subscription_model_id,
+                'next_subscription_model_id' => $data['billing'] === 'IMMEDIATE' ? null : $data['subscription_model_id'],
+                'start_date' => $data['billing'] === 'IMMEDIATE' ? now() : $subscription->start_date,
+                'end_date' => $data['billing'] === 'IMMEDIATE' ? now()->addMonth() : $subscription->end_date,
+                'renewal_date' => $data['billing'] === 'IMMEDIATE' ? now()->addMonth() : $subscription->renewal_date,
+                'status' => ModelUserStatusEnum::PENDING,
+            ]);
+            
+            if ($data['billing'] === 'IMMEDIATE') {
+                $this->processInitialPayment($subscription, $data);
+            } else {
+                //notify user
+                
+            }
+
+            DB::commit();
+            return $subscription->fresh();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw new Exception("Failed to upgrade subscription: " . $e->getMessage());
+        }
+
+    }
+
+    public function buySubscription(User $user, SubscriptionModel $model, array $data = []): Subscription
     {
         // Check if the user already has an active subscription
         $existingSubscription = Subscription::where('user_id', $user->id)
@@ -69,10 +130,16 @@ class SubscriptionService
         // Update payment status and subscription accordingly
     }
 
-    public function cancelSubscription(Subscription $subscription)
+    public function cancelSubscription(User $user)
     {
+        $subscription = $user->subscription;
+
+        if (is_null($subscription) || $subscription->status !== ModelUserStatusEnum::ACTIVE) {
+            throw new InvalidArgumentException("User does not have an active subscription.");
+        }
+
         $subscription->update([
-            'status' => 'cancelled',
+            'status' => ModelUserStatusEnum::CANCELLED,
             'cancelled_at' => now(),
             'is_auto_renew' => false,
         ]);

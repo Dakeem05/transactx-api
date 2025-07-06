@@ -10,8 +10,10 @@ use App\Http\Requests\User\Account\UpdateUserAvatarRequest;
 use App\Http\Requests\User\Account\ValidateUserBVNRequest;
 use App\Http\Requests\User\Account\VerifyUserBVNRequest;
 use App\Http\Requests\User\Otp\VerifyAppliedVerificationCodeRequest;
+use App\Models\Business\SubscriptionModel;
 use App\Models\User;
 use App\Models\VerificationCode;
+use App\Services\SubscriptionService;
 use App\Services\User\WalletService;
 use App\Services\UserService;
 use App\Services\Utilities\PaymentService;
@@ -48,6 +50,26 @@ class UserAccountController extends Controller
         } catch (Exception $e) {
             Log::error('GET USER ACCOUNT: Error Encountered: ' . $e->getMessage());
             return TransactX::response(false, $e->getMessage(), 500);
+        }
+    }
+
+    public function createSubscription(): JsonResponse
+    {
+        try {
+            $user = Auth::user();
+            
+            $free_subscription = SubscriptionModel::where('serial', 1)
+                ->where('status', true)
+                ->first();
+            resolve(SubscriptionService::class)->createSubscription($user, $free_subscription);
+
+            return TransactX::response(true, 'User subscription created successfully', 200);
+        } catch (InvalidArgumentException $e) {
+            Log::error('CREATE USER SUBSCRIPTION: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(false, $e->getMessage(), 400);
+        } catch (Exception $e) {
+            Log::error('CREATE USER SUBSCRIPTION: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(false, 'Failed to create user subscriptiom', 500);
         }
     }
     

@@ -19,6 +19,7 @@ class Subscription extends Model
     protected $fillable = [
         'user_id',
         'subscription_model_id',
+        'next_subscription_model_id',
         'payment_gateway_id',
         'payment_intent',
         'method',
@@ -42,6 +43,14 @@ class Subscription extends Model
         'metadata' => 'array',
     ];
 
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+        'deleted_at',
+        'payment_gateway_id',
+        'payment_intent',
+    ];
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -50,6 +59,11 @@ class Subscription extends Model
     public function model(): BelongsTo
     {
         return $this->belongsTo(SubscriptionModel::class, 'subscription_model_id');
+    }
+
+    public function nextSubscriptionModel(): BelongsTo
+    {
+        return $this->belongsTo(SubscriptionModel::class, 'next_subscription_model_id');
     }
 
     public function payments(): HasMany

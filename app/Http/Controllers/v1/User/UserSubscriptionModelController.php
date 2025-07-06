@@ -32,18 +32,17 @@ class UserSubscriptionModelController extends Controller
         try {
             $models = $this->subscriptionModelService->getModels();
 
-            return TransactX::response([
-                'message' => 'Subscription models retrieved successfully',
+            return TransactX::response(true, 'Subscription models retrieved successfully', 200, [
                 'models' => $models
-            ], 200);
+            ]);
         } catch (Exception $e) {
             Log::error('USER: LIST SUBSCRIPTION MODELS: Error Encountered: ' . $e->getMessage());
-
+            
             return TransactX::response(false, $e->getMessage(), 500);
         }
     }
-
-
+    
+    
     /**
      * Return a single subscription model.
      * @param string $id
@@ -52,14 +51,13 @@ class UserSubscriptionModelController extends Controller
     {
         try {
             $model = $this->subscriptionModelService->getById($id);
-
-            return TransactX::response([
-                'message' => 'Subscription model retrieved successfully',
+            
+            return TransactX::response(true, 'Subscription model retrieved successfully', 200, [
                 'model' => $model
-            ], 200);
+            ]);
         } catch (ModelNotFoundException | NotFoundHttpException $e) {
             Log::error('USER: SHOW SUBSCRIPTION MODEL: Error Encountered: ' . $e->getMessage());
-            return TransactX::response(['message' => 'Cannot find Subscription Model'], 404);
+            return TransactX::response(false, 'Cannot find Subscription Model', 404);
         } catch (Exception $e) {
             Log::error('USER: SHOW SUBSCRIPTION MODEL: Error Encountered: ' . $e->getMessage());
             return TransactX::response(false, $e->getMessage(), 500);
