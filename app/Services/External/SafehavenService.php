@@ -140,20 +140,25 @@ class SafehavenService
                 'otp' => $verification_data->otp,
             ];
 
+            Log::info('Validating BVN with data: ' . json_encode($data));
+            
             $response = Http::talkToSafehaven($url, 'POST', $data);
             if (strtolower($response['data']['status']) !== 'success') {
                 throw new InvalidArgumentException('Error verifying BVN: Invalid BVN or other verification error.');
             }
+            
+            Log::info('Validating BVN with response: ' . json_encode($response));
             $response_data = $response['data']['providerResponse'] ?? null;
+            Log::info('Validating BVN with response_data: ' . json_encode($response_data));
             
             if (is_null($response_data)) {
                 throw new InvalidArgumentException('Error verifying BVN: No data found in response');
             }
             
             // if (strtolower($response_data['firstName']) !== strtolower($verification_data->user->first_name) || strtolower($response_data['lastName']) !== strtolower($verification_data->user->last_name)) {
-            //     throw new InvalidArgumentException('Error verifying BVN: Name mismatch');
-            // }
-            
+                //     throw new InvalidArgumentException('Error verifying BVN: Name mismatch');
+                // }
+                
             $userService = resolve(UserService::class);
             $userService->updateUserAccount($verification_data->user, [
                 'bvn_status' => 'SUCCESSFUL',
