@@ -12,6 +12,7 @@ use App\Services\External\PaystackService;
 use App\Services\External\SafehavenService;
 use App\Services\Utilities\PaymentService;
 use Exception;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class VirtualBankAccountService
@@ -200,6 +201,7 @@ class VirtualBankAccountService
      */
     private function createVirtualBankAccountViaSafehaven(User $user, $currency, string $walletId, string $provider, string $bvn, string $verification_id, string $otp)
     {
+        DB::beginTransaction();
         $safehavenService = resolve(SafehavenService::class);
         Log::info('Creating ISA for user: ' . $user->id . ' with BVN: ' . $bvn . ', verification_id: ' . $verification_id . ', otp: ' . $otp);
 
@@ -240,7 +242,8 @@ class VirtualBankAccountService
 
         Log::info('VirtualBankAccount model' . json_encode($virtualBankAccount));
 
-        return $virtualBankAccount;
+        DB::commit();
+        return $virtualBankAccount->fresh();
     }
 
     public function getAccount(VirtualBankAccount $virtualBankAccount, $currency)

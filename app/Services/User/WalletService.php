@@ -79,7 +79,7 @@ class WalletService
     public function createWallet($userId, $currency = 'NGN', $bvn = null, $verification_id = null, $otp = null): Wallet
     {
         try {
-            // DB::beginTransaction();
+            DB::beginTransaction();
 
             $wallet = Wallet::create([
                 'user_id' => $userId,
@@ -89,10 +89,10 @@ class WalletService
             
             event(new UserWalletCreated($wallet, $bvn, $verification_id, $otp));
             
-            // DB::commit();
+            DB::commit();
             return $wallet;
         } catch (Exception $e) {
-            // DB::rollBack();
+            DB::rollBack();
             Log::error('CREATE WALLET: Error Encountered: ' . $e->getMessage());
             throw new Exception('An error occurred while creating wallet.');
         }
