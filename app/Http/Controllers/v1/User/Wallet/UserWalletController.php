@@ -125,7 +125,7 @@ class UserWalletController extends Controller
         }
     }
 
-    public function destropy(): JsonResponse
+    public function destroy(): JsonResponse
     {
         try {
             $user = Auth::user();
