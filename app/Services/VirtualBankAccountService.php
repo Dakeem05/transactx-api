@@ -102,6 +102,7 @@ class VirtualBankAccountService
             return $virtualBankAccount;
         } else if ($provider == 'safehaven') {
             $virtualBankAccount = $this->createVirtualBankAccountViaSafehaven($user, $currency, $walletId, $provider, $bvn, $verification_id, $otp);
+            Log::info('createVirtualBankAccount:' . json_encode($virtualBankAccount));
             event(new VirtualBankAccountCreated($virtualBankAccount));
             return $virtualBankAccount;
         }
@@ -223,8 +224,8 @@ class VirtualBankAccountService
             'bank_code' => '090286', // Safehaven does not provide a bank code
             'provider' => $provider,
         ]);
-
-        return VirtualBankAccount::create([
+        
+        $virtualBankAccount = VirtualBankAccount::create([
             'wallet_id' => $walletId,
             'currency' => $currency,
             'country' => Settings::where('name', 'country')->first()->value,
@@ -236,6 +237,10 @@ class VirtualBankAccountService
             'bank_code' => '090286', // Safehaven does not provide a bank code
             'provider' => $provider,
         ]);
+
+        Log::info('VirtualBankAccount model' . json_encode($virtualBankAccount));
+
+        return $virtualBankAccount;
     }
 
     public function getAccount(VirtualBankAccount $virtualBankAccount, $currency)
