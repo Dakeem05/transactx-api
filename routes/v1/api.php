@@ -96,6 +96,7 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
             Route::get('/', [UserWalletController::class, 'index'])->name('user.get.wallet');
             Route::middleware('user.is.main.account')->get('/initiate-create', [UserWalletController::class, 'initiateCreateWallet'])->name('user.initiate.create.wallet');
             Route::middleware('user.is.main.account')->post('/', [UserWalletController::class, 'store'])->name('user.create.wallet');
+            Route::middleware('user.is.main.account')->delete('/destroy', [UserWalletController::class, 'destroy'])->name('user.destroy.wallet');
         });
         
         Route::prefix('subscription-model')->group(function () {

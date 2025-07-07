@@ -211,6 +211,18 @@ class VirtualBankAccountService
 
         $data = $response['data'];
         Log::info('Virtual Bank Account created via Safehaven: ' . json_encode($data));
+        Log::info('VirtualBankAccount Payload', [
+            'wallet_id' => $walletId,
+            'currency' => $currency,
+            'country' => Settings::where('name', 'country')->first()->value,
+            'account_number' => $data['accountNumber'],
+            'account_name' => $data['accountName'],
+            'account_reference' => $data['externalReference'],
+            'barter_id' => $data['_id'],
+            'bank_name' => 'Safehaven',
+            'bank_code' => '090286', // Safehaven does not provide a bank code
+            'provider' => $provider,
+        ]);
 
         return VirtualBankAccount::create([
             'wallet_id' => $walletId,

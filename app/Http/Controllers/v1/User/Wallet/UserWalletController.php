@@ -124,4 +124,21 @@ class UserWalletController extends Controller
             return TransactX::response(false, 'Failed to create wallet.', 500);
         }
     }
+
+    public function destropy(): JsonResponse
+    {
+        try {
+            $user = Auth::user();
+
+            $wallet = $this->walletService->destroy($user->wallet);
+
+            return TransactX::response(true, 'Wallet deleted successfully.', 201, $wallet);
+        } catch (InvalidArgumentException $e) {
+            Log::error('DESTROY WALLET: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(false,  $e->getMessage(), 400);
+        } catch (Exception $e) {
+            Log::error('DESTROY WALLET: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(false, 'Failed to destroy wallet.', 500);
+        }
+    }
 }
