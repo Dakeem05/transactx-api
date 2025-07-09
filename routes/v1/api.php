@@ -192,9 +192,11 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
             Route::get('/methods', [SubscriptionController::class, 'fetchSubscriptionMethods'])->name('user.subscription.methods');
             Route::get('/models', [UserSubscriptionModelController::class, 'index'])->name('user.subscription.models');
             Route::get('/models/{id}', [UserSubscriptionModelController::class, 'show'])->name('user.subscription.model.show');
-            Route::post('/subscribe/{id}', [UserSubscriptionModelController::class, 'subscribe'])->name('user.subscribe.model');
+            Route::post('/subscribe', [SubscriptionController::class, 'subscribe'])->name('user.subscribe.model');
             Route::post('/upgrade', [SubscriptionController::class, 'upgradeUserSubscription'])->name('user.upgrade.subscription');
-            Route::post('/cancel', [UserSubscriptionModelController::class, 'cancelSubscription'])->name('user.cancel.subscription');
+            Route::post('/renew', [SubscriptionController::class, 'renewSubscription'])->name('user.renew.subscription');
+            Route::post('/cancel', [SubscriptionController::class, 'cancelSubscription'])->name('user.cancel.subscription');
+            Route::post('/resume', [SubscriptionController::class, 'resumeSubscription'])->name('user.resume.subscription');
         });
     });
 });

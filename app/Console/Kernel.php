@@ -12,11 +12,6 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // Run queue worker continuously for webhooks
-        // $schedule->command('queue:work --queue=webhooks --once')
-        // ->everyMinute()
-        // ->withoutOverlapping()
-        // ->runInBackground();
         $schedule->command('app:airtime-service-command')
             ->everyMinute()
             ->withoutOverlapping()
@@ -31,6 +26,26 @@ class Kernel extends ConsoleKernel
             ->runInBackground();
         $schedule->command('app:utility-service-command')
             ->everyMinute()
+            ->withoutOverlapping()
+            ->runInBackground();
+        $schedule->command('app:subscription-reminders-command')
+            ->daily()
+            ->withoutOverlapping()
+            ->runInBackground();
+        $schedule->command('app:subscription-expired-command')
+            ->daily()
+            ->withoutOverlapping()
+            ->runInBackground();
+        $schedule->command('app:subscription-renew-command')
+            ->daily()
+            ->withoutOverlapping()
+            ->runInBackground();
+        $schedule->command('app:subscription-revert-reminder-command')
+            ->daily()
+            ->withoutOverlapping()
+            ->runInBackground();
+        $schedule->command('app:subscription-revert-command')
+            ->daily()
             ->withoutOverlapping()
             ->runInBackground();
     }

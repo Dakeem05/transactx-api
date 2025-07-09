@@ -4,6 +4,7 @@ namespace App\Http\Controllers\v1\Utilities;
 
 use App\Helpers\TransactX;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\User\Subscription\RenewUserSubscriptionRequest;
 use App\Http\Requests\User\Subscription\UpgradeUserSubscriptionRequest;
 use App\Http\Requests\User\Subscription\UserSubscriptionRequest;
 use App\Services\SubscriptionService;
@@ -58,7 +59,7 @@ class SubscriptionController extends Controller
     public function subscribe(UserSubscriptionRequest $request): JsonResponse
     {
         try {
-            $this->subscriptionService->upgradeUserSubscription(Auth::user(), $request->validated());
+            $this->subscriptionService->subscribe(Auth::user(), $request->validated());
 
             return TransactX::response(true, 'User subscription proccessed successfully', 200);
         } catch (InvalidArgumentException $e) {
@@ -85,6 +86,21 @@ class SubscriptionController extends Controller
         }
     }
 
+    public function renewSubscription(RenewUserSubscriptionRequest $request): JsonResponse
+    {
+        try {
+            $this->subscriptionService->renewSubscription(Auth::user(), $request->validated());
+
+            return TransactX::response(true, 'User subscription upgraded successfully', 200);
+        } catch (InvalidArgumentException $e) {
+            Log::error('RENEW USER SUBSCRIPTION: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(false, $e->getMessage(), 400);
+        } catch (Exception $e) {
+            Log::error('RENEW USER SUBSCRIPTION: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(false, 'Failed to renew user subscription', 500);
+        }
+    }
+
     public function cancelSubscription(): JsonResponse
     {
         try {
@@ -97,6 +113,21 @@ class SubscriptionController extends Controller
         } catch (Exception $e) {
             Log::error('CANCEL USER SUBSCRIPTION: Error Encountered: ' . $e->getMessage());
             return TransactX::response(false, 'Failed to cancel user subscription', 500);
+        }
+    }
+
+    public function resumeSubscription(): JsonResponse
+    {
+        try {
+            $this->subscriptionService->resumeSubscription(Auth::user());
+
+            return TransactX::response(true, 'User subscription resumed successfully', 200);
+        } catch (InvalidArgumentException $e) {
+            Log::error('RESUME USER SUBSCRIPTION: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(false, $e->getMessage(), 400);
+        } catch (Exception $e) {
+            Log::error('RESUME USER SUBSCRIPTION: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(false, 'Failed to resume user subscription', 500);
         }
     }
 }

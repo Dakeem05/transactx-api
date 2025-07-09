@@ -77,15 +77,24 @@ class SubscriptionModelsSeeder extends Seeder
                         'available' => false,
                     ],
                 ]),
-                'full_amount' => Money::of(3000, 'NGN')->getAmount(),
+                'full_amount' => Money::of(30, 'NGN')->getAmount(),
                 'has_discount' => true,
                 'discount' => 10,
-                'discount_amount' => Money::of(3000, 'NGN')
+                'discount_amount' => Money::of(30, 'NGN')
                     ->multipliedBy(0.10)  // 6%
                     ->getAmount(),
-                'amount' => Money::of(3000, 'NGN')
-                    ->minus(Money::of(3000, 'NGN')->multipliedBy(0.10))
+                'amount' => Money::of(30, 'NGN')
+                    ->minus(Money::of(30, 'NGN')->multipliedBy(0.10))
                     ->getAmount(),
+                // 'full_amount' => Money::of(3000, 'NGN')->getAmount(),
+                // 'has_discount' => true,
+                // 'discount' => 10,
+                // 'discount_amount' => Money::of(3000, 'NGN')
+                //     ->multipliedBy(0.10)  // 6%
+                //     ->getAmount(),
+                // 'amount' => Money::of(3000, 'NGN')
+                //     ->minus(Money::of(3000, 'NGN')->multipliedBy(0.10))
+                //     ->getAmount(),
                 'status' => ModelStatusEnum::ACTIVE
             ],
             [
@@ -111,15 +120,24 @@ class SubscriptionModelsSeeder extends Seeder
                         'available' => false,
                     ],
                 ]),
-                'full_amount' => Money::of(10000, 'NGN')->getAmount(),
+                'full_amount' => Money::of(100, 'NGN')->getAmount(),
                 'has_discount' => true,
                 'discount' => 10,
-                'discount_amount' => Money::of(10000, 'NGN')
+                'discount_amount' => Money::of(100, 'NGN')
                     ->multipliedBy(0.10)  // 6%
                     ->getAmount(),
-                'amount' => Money::of(10000, 'NGN')
-                    ->minus(Money::of(10000, 'NGN')->multipliedBy(0.10))
+                'amount' => Money::of(100, 'NGN')
+                    ->minus(Money::of(100, 'NGN')->multipliedBy(0.10))
                     ->getAmount(),
+                // 'full_amount' => Money::of(10000, 'NGN')->getAmount(),
+                // 'has_discount' => true,
+                // 'discount' => 10,
+                // 'discount_amount' => Money::of(10000, 'NGN')
+                //     ->multipliedBy(0.10)  // 6%
+                //     ->getAmount(),
+                // 'amount' => Money::of(10000, 'NGN')
+                //     ->minus(Money::of(10000, 'NGN')->multipliedBy(0.10))
+                //     ->getAmount(),
                 'status' => ModelStatusEnum::ACTIVE
             ],
             [

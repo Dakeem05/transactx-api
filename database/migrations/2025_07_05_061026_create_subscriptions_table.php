@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Subscription\ModelBillingEnum;
 use App\Enums\Subscription\ModelPaymentMethodEnum;
 use App\Enums\Subscription\ModelUserStatusEnum;
 use Illuminate\Database\Migrations\Migration;
@@ -21,6 +22,7 @@ return new class extends Migration
             $table->string('payment_gateway_id')->nullable();
             $table->string('payment_intent')->nullable();
             $table->enum('method', ModelPaymentMethodEnum::toArray())->index()->nullable()->default('WALLET');
+            $table->enum('billing', ModelBillingEnum::toArray())->index()->nullable()->default('MONTHLY');
             $table->dateTime('start_date');
             $table->dateTime('end_date');
             $table->dateTime('renewal_date')->nullable();

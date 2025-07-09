@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Listeners\User\Transactions;
+namespace App\Listeners\User\Subscription;
 
-use App\Events\User\Transactions\TransferMoney;
+use App\Events\User\Subscription\SubscriptionEvent;
 use App\Models\Transaction;
-use App\Notifications\User\Transactions\TransferMoneyNotification;
+use App\Notifications\User\Subscription\SubscriptionPaymentNotification;
 use App\Services\TransactionService;
 use App\Services\User\WalletService;
 use Exception;
@@ -12,7 +12,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class TransferMoneyListener implements ShouldQueue
+class SubscriptionEventListener implements ShouldQueue
 {
     /**
      * Create the event listener.
@@ -27,18 +27,16 @@ class TransferMoneyListener implements ShouldQueue
     /**
      * Handle the event.
      */
-    public function handle(TransferMoney $event): void
+    public function handle(SubscriptionEvent $event): void
     {
         $wallet = $event->wallet;
         $amount = $event->amount;
-        $fees = $event->fees;
         $currency = $event->currency;
         $reference = $event->reference;
         $external_transaction_reference = $event->external_transaction_reference;
         $narration = $event->narration ?? null;
-        $ip_address = $event->ip_address ?? null;
-        $name = $event->name;
         $payload = $event->payload;
+        $fees = 0;
 
         try {
             DB::beginTransaction();
@@ -49,7 +47,7 @@ class TransferMoneyListener implements ShouldQueue
             $walletTransaction = $wallet->walletTransactions()->latest()->first();
             
             if (!$walletTransaction && $walletTransaction->wallet_id != $wallet->id && $walletTransaction->amount_change != $amount + $fees) {
-                Log::error('TransferMoneyListener.handle() - Could not find matching transaction for wallet: ' . $wallet->id);
+                Log::error('SubscriptionListener.handle() - Could not find matching transaction for wallet: ' . $wallet->id);
                 return;
             }
             
@@ -57,12 +55,12 @@ class TransferMoneyListener implements ShouldQueue
                 $user,
                 $amount,
                 $currency,
-                'SEND_MONEY',
+                'SUBSCRIPTION',
                 $reference,
                 $payload,
                 $wallet->id,
                 $narration,
-                $ip_address,
+                null,
                 $external_transaction_reference,
             );
 
@@ -70,23 +68,22 @@ class TransferMoneyListener implements ShouldQueue
                 $user,
                 $fees,
                 $currency,
-                'SEND_MONEY_FEE',
+                'SUBSCRIPTION_FEE',
                 $reference,
                 $wallet->id,
                 $transaction->id
             );
-            
+
             $transaction->feeTransactions()->save($feeTransaction);
             $transaction = Transaction::where('id', $transaction->id)->with(['feeTransactions'])->first();
             // Associate wallet transaction
             $this->transactionService->attachWalletTransactionFor($transaction, $wallet, $walletTransaction->id);
 
-            $user->notify(new TransferMoneyNotification($transaction, $wallet, $name));
-
+            $user->notify(new SubscriptionPaymentNotification($transaction, $wallet));
             DB::commit();
         } catch (Exception $e) {
             DB::rollBack();
-            Log::error("TransferMoneyListener.handle() - Error Encountered - " . $e->getMessage());
+            Log::error("SubscriptionListener.handle() - Error Encountered - " . $e->getMessage());
             throw $e;
         }
     }

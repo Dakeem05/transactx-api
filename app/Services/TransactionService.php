@@ -3,9 +3,13 @@
 namespace App\Services;
 
 use App\Dtos\Utilities\ServiceProviderDto;
+use App\Enums\Subscription\ModelPaymentStatusEnum;
+use App\Events\User\Subscription\SubscriptionEvent;
 use App\Events\User\Transactions\TransferMoney;
 use App\Events\User\Wallet\FundWalletSuccessful;
+use App\Models\Business\SubscriptionModel;
 use App\Models\MoneyRequestStyles;
+use App\Models\Service;
 use App\Models\Settings;
 use App\Models\User;
 use App\Models\Transaction;
@@ -26,6 +30,48 @@ use InvalidArgumentException;
 
 class TransactionService
 {
+    public $payment_service_provider;
+
+    public function __construct ()
+    {
+        $payment_service = Service::where('name', 'payments')->first();
+
+        
+        if (!$payment_service) {
+            throw new Exception('Payment service not found');
+        }
+        
+        if ($payment_service->status === false) {
+            throw new Exception('Payment service is currently unavailable');
+        }
+        $this->payment_service_provider = $payment_service->providers->where('status', true)->first();
+        
+        if (is_null($this->payment_service_provider)) {
+            throw new Exception('Payment service provider not found');
+        }
+    }
+
+    private function getPaymentServiceProvider()
+    {
+
+        if (!$this->payment_service_provider) {
+            throw new Exception('Payment service provider not found');
+        }
+    
+        $provider = ServiceProviderDto::from($this->payment_service_provider);
+
+        if (!$provider instanceof ServiceProviderDto) {
+            $provider = new ServiceProviderDto(
+                name: $provider->name ?? null,
+                description: $provider->description ?? null,
+                status: $provider->status ?? false,
+                percentage_charge: $provider->percentage_charge ?? 0.00,
+                fixed_charge: $provider->fixed_charge ?? 0.00,
+            );
+        }
+        return $provider;
+    }
+
     public function queryUsers(string $username, string $id) 
     {
         // Get users matching the username search
@@ -127,17 +173,8 @@ class TransactionService
             throw new InvalidArgumentException('Recipient does not have a virtual bank account');
         }
 
-        $paymentService = resolve(PaymentService::class);
-        $provider = $paymentService->getPaymentServiceProvider();
+        $provider = $this->getPaymentServiceProvider();
         
-        // Proper type casting to ServiceProviderDto
-        if (!$provider instanceof ServiceProviderDto) {
-            $provider = new ServiceProviderDto(
-                name: $provider->name ?? null,
-                description: $provider->description ?? null,
-                status: $provider->status ?? false
-            );
-        }
 
         if ($provider->name === 'safehaven') {
             $safehavenService = resolve(SafehavenService::class);
@@ -189,18 +226,8 @@ class TransactionService
             throw new InvalidArgumentException('Recipient does not have a virtual bank account');
         }
         
-        $paymentService = resolve(PaymentService::class);
-        $provider = $paymentService->getPaymentServiceProvider();
+        $provider = $this->getPaymentServiceProvider();
         
-        // Proper type casting to ServiceProviderDto
-        if (!$provider instanceof ServiceProviderDto) {
-            $provider = new ServiceProviderDto(
-                name: $provider->name ?? null,
-                description: $provider->description ?? null,
-                status: $provider->status ?? false
-            );
-        }
-
         if ($provider->name === 'safehaven') {
             $safehavenService = resolve(SafehavenService::class);
             $resolvedAccount = $safehavenService->resolveAccount(
@@ -237,18 +264,8 @@ class TransactionService
         $beneficiary = resolve(BeneficiaryService::class)->getBeneficiary($user->id, $data['beneficiary_id']);
         $this->verifyTransaction($data, $user);
         
-        $paymentService = resolve(PaymentService::class);
-        $provider = $paymentService->getPaymentServiceProvider();
+        $provider = $this->getPaymentServiceProvider();
         
-        // Proper type casting to ServiceProviderDto
-        if (!$provider instanceof ServiceProviderDto) {
-            $provider = new ServiceProviderDto(
-                name: $provider->name ?? null,
-                description: $provider->description ?? null,
-                status: $provider->status ?? false
-            );
-        }
-
         if ($provider->name === 'safehaven') {
             $safehavenService = resolve(SafehavenService::class);
             $resolvedAccount = $safehavenService->resolveAccount(
@@ -372,6 +389,63 @@ class TransactionService
             }
         } catch (Exception $e) {
             throw new Exception($e);
+        }
+    }
+
+    public function subscribe (User $user, VirtualBankAccount $virtualBankAccount, SubscriptionModel $model, int $amount, string $narration, bool $renewal, array $request_data = [])
+    {
+        $this->verifyTransaction(['amount' => $amount], $user);
+
+        $provider = $this->getPaymentServiceProvider();
+
+        if ($provider->name === 'safehaven') {
+            try {
+                $reference = uuid_create();
+                $currency = Settings::where('name', 'currency')->first()->value;
+                $safehavenService = resolve(SafehavenService::class);
+                $resolvedAccount = $safehavenService->resolveAccount(
+                    config('services.safehaven.account_number'), 
+                    '090286'
+                );
+                
+                $data = [
+                    'debit_account_number' => $virtualBankAccount->account_number,
+                    'amount' => $amount,
+                    'account_number' => config('services.safehaven.account_number'),
+                    'bank_code' => '090286',
+                    'currency' => $currency,
+                    'narration' => $narration,
+                    'reference' => $reference,
+                    'session_id' => $resolvedAccount['data']['session_id'],
+                ];
+                
+                $paymentService = resolve(PaymentService::class);
+                $response = $paymentService->transfer($data);
+                if (isset($response['statusCode']) && $response['statusCode'] != 200) {
+                    Log::error('transfer: Failed to get Transfer. Reason: ' . $response['message']);
+                    return;
+                }
+
+                $payment = $user->subscription->payments()->create([
+                    'subscription_id' => $user->subscription->id,
+                    'amount' => $amount,
+                    'currency' => $currency,
+                    'status' => ModelPaymentStatusEnum::PENDING,
+                    'payment_reference' => $data['reference'],
+                    'external_reference' => $response['data']['paymentReference'],
+                    'method' => $request_data['method'],
+                ]);
+                
+                $payload = [
+                    'plan' => ucfirst($model->name),
+                    'billed_at' => $model->amount->getAmount()->toFloat(),
+                    'renewal' => $renewal,
+                    'subscription_payment_id' => $payment->id,
+                ];
+                event(new SubscriptionEvent($virtualBankAccount->wallet, $data['amount'], $response['data']['fees'], $data['currency'], $data['reference'], $response['data']['paymentReference'], $data['narration'], $payload));
+            } catch (Exception $e) {
+                throw new Exception($e);
+            }
         }
     }
     

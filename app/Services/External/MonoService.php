@@ -91,11 +91,16 @@ class MonoService
     {
         try {
             $id = '6867e12dc41fad92989d140c';
-            $url = self::$baseUrl . '/accounts/' . $id . '/transactions' . '?start=' . $startDate . '&end=' . $endDate . '&paginate=false';
+            $url = self::$baseUrl . '/accounts/' . $id . '/transactions';
             $headers = [
                 'x-realtime' => $realtime ? 'true' : 'false',
             ];
-            $response = Http::talkToMono($url, 'GET', [], $headers);
+            $query = [
+                'start' => $startDate,
+                'end' => $endDate,
+                'paginate' => 'false',
+            ];
+            $response = Http::talkToMono($url, 'GET', [], $headers, $query);
             return $response;
         } catch (Exception $e) {
             Log::error('Error Encountered at get transactions method in Mono Service: ' . $e->getMessage());
@@ -103,16 +108,19 @@ class MonoService
         }
     }
     
-    public function fetchTransactionsPagination (string $id, int $page)
-    {
-        try {
-            // $id = '6867e12dc41fad92989d140c';
-            $url = self::$baseUrl . '/accounts/' . $id . '/transactions?page=' . $page;
-            $response = Http::talkToMono($url, 'GET');
-            return $response;
-        } catch (Exception $e) {
-            Log::error('Error Encountered at get transactions pagination method in Mono Service: ' . $e->getMessage());
-            throw $e;
-        }
-    }
+    // public function fetchTransactionsPagination (string $id, int $page)
+    // {
+    //     try {
+    //         $id = '6867e12dc41fad92989d140c';
+    //         $url = self::$baseUrl . '/accounts/' . $id . '/transactions';
+    //         $query = [
+    //             'page' => $page
+    //         ];
+    //         $response = Http::talkToMono($url, 'GET', [], [], $query);
+    //         return $response;
+    //     } catch (Exception $e) {
+    //         Log::error('Error Encountered at get transactions pagination method in Mono Service: ' . $e->getMessage());
+    //         throw $e;
+    //     }
+    // }
 }

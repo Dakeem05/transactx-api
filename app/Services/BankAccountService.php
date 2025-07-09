@@ -148,12 +148,12 @@ class BankAccountService
             DB::beginTransaction();
             // $account = $this->fetchLinkedBankAccountRecord($user, $ref);
 
-            if (isset($request->page) && $request->page !== 1) {
-                $monoService = resolve(MonoService::class);
-                $response = $monoService->fetchTransactionsPagination('$account->account_id', $request->page);
-                dd($response);
-            } 
-            else {
+            // if (isset($request->page) && $request->page !== 1) {
+            //     $monoService = resolve(MonoService::class);
+            //     $response = $monoService->fetchTransactionsPagination('$account->account_id', $request->page);
+            //     // dd($response);
+            // } 
+            // else {
                 $realtime = false;
 
                 $number_of_months = 1;
@@ -169,7 +169,7 @@ class BankAccountService
                 
                 $monoService = resolve(MonoService::class);
                 $response = $monoService->fetchTransactions('$account->account_id', $realtime, $startDate, $endDate);
-            }
+            // }
 
 
             // $response = $monoService->fetchTransactions($account->account_id, $startDate, $endDate);
@@ -192,15 +192,7 @@ class BankAccountService
                 ];
             }
 
-            return [
-                'data' => $data,
-                'meta' => [
-                    'total' => $response['meta']['total'] ?? 0,
-                    'page' => $response['meta']['page'] ?? 0,
-                    'next' => $response['meta']['page'] + 1,
-                    'previous' => $response['meta']['previous'],
-                ]
-            ];
+            return $data;
         } else {
             throw new \Exception('Unsupported provider');
         }

@@ -14,6 +14,9 @@ use App\Events\User\Services\PurchaseDataUpdate;
 use App\Events\User\Services\PurchaseUtility;
 use App\Events\User\Services\PurchaseUtilityUpdate;
 use App\Events\User\SubAccountLoggedInEvent;
+use App\Events\User\Subscription\SubscriptionEvent;
+use App\Events\User\Subscription\SubscriptionFailedEvent;
+use App\Events\User\Subscription\SubscriptionSuccessfulEvent;
 use App\Events\User\Transactions\TransferFailed;
 use App\Events\User\Transactions\TransferMoney;
 use App\Events\User\Transactions\TransferSuccessful;
@@ -41,6 +44,9 @@ use App\Listeners\User\Services\PurchaseDataListener;
 use App\Listeners\User\Services\PurchaseDataUpdateListener;
 use App\Listeners\User\Services\PurchaseUtilityListener;
 use App\Listeners\User\Services\PurchaseUtilityUpdateListener;
+use App\Listeners\User\Subscription\SubscriptionEventListener;
+use App\Listeners\User\Subscription\SubscriptionFailedEventListener;
+use App\Listeners\User\Subscription\SubscriptionSuccessfulEventListener;
 use App\Listeners\User\Transactions\TransferFailedListener;
 use App\Listeners\User\Transactions\TransferMoneyListener;
 use App\Listeners\User\Transactions\TransferSuccessfulListener;
@@ -130,6 +136,15 @@ class EventServiceProvider extends ServiceProvider
         ],
         ProcessBankAccountReauthorized::class => [
             ProcessBankAccountReauthorizedListener::class
+        ],
+        SubscriptionEvent::class => [
+            SubscriptionEventListener::class
+        ],
+        SubscriptionSuccessfulEvent::class => [
+            SubscriptionSuccessfulEventListener::class
+        ],
+        SubscriptionFailedEvent::class => [
+            SubscriptionFailedEventListener::class
         ],
     ];
 

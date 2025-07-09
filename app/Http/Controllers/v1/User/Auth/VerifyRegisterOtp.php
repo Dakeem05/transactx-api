@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\v1\User\Auth;
 
+use App\Enums\Subscription\ModelStatusEnum;
 use App\Events\User\UserCreatedEvent;
 use App\Helpers\TransactX;
 use App\Http\Controllers\Controller;
@@ -14,6 +15,7 @@ use App\Services\SubscriptionService;
 use App\Services\UserService;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
 
@@ -25,6 +27,7 @@ class VerifyRegisterOtp extends Controller
     public function __invoke(VerifyRegisterOtpRequest $request)
     {
         try {
+            DB::beginTransaction();
             $validatedData = $request->validated();
             $user = User::where('email', $validatedData['email'])->first();
 
@@ -52,13 +55,16 @@ class VerifyRegisterOtp extends Controller
             ]);
 
             $free_subscription = SubscriptionModel::where('serial', 1)
-                ->where('status', true)
+                ->where('status', ModelStatusEnum::ACTIVE)
                 ->first();
             resolve(SubscriptionService::class)->createSubscription($user, $free_subscription);
 
             event(new UserCreatedEvent($user));
+
+            DB::commit();
             return TransactX::response(true, 'Otp has been verified', 200);
         } catch (Exception $e) {
+            DB::rollback();
             Log::error('VERIFY REGISTER OTP: Error Encountered: ' . $e->getMessage());
 
             return TransactX::response(false, $e->getMessage(), 500);

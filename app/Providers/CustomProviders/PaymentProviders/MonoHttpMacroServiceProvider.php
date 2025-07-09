@@ -16,8 +16,9 @@ class MonoHttpMacroServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        Http::macro('talkToMono', function (string $url, string $method = 'GET', array $data = [], array $headers = []) {
-            return MonoHttpMacro::makeApiCall($url, $method, $data, $headers);
+        Http::macro('talkToMono', function (string $url, string $method = 'GET', array $data = [], array $headers = [], array $query = []) {
+            // dd("MonoHttpMacroServiceProvider + $url");
+            return MonoHttpMacro::makeApiCall($url, $method, $data, $headers, $query);
         });
     }
 

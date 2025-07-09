@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Subscription\ModelBillingEnum;
 use App\Enums\Subscription\ModelPaymentMethodEnum;
 use App\Enums\Subscription\ModelUserStatusEnum;
 use App\Models\Business\SubscriptionModel;
@@ -23,6 +24,7 @@ class Subscription extends Model
         'payment_gateway_id',
         'payment_intent',
         'method',
+        'billing',
         'start_date',
         'end_date',
         'renewal_date',
@@ -34,6 +36,7 @@ class Subscription extends Model
 
     protected $casts = [
         'method' => ModelPaymentMethodEnum::class,
+        'billing' => ModelBillingEnum::class,
         'start_date' => 'datetime',
         'end_date' => 'datetime',
         'renewal_date' => 'datetime',

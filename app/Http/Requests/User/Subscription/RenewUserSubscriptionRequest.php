@@ -9,7 +9,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class UpgradeUserSubscriptionRequest extends FormRequest
+class RenewUserSubscriptionRequest extends FormRequest
 {
 
     private string $request_uuid;
@@ -28,7 +28,7 @@ class UpgradeUserSubscriptionRequest extends FormRequest
         $this->request_uuid = Str::uuid()->toString();
 
         Log::channel('daily')->info(
-            'UPGRADE USER SUBSCRIPTION REQUEST: START',
+            'RENEW USER SUBSCRIPTION REQUEST: START',
             ["uid" => $this->request_uuid, "request" => $this->all()]
         );
     }
@@ -42,9 +42,7 @@ class UpgradeUserSubscriptionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'subscription_model_id' => ['bail', 'required', 'uuid', 'exists:subscription_models,id'],
             'method' => ['bail', 'required', 'in:WALLET,CARD'],
-            'start' => ['bail', 'required', 'in:IMMEDIATE,NEXT'],
             'billing' => ['bail', 'required', 'in:ANNUAL,MONTHLY'],
         ];
     }
@@ -62,7 +60,7 @@ class UpgradeUserSubscriptionRequest extends FormRequest
         $firstError = collect($errors)->flatten()->first();
 
         Log::channel('daily')->info(
-            'UPGRADE USER SUBSCRIPTION REQUEST: VALIDATION',
+            'RENEW USER SUBSCRIPTION REQUEST: VALIDATION',
             ["uid" => $this->request_uuid, "response" => ['errors' => $errors]]
         );
 
