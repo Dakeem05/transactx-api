@@ -76,7 +76,7 @@ class SubscriptionPaymentNotification
                     ['user' => $notifiable, 'wallet' => $this->wallet, 'transaction' => $this->transaction, 'plan' => $this->plan,  'billed_at' => $this->billed_at,  'renewal' => $this->renewal]
                 );
         } else if ($this->status == "SUCCESSFUL")  {
-            if ($this->renewal) {
+            if (!$this->renewal) {
                 return (new MailMessage)->subject('Subscription Successful')
                     ->markdown(
                         'email.user.subscription.subscription-successful',
@@ -109,7 +109,7 @@ class SubscriptionPaymentNotification
         if ($this->status == "PENDING") {
             return  'subscription-processing';
         } else if ($this->status == "SUCCESSFUL") {
-            if ($this->renewal) {
+            if (!$this->renewal) {
                 return 'subscription-successful';
             } else {
                 return 'subscription-renewed';
@@ -140,7 +140,7 @@ class SubscriptionPaymentNotification
                     'notification_key' => 'subscription-processing',
                 ]);
         } else if ($this->status == "SUCCESSFUL") {
-            if ($this->renewal) {
+            if (!$this->renewal) {
                 $title = "Subscription Successful";
 
                 $body = "Your $this->plan plan subscription of $this->transactionAmount $this->transactionCurrency billed at $this->billed_at $this->transactionCurrency is successful.";
@@ -206,7 +206,7 @@ class SubscriptionPaymentNotification
                 ]
             ];
         } else if ($this->status == "SUCCESSFUL") {
-            if ($this->renewal) {
+            if (!$this->renewal) {
                 return [
                     'title' => 'Subscription Successful',
                     'message' => "Your $this->plan plan subscription of $this->transactionAmount $this->transactionCurrency billed at $this->billed_at $this->transactionCurrency is successful.",
