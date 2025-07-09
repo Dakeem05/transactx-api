@@ -55,7 +55,7 @@ class SubscriptionReminderNotification
     {
         return (new MailMessage)->subject('Subscription Expiration Reminder')
             ->markdown(
-                'email.user.services.subscription-reminder',
+                'email.user.subscription.subscription-reminder',
                 ['user' => $notifiable, 'model' => $this->subscription_model, 'subscription' => $this->subscription]
             );
     }

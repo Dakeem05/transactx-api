@@ -25,7 +25,7 @@ class SubscriptionPaymentNotification
     protected float $walletAmount;
     protected string $plan;
     protected string $billed_at;
-    protected string $renewal;
+    protected bool $renewal;
 
     /**
      * Create a new notification instance.
@@ -72,27 +72,27 @@ class SubscriptionPaymentNotification
         if ($this->status == "PENDING") {
             return (new MailMessage)->subject('Subscription Processing')
                 ->markdown(
-                    'email.user.services.subscription-processing',
+                    'email.user.subscription.subscription-processing',
                     ['user' => $notifiable, 'wallet' => $this->wallet, 'transaction' => $this->transaction, 'plan' => $this->plan,  'billed_at' => $this->billed_at,  'renewal' => $this->renewal]
                 );
         } else if ($this->status == "SUCCESSFUL")  {
             if ($this->renewal) {
                 return (new MailMessage)->subject('Subscription Successful')
                     ->markdown(
-                        'email.user.services.subscription-successful',
+                        'email.user.subscription.subscription-successful',
                         ['user' => $notifiable, 'wallet' => $this->wallet, 'transaction' => $this->transaction, 'plan' => $this->plan,  'billed_at' => $this->billed_at,  'renewal' => $this->renewal]
                     );
             } else {
                 return (new MailMessage)->subject('Subscription Renewed')
                     ->markdown(
-                        'email.user.services.subscription-renewed',
+                        'email.user.subscription.subscription-renewed',
                         ['user' => $notifiable, 'wallet' => $this->wallet, 'transaction' => $this->transaction, 'plan' => $this->plan,  'billed_at' => $this->billed_at,  'renewal' => $this->renewal]
                     );
             }
         } else {
             return (new MailMessage)->subject('Subscription Reversed')
                 ->markdown(
-                    'email.user.services.subscription-reversed',
+                    'email.user.subscription.subscription-reversed',
                     ['user' => $notifiable, 'wallet' => $this->wallet, 'transaction' => $this->transaction, 'plan' => $this->plan,  'billed_at' => $this->billed_at,  'renewal' => $this->renewal]
                 );
         }

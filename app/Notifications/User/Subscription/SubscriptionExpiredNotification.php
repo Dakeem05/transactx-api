@@ -52,7 +52,7 @@ class SubscriptionExpiredNotification
     {
         return (new MailMessage)->subject('Subscription Expiration')
             ->markdown(
-                'email.user.services.subscription-expired',
+                'email.user.subscription.subscription-expired',
                 ['user' => $notifiable, 'model' => $this->subscription_model]
             );
     }

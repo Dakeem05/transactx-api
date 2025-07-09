@@ -50,7 +50,7 @@ class SubscriptionRevertReminderNotification
     {
         return (new MailMessage)->subject('Subscription Revert Reminder')
             ->markdown(
-                'email.user.services.subscription-revert-reminder',
+                'email.user.subscription.subscription-revert-reminder',
                 ['user' => $notifiable, 'model' => $this->subscription_model]
             );
     }

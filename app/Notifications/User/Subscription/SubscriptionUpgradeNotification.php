@@ -50,7 +50,7 @@ class SubscriptionUpgradeNotification
     {
         return (new MailMessage)->subject('Subscription Upgraded')
             ->markdown(
-                'email.user.services.subscription-upgraded',
+                'email.user.subscription.subscription-upgraded',
                 ['user' => $notifiable, 'model' => $this->subscription_model]
             );
     }

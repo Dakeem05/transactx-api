@@ -52,7 +52,7 @@ class SubscriptionRevertedNotification
     {
         return (new MailMessage)->subject('Subscription Reverted')
             ->markdown(
-                'email.user.services.subscription-reverted',
+                'email.user.subscription.subscription-reverted',
                 ['user' => $notifiable, 'model' => $this->subscription_model]
             );
     }
