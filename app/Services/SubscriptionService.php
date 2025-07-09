@@ -118,7 +118,7 @@ class SubscriptionService
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
-            throw new Exception("Failed to subscribe: " . $e->getTraceAsString());
+            throw new Exception("Failed to subscribe: " . $e->getMessage());
         }
     }
 
