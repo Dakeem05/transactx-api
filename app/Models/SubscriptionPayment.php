@@ -17,6 +17,7 @@ class SubscriptionPayment extends Model
 
     protected $fillable = [
         'subscription_id',
+        'user_id',
         'payment_reference',
         'external_reference',
         'method',

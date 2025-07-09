@@ -428,6 +428,7 @@ class TransactionService
 
                 $payment = $user->subscription->payments()->create([
                     'subscription_id' => $user->subscription->id,
+                    'user_id' => $user->id,
                     'amount' => $amount,
                     'currency' => $currency,
                     'status' => ModelPaymentStatusEnum::PENDING,
