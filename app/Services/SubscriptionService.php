@@ -92,8 +92,11 @@ class SubscriptionService
     {
         // Check if the user already has an active subscription
         $existingSubscription = $user->subscription;
+        $free_subscription = SubscriptionModel::where('serial', 1)
+                ->where('status', ModelStatusEnum::ACTIVE)
+                ->first();
 
-        if (!is_null($existingSubscription) && $existingSubscription->status == ModelUserStatusEnum::ACTIVE) {
+        if (!is_null($existingSubscription) && $existingSubscription->status == ModelUserStatusEnum::ACTIVE && $existingSubscription->subscription_model_id !== $free_subscription->id) {
             throw new InvalidArgumentException("User already has an active subscription for this model.");
         }
 
