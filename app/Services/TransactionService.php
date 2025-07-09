@@ -437,7 +437,7 @@ class TransactionService
                 ]);
                 
                 $payload = [
-                    'plan' => ucfirst($model->name),
+                    'plan' => ucfirst($model->name->value),
                     'billed_at' => $model->amount->getAmount()->toFloat(),
                     'renewal' => $renewal,
                     'subscription_payment_id' => $payment->id,

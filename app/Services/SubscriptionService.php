@@ -118,15 +118,15 @@ class SubscriptionService
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
-            throw new Exception("Failed to subscribe: " . $e->getMessage());
+            throw new Exception("Failed to subscribe: " . $e->getTraceAsString());
         }
     }
 
     protected function processPayment(User $user, Subscription $subscription, array $data)
     {
-        $model = SubscriptionModel::find('subscription_model_id');
+        $model = $subscription->model;
         $amount = $data['billing'] == 'ANNUAL' ? $model->amount->multipliedby(12) : $model->amount;
-        $narration = "Subscribed for " . ucfirst($model->name) . " plan";
+        $narration = "Subscribed for " . ucfirst($model->name->value) . " plan";
 
         if ($data['method'] == 'WALLET') {
             $transactionService = resolve(TransactionService::class);

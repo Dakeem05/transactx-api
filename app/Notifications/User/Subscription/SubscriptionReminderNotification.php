@@ -26,7 +26,7 @@ class SubscriptionReminderNotification
         public Subscription $subscription,
         public SubscriptionModel $subscription_model,
     ) {
-        $this->plan = ucfirst($subscription_model->name);
+        $this->plan = ucfirst($subscription_model->name->value);
         $this->end = $this->subscription->end_at->diffForHumans();
     }
 

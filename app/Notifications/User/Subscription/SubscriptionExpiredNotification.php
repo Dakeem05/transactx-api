@@ -24,7 +24,7 @@ class SubscriptionExpiredNotification
     public function __construct(
         public SubscriptionModel $subscription_model,
     ) {
-        $this->plan = ucfirst($subscription_model->name);
+        $this->plan = ucfirst($subscription_model->name->value);
     }
 
     /**
