@@ -103,8 +103,7 @@ class SubscriptionService
         try {
             DB::beginTransaction();
 
-            $subscription = Subscription::create([
-                'user_id' => $user->id,
+            $existingSubscription->update([
                 'subscription_model_id' => $data['subscription_model_id'],
                 'start_date' => now(),
                 'end_date' => ($data['billing'] == 'ANNUAL' ? now()->addMonths(12) : now()->addMonth()),
@@ -114,7 +113,7 @@ class SubscriptionService
                 'billing' => $data['billing'] == 'ANNUAL' ? ModelBillingEnum::ANNUAL : ModelBillingEnum::MONTHLY,
             ]);
 
-            $this->processPayment($user, $subscription, $data);
+            $this->processPayment($user, $existingSubscription, $data);
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
