@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\v1\User\Account;
 
+use App\Enums\Subscription\ModelStatusEnum;
 use App\Helpers\TransactX;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\v1\User\Otp\UserOtpController;
@@ -59,7 +60,7 @@ class UserAccountController extends Controller
             $user = Auth::user();
             
             $free_subscription = SubscriptionModel::where('serial', 1)
-                ->where('status', true)
+                ->where('status', ModelStatusEnum::ACTIVE)
                 ->first();
             resolve(SubscriptionService::class)->createSubscription($user, $free_subscription);
 
