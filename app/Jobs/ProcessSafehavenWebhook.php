@@ -99,26 +99,28 @@ class ProcessSafehavenWebhook implements ShouldQueue
         $account_number = $this->payload['data']['creditAccountNumber'];
         
         $sender_transaction = Transaction::where('external_transaction_reference', $external_transaction_reference)
+            ->where('type', 'SEND_MONEY')
             ->whereIn('status', ['PENDING', 'PROCESSING'])
             ->with(['wallet', 'user', 'feeTransactions'])
             ->first();
-        
-        if ($sender_transaction) {
-            event(new TransferSuccessful(
-                $sender_transaction, 
-                $account_number, 
-                Settings::where('name', 'currency')->first()->value, 
-                $this->payload['data']['creditAccountName']
-            ));
+            
+            if ($sender_transaction) {
+                event(new TransferSuccessful(
+                    $sender_transaction, 
+                    $account_number, 
+                    Settings::where('name', 'currency')->first()->value, 
+                    $this->payload['data']['creditAccountName']
+                ));
+            }
         }
-    }
-
-    protected function processFailedTransfer()
-    {
-        $external_transaction_reference = $this->payload['data']['paymentReference'] ?? $this->payload['data']['sessionId'];
-        $account_number = $this->payload['data']['creditAccountNumber'];
         
-        $sender_transaction = Transaction::where('external_transaction_reference', $external_transaction_reference)
+        protected function processFailedTransfer()
+        {
+            $external_transaction_reference = $this->payload['data']['paymentReference'] ?? $this->payload['data']['sessionId'];
+            $account_number = $this->payload['data']['creditAccountNumber'];
+            
+            $sender_transaction = Transaction::where('external_transaction_reference', $external_transaction_reference)
+            ->where('type', 'SEND_MONEY')
             ->whereIn('status', ['PENDING', 'PROCESSING'])
             ->with(['feeTransactions'])
             ->first();

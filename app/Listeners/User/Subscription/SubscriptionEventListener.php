@@ -29,6 +29,7 @@ class SubscriptionEventListener implements ShouldQueue
      */
     public function handle(SubscriptionEvent $event): void
     {
+        Log::info("SubscriptionListener event: " . json_encode($event));
         $wallet = $event->wallet;
         $amount = $event->amount;
         $currency = $event->currency;
@@ -63,6 +64,8 @@ class SubscriptionEventListener implements ShouldQueue
                 null,
                 $external_transaction_reference,
             );
+
+            Log::info("SubscriptionListener pending transaction: " . json_encode($transaction));
 
             $feeTransaction = $this->transactionService->createPendingFeeTransaction(
                 $user,
