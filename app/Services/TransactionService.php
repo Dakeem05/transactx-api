@@ -5,7 +5,9 @@ namespace App\Services;
 use App\Dtos\Utilities\ServiceProviderDto;
 use App\Enums\Subscription\ModelPaymentStatusEnum;
 use App\Events\User\Subscription\SubscriptionEvent;
+use App\Events\User\Transactions\TransferFailed;
 use App\Events\User\Transactions\TransferMoney;
+use App\Events\User\Transactions\TransferSuccessful;
 use App\Events\User\Wallet\FundWalletSuccessful;
 use App\Models\Business\SubscriptionModel;
 use App\Models\MoneyRequestStyles;
@@ -377,7 +379,7 @@ class TransactionService
                     'bank_name' => $recipient_wallet->virtualBankAccount->bank_name,
                     'account_name' => $recipient_wallet->virtualBankAccount->account_name,
                 ];
-                event(new TransferMoney($virtualBankAccount->wallet, $data['amount'], $response['data']['fees'], $data['currency'], $data['reference'], $response['data']['paymentReference'], $data['narration'], $ip_address, $recipient_wallet->virtualBankAccount->account_name, $payload));
+                event(new TransferMoney($virtualBankAccount->wallet, $data['amount'], $response['data']['fees'], $data['currency'], $data['reference'], $response['data']['sessionId'], $data['narration'], $ip_address, $recipient_wallet->virtualBankAccount->account_name, $payload));
             } else {
                 $payload = [
                     'account_number' => $account_number,
@@ -385,10 +387,21 @@ class TransactionService
                     'bank_name' => $bank_name,
                     'account_name' => $name,
                 ];
-                event(new TransferMoney($virtualBankAccount->wallet, $data['amount'], $response['data']['fees'], $data['currency'], $data['reference'], $response['data']['paymentReference'], $data['narration'], $ip_address, $name, $payload));
+                event(new TransferMoney($virtualBankAccount->wallet, $data['amount'], $response['data']['fees'], $data['currency'], $data['reference'], $response['data']['sessionId'], $data['narration'], $ip_address, $name, $payload));
             }
         } catch (Exception $e) {
             throw new Exception($e);
+        }
+    }
+
+    public function pendingPurchase(Transaction $transaction)
+    {
+        $paymentService = resolve(PaymentService::class);
+        $response = $paymentService->transfer($transaction->external_transaction_reference);
+        if (strtolower($response['data']['status']) === "completed" && !$response['data']['isReversed']) {
+            event(new TransferSuccessful($transaction, $transaction->payload['account_number'], $transaction->currency, $transaction->payload['aaccount_name']));
+        } else if (strtolower($response['data']['status']) === "completed" && $response['data']['isReversed'])  {
+            event(new TransferFailed($transaction, $transaction->payload['aaccount_name']));
         }
     }
 
@@ -423,7 +436,7 @@ class TransactionService
                 $response = $paymentService->transfer($data);
                 if (isset($response['statusCode']) && $response['statusCode'] != 200) {
                     Log::error('transfer: Failed to get Transfer. Reason: ' . $response['message']);
-                    return;
+                    throw new Exception('transfer: Failed to get Transfer. Reason: ' . $response['message']);
                 }
 
                 $payment = $user->subscription->payments()->create([

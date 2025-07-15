@@ -235,6 +235,23 @@ class SafehavenService
         }
     }
 
+    public function getTransaction(string $session_id): array
+    {
+        try {
+            $url = self::$baseUrl . '/transfers/status';
+
+            $data = [
+                'sessionId' => $session_id,
+            ];
+            
+            $response = Http::talkToSafehaven($url, 'POST', $data);
+            return $response;
+        } catch (Exception $e) {
+            Log::error('Error Encountered at getTransaction method in Safehaven Service: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
     public function getISA(string $id, string $currency): array
     {
         try {

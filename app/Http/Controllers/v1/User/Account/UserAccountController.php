@@ -74,7 +74,29 @@ class UserAccountController extends Controller
         }
     }
     
-    
+    /**
+     * Update user account (profile)
+     */
+    public function convert(): JsonResponse
+    {
+        try {
+            $user = Auth::user();
+            
+            $data = [
+                'user_type' => 'organization'
+            ];
+            $user = $this->userService->updateUserAccount($user, $data);
+            
+            return TransactX::response(true, 'User account converted successfully', 200, (object) ["user" => $user]);
+        } catch (InvalidArgumentException $e) {
+            Log::error('CONVERT USER ACCOUNT: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(false, $e->getMessage(), 400);
+        } catch (Exception $e) {
+            Log::error('CONVERT USER ACCOUNT: Error Encountered: ' . $e->getMessage());
+            return TransactX::response(false, 'Failed to convert user account', 500);
+        }
+    }
+
     /**
      * Update user account (profile)
      */

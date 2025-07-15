@@ -25,7 +25,7 @@ class SubscriptionService
     
     public function fetchUserSubscription(User $user)
     {
-        return $user->subscription;
+        return Subscription::where('user_id', $user->id)->with(['model'])->first();
     }
     
     public function createSubscription(User $user, SubscriptionModel $model): Subscription
@@ -97,7 +97,7 @@ class SubscriptionService
                 ->first();
 
         if (!is_null($existingSubscription) && $existingSubscription->status == ModelUserStatusEnum::ACTIVE && $existingSubscription->subscription_model_id !== $free_subscription->id) {
-            throw new InvalidArgumentException("User already has an active subscription for this model.");
+            throw new InvalidArgumentException("User already has an active subscription.");
         }
 
         try {

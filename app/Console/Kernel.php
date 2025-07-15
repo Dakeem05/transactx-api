@@ -12,6 +12,10 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
+        $schedule->command('app:transfer-service-command')
+            ->everyMinute()
+            ->withoutOverlapping()
+            ->runInBackground();
         $schedule->command('app:airtime-service-command')
             ->everyMinute()
             ->withoutOverlapping()

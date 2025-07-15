@@ -72,5 +72,7 @@ class Kernel extends HttpKernel
         'user.is.main.account' => \App\Http\Middleware\UserIsMainAccount::class,
         'user.is.organization' => \App\Http\Middleware\UserIsOrganization::class,
         'user.has.set.transaction.pin' => \App\Http\Middleware\UserHasSetTransactionPin::class,
+        'user.subscription.subaccount' => \App\Http\Middleware\Subscription\Subaccount::class,
+        'user.subscription.linkedbankaccount' => \App\Http\Middleware\Subscription\LinkedBankAccount::class,
     ];
 }

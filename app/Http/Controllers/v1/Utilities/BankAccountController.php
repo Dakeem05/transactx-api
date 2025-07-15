@@ -21,7 +21,7 @@ class BankAccountController extends Controller
         protected BankAccountService $bankAccountService,
     ) 
     {
-        // $this->middleware('user.is.main.account')->except(['show']);
+        $this->middleware('user.subscription.linkedbankaccount')->only(['linkAccount']);
     }
 
     public function linkAccount(): JsonResponse

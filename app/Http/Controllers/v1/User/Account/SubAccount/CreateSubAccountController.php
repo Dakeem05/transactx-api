@@ -16,6 +16,11 @@ use Illuminate\Support\Facades\Log;
 
 class CreateSubAccountController extends Controller
 {
+    public function __construct(
+    ) 
+    {
+        $this->middleware('user.subscription.subaccount');
+    }
      /**
      * Handle the incoming request.
      */

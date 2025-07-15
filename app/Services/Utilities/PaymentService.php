@@ -192,5 +192,29 @@ class PaymentService
         }
     }
 
+    public function getTransaction (string $ref)
+    {
+        $provider = $this->getPaymentServiceProvider();
+
+        if ($provider->name === 'flutterwave') {
+            if (!$this->flutterwaveService) {
+                throw new Exception('Flutterwave service not found');
+            }
+        }
+        if ($provider->name === 'paystack') {
+            if (!$this->paystackService) {
+                throw new Exception('Paystack service not found');
+            }
+
+        }
+        if ($provider->name === 'safehaven') {
+            if (!$this->safehavenService) {
+                throw new Exception('Safehaven service not found');
+            }
+
+            return $this->safehavenService->getTransaction($ref);
+        }
+    }
+
 
 }

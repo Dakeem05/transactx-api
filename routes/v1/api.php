@@ -63,6 +63,7 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
     Route::prefix('account')->group(function () {
         Route::get('/', [UserAccountController::class, 'show'])->name('user.show.account');
         Route::middleware('user.is.main.account')->put('/update', [UserAccountController::class, 'update'])->name('user.update.account');
+        Route::middleware('user.is.main.account')->get('/convert', [UserAccountController::class, 'convert'])->name('user.convert.account');
         Route::middleware('user.is.main.account')->get('/create-subscription', [UserAccountController::class, 'createSubscription'])->name('user.create.subscription.account');
         Route::middleware('user.is.main.account')->post('/update-avatar', [UserAccountController::class, 'updateAvatar'])->name('user.update.avatar');
         Route::middleware('user.is.main.account')->post('bvn/initiate-verification', [UserAccountController::class, 'initiateBvnVerification'])->name('user.bvn.initiate.verification');
@@ -97,7 +98,6 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
             Route::middleware('user.is.main.account')->get('/initiate-create', [UserWalletController::class, 'initiateCreateWallet'])->name('user.initiate.create.wallet');
             Route::middleware('user.is.main.account')->post('/', [UserWalletController::class, 'store'])->name('user.create.wallet');
             Route::middleware('user.is.main.account')->delete('/destroy', [UserWalletController::class, 'destroy'])->name('user.destroy.wallet');
-            Route::middleware('user.is.main.account')->get('/add/{amount}', [UserWalletController::class, 'add'])->name('user.add.wallet');
         });
         
         Route::prefix('subscription-model')->group(function () {
@@ -181,8 +181,8 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
         });
 
         Route::prefix('banking')->group(function () {
-            Route::get('/link', [BankAccountController::class, 'linkAccount'])->name('user.link.bank.account');
-            Route::get('/re-link/{ref}', [BankAccountController::class, 'relinkAccount'])->name('user.relink.bank.account');
+            Route::middleware('user.is.main.account')->get('/link', [BankAccountController::class, 'linkAccount'])->name('user.link.bank.account');
+            Route::middleware('user.is.main.account')->get('/re-link/{ref}', [BankAccountController::class, 'relinkAccount'])->name('user.relink.bank.account');
             Route::get('/list', [BankAccountController::class, 'listAccounts'])->name('user.list.bank.accounts');
             Route::get('/transactions/{ref}', [BankAccountController::class, 'fetchTransactions'])->name('user.fetch.bank.transactions');
         });
@@ -193,11 +193,11 @@ Route::middleware(['auth:sanctum', 'checkApplicationCredentials', 'user.is.activ
             Route::get('/methods', [SubscriptionController::class, 'fetchSubscriptionMethods'])->name('user.subscription.methods');
             Route::get('/models', [UserSubscriptionModelController::class, 'index'])->name('user.subscription.models');
             Route::get('/models/{id}', [UserSubscriptionModelController::class, 'show'])->name('user.subscription.model.show');
-            Route::post('/subscribe', [SubscriptionController::class, 'subscribe'])->name('user.subscribe.model');
-            Route::post('/upgrade', [SubscriptionController::class, 'upgradeUserSubscription'])->name('user.upgrade.subscription');
-            Route::post('/renew', [SubscriptionController::class, 'renewSubscription'])->name('user.renew.subscription');
-            Route::post('/cancel', [SubscriptionController::class, 'cancelSubscription'])->name('user.cancel.subscription');
-            Route::post('/resume', [SubscriptionController::class, 'resumeSubscription'])->name('user.resume.subscription');
+            Route::middleware('user.is.main.account')->post('/subscribe', [SubscriptionController::class, 'subscribe'])->name('user.subscribe.model');
+            Route::middleware('user.is.main.account')->post('/upgrade', [SubscriptionController::class, 'upgradeUserSubscription'])->name('user.upgrade.subscription');
+            Route::middleware('user.is.main.account')->post('/renew', [SubscriptionController::class, 'renewSubscription'])->name('user.renew.subscription');
+            Route::middleware('user.is.main.account')->post('/cancel', [SubscriptionController::class, 'cancelSubscription'])->name('user.cancel.subscription');
+            Route::middleware('user.is.main.account')->post('/resume', [SubscriptionController::class, 'resumeSubscription'])->name('user.resume.subscription');
         });
     });
 });
