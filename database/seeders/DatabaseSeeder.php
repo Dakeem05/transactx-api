@@ -17,10 +17,10 @@ class DatabaseSeeder extends Seeder
         \App\Models\Role::factory(3)->create();
 
         $this->call([
-            // ServicesSeeder::class,
-            // ServiceProvidersSeeder::class,
-            // SettingsSeeder::class,
-            // MoneyRequestSeeder::class,
+            ServicesSeeder::class,
+            ServiceProvidersSeeder::class,
+            SettingsSeeder::class,
+            MoneyRequestSeeder::class,
             SubscriptionModelsSeeder::class,
         ]);
     }
