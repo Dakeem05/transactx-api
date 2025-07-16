@@ -83,7 +83,7 @@ class UserService
             'password' => $attributes['password'] ?? $user->password,
             'avatar' => $attributes['avatar'] ?? $user->avatar,
             'email_verified_at' => $attributes['email_verified_at'] ?? $user->email_verified_at,
-            'user_type' => $attributes['user_type'] ?? $user->email_verified_at,
+            'user_type' => $attributes['user_type'] ?? $user->user_type,
         ]);
 
         $user->refresh();
