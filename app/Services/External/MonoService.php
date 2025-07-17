@@ -93,7 +93,8 @@ class MonoService
             $id = '6867e12dc41fad92989d140c';
             $url = self::$baseUrl . '/accounts/' . $id . '/transactions';
             $headers = [
-                'x-realtime' => $realtime ? 'true' : 'false',
+                'x-realtime' => 'true',
+                // 'x-realtime' => $realtime ? 'true' : 'false',
             ];
             $query = [
                 'start' => $startDate,
