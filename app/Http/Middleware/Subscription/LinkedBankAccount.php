@@ -25,7 +25,7 @@ class LinkedBankAccount
 
         $features = json_decode($user->subscription->model->features);
         $count = ModelsLinkedBankAccount::where('user_id', $user->id)->count();
-
+        dd($count);
         if ($features->linked_bank_accounts->limit == 0 || $count == $features->linked_bank_accounts->limit) {
             return TransactX::response(false, 'You are not allowed to proceed due to your subscription plan.', 403);
         }
