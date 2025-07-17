@@ -146,7 +146,7 @@ class BankAccountService
         
         if ($provider->name == 'mono') {
             DB::beginTransaction();
-            // $account = $this->fetchLinkedBankAccountRecord($user, $ref);
+            $account = $this->fetchLinkedBankAccountRecord($user, $ref);
 
             // if (isset($request->page) && $request->page !== 1) {
             //     $monoService = resolve(MonoService::class);
@@ -168,7 +168,7 @@ class BankAccountService
                 // $callLogs = $this->logAndCheckRateLimit($user, $account, $provider->name, 'transactions');
                 
                 $monoService = resolve(MonoService::class);
-                $response = $monoService->fetchTransactions('$account->account_id', $realtime, $startDate, $endDate);
+                $response = $monoService->fetchTransactions($account->account_id, $realtime, $startDate, $endDate);
             // }
 
 

@@ -90,11 +90,9 @@ class MonoService
     public function fetchTransactions (string $id, bool $realtime = false, string $startDate = null, string $endDate = null)
     {
         try {
-            $id = '6867e12dc41fad92989d140c';
             $url = self::$baseUrl . '/accounts/' . $id . '/transactions';
             $headers = [
-                'x-realtime' => 'true',
-                // 'x-realtime' => $realtime ? 'true' : 'false',
+                'x-realtime' => $realtime ? 'true' : 'false',
             ];
             $query = [
                 'start' => $startDate,
