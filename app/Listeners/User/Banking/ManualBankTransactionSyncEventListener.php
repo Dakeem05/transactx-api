@@ -4,7 +4,6 @@ namespace App\Listeners\User\Banking;
 
 use App\Events\User\Banking\ManualBankTransactionSyncEvent;
 use App\Models\Transaction;
-use App\Notifications\User\Subscription\SubscriptionPaymentNotification;
 use App\Services\TransactionService;
 use App\Services\User\WalletService;
 use Exception;

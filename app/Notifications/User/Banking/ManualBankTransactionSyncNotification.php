@@ -63,7 +63,7 @@ class ManualBankTransactionSyncNotification extends Notification implements Shou
     {
         return (new MailMessage)->subject('Manual Bank Transaction Sync')
             ->markdown(
-                'email.user.transactions.manual-transaction-sync',
+                'email.user.banking.manual-transaction-sync',
                 ['user' => $notifiable, 'wallet' => $this->wallet, 'transaction' => $this->transaction]
             );
     }
