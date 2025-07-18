@@ -208,7 +208,6 @@ class BankAccountService
             ->where('provider', $provider)
             ->latest()
             ->first();
-            
         
         if ($dailyCalls >= $features->auto_bank_transaction_sync->daily_limit) {
             $this->manualBankTransactionSync($user, $account, $features->manual_bank_transaction_sync->amount);
