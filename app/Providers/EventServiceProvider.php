@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Events\User\Banking\ManualBankTransactionSyncEvent;
+use App\Events\User\Banking\ManualBankTransactionSyncSuccessfulEvent;
 use App\Events\User\Banking\ProcessBankAccountConnected;
 use App\Events\User\Banking\ProcessBankAccountReauthorized;
 use App\Events\User\Banking\ProcessBankAccountupdate;
@@ -28,6 +30,8 @@ use App\Events\User\Wallet\FundWalletSuccessful;
 use App\Events\User\Wallet\UserWalletCreated;
 use App\Events\User\Wallet\WalletTransactionReceived;
 use App\Listeners\Referral\SendNewReferralNotificationListener;
+use App\Listeners\User\Banking\ManualBankTransactionSyncEventListener;
+use App\Listeners\User\Banking\ManualBankTransactionSyncSuccessfulEventListener;
 use App\Listeners\User\Banking\ProcessBankAccountConnectedListener;
 use App\Listeners\User\Banking\ProcessBankAccountReauthorizedListener;
 use App\Listeners\User\Banking\ProcessBankAccountupdateListener;
@@ -145,6 +149,12 @@ class EventServiceProvider extends ServiceProvider
         ],
         SubscriptionFailedEvent::class => [
             SubscriptionFailedEventListener::class
+        ],
+        ManualBankTransactionSyncEvent::class => [
+            ManualBankTransactionSyncEventListener::class
+        ],
+        ManualBankTransactionSyncSuccessfulEvent::class => [
+            ManualBankTransactionSyncSuccessfulEventListener::class
         ],
     ];
 

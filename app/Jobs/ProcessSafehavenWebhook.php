@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Enums\PartnersEnum;
+use App\Events\User\Banking\ManualBankTransactionSyncSuccessfulEvent;
 use App\Events\User\Subscription\SubscriptionFailedEvent;
 use App\Events\User\Subscription\SubscriptionSuccessfulEvent;
 use App\Events\User\Transactions\TransferFailed;
@@ -57,6 +58,7 @@ class ProcessSafehavenWebhook implements ShouldQueue
             if (in_array($event_type, ['transfer']) && $this->payload['data']['type'] === 'Outwards' && in_array($this->payload['data']['status'], ['Created', 'Completed']) && !$this->payload['data']['isReversed']) {
                 $this->processSuccessfulOutwardTransfer();
                 $this->processSuccessfulSubscription();
+                $this->processSuccessfulManualTransactionSync();
                 return;
             }
             
@@ -138,27 +140,43 @@ class ProcessSafehavenWebhook implements ShouldQueue
         $external_transaction_reference = $this->payload['data']['paymentReference'] ?? $this->payload['data']['sessionId'];
         
         $transaction = Transaction::where('external_transaction_reference', $external_transaction_reference)
+            ->where('type', 'SUBSCRIPTION')
             ->whereIn('status', ['PENDING', 'PROCESSING'])
             ->with(['wallet', 'user', 'feeTransactions'])
             ->first();
-        
-        if ($transaction) {
-            event(new SubscriptionSuccessfulEvent($transaction));
+            
+            if ($transaction) {
+                event(new SubscriptionSuccessfulEvent($transaction));
+            }
         }
-    }
-    
-    
+        
     protected function processFailedSubscription()
     {
         $external_transaction_reference = $this->payload['data']['paymentReference'] ?? $this->payload['data']['sessionId'];
         
         $transaction = Transaction::where('external_transaction_reference', $external_transaction_reference)
-        ->whereIn('status', ['PENDING', 'PROCESSING'])
-        ->with(['feeTransactions', 'user'])
-        ->first();
-        
+            ->where('type', 'SUBSCRIPTION')
+            ->whereIn('status', ['PENDING', 'PROCESSING'])
+            ->with(['feeTransactions', 'user'])
+            ->first();
+            
         if ($transaction) {
             event(new SubscriptionFailedEvent($transaction));
+        }
+    }
+            
+    protected function processSuccessfulManualTransactionSync()
+    {
+        $external_transaction_reference = $this->payload['data']['paymentReference'] ?? $this->payload['data']['sessionId'];
+        
+        $transaction = Transaction::where('external_transaction_reference', $external_transaction_reference)
+            ->where('type', 'TRANSACTION_SYNC')
+            ->whereIn('status', ['PENDING', 'PROCESSING'])
+            ->with(['wallet', 'user', 'feeTransactions'])
+            ->first();
+        
+        if ($transaction) {
+            event(new ManualBankTransactionSyncSuccessfulEvent($transaction));
         }
     }
 }

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Dtos\Utilities\ServiceProviderDto;
 use App\Enums\Subscription\ModelPaymentStatusEnum;
+use App\Events\User\Banking\ManualBankTransactionSyncEvent;
 use App\Events\User\Subscription\SubscriptionEvent;
 use App\Events\User\Transactions\TransferFailed;
 use App\Events\User\Transactions\TransferMoney;
@@ -462,6 +463,47 @@ class TransactionService
             }
         }
     }
+
+    public function bankTransactionRequest (User $user, VirtualBankAccount $virtualBankAccount, int $amount, string $narration, array $payload)
+    {
+        $this->verifyTransaction(['amount' => $amount], $user);
+
+        $provider = $this->getPaymentServiceProvider();
+
+        if ($provider->name === 'safehaven') {
+            try {
+                $reference = uuid_create();
+                $currency = Settings::where('name', 'currency')->first()->value;
+                $safehavenService = resolve(SafehavenService::class);
+                $resolvedAccount = $safehavenService->resolveAccount(
+                    config('services.safehaven.account_number'), 
+                    '090286'
+                );
+                
+                $data = [
+                    'debit_account_number' => $virtualBankAccount->account_number,
+                    'amount' => $amount,
+                    'account_number' => config('services.safehaven.account_number'),
+                    'bank_code' => '090286',
+                    'currency' => $currency,
+                    'narration' => $narration,
+                    'reference' => $reference,
+                    'session_id' => $resolvedAccount['data']['session_id'],
+                ];
+                
+                $paymentService = resolve(PaymentService::class);
+                $response = $paymentService->transfer($data);
+                if (isset($response['statusCode']) && $response['statusCode'] != 200) {
+                    Log::error('transfer: Failed to get Transfer. Reason: ' . $response['message']);
+                    throw new Exception('transfer: Failed to get Transfer. Reason: ' . $response['message']);
+                }
+                
+                event(new ManualBankTransactionSyncEvent($virtualBankAccount->wallet, $data['amount'], $response['data']['fees'], $data['currency'], $data['reference'], $response['data']['paymentReference'], $data['narration'], $payload));
+            } catch (Exception $e) {
+                throw new Exception($e);
+            }
+        }
+    }
     
     public function getRequestStyles ()
     {
@@ -660,7 +702,7 @@ class TransactionService
         // }
 
         $walletService = resolve(WalletService::class);
-        $potential_charges = 25;
+        $potential_charges = 20;
         if (!$walletService->checkBalance($user->wallet, isset($data['total_amount']) ? $data['total_amount'] : $data['amount'] + $potential_charges)) {
             throw new InvalidArgumentException('Insufficient balance for that transaction');
         }
@@ -682,6 +724,10 @@ class TransactionService
             'CABLETV_FEE' => "Charged $currency fee",
             'UTILITY' => "Recharged $currency",
             'UTILITY_FEE' => "Charged $currency fee",
+            'SUBSCRIPTION' => "Subscribed $currency",
+            'SUBSCRIPTION_FEE' => "Charged $currency fee",
+            'TRANSACTION_SYNC' => "Paid $currency",
+            'TRANSACTION_SYNC_FEE' => "Charged $currency fee",
             default => null,
         };
     }

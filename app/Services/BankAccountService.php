@@ -148,31 +148,19 @@ class BankAccountService
             DB::beginTransaction();
             $account = $this->fetchLinkedBankAccountRecord($user, $ref);
 
-            // if (isset($request->page) && $request->page !== 1) {
-            //     $monoService = resolve(MonoService::class);
-            //     $response = $monoService->fetchTransactionsPagination('$account->account_id', $request->page);
-            //     // dd($response);
-            // } 
-            // else {
-                $realtime = false;
-
-                $number_of_months = 1;
-                if (isset($request->number_of_months) && is_numeric($request->number_of_months) && $request->number_of_months > 0) {
-                    $number_of_months = (int)$request->number_of_months;
-                }
-    
-                $endDate = now()->format('d-m-Y');
-                $startDate = now()->subMonths($number_of_months)->format('d-m-Y');
             
-                
-                // $callLogs = $this->logAndCheckRateLimit($user, $account, $provider->name, 'transactions');
-                
-                $monoService = resolve(MonoService::class);
-                $response = $monoService->fetchTransactions($account->account_id, $realtime, $startDate, $endDate);
-            // }
-
-
-            // $response = $monoService->fetchTransactions($account->account_id, $startDate, $endDate);
+            $number_of_months = 1;
+            if (isset($request->number_of_months) && is_numeric($request->number_of_months) && $request->number_of_months > 0) {
+                $number_of_months = (int)$request->number_of_months;
+            }
+            $endDate = now()->format('d-m-Y');
+            $startDate = now()->subMonths($number_of_months)->format('d-m-Y');
+            
+            $realtime = $this->logAndCheckRateLimit($user, $account, $provider->name, 'transactions');
+            
+            $monoService = resolve(MonoService::class);
+            $response = $monoService->fetchTransactions($account->account_id, $realtime, $startDate, $endDate);
+            
             if (!isset($response['status']) || strtolower($response['status']) !== 'successful') {
                 DB::rollBack();
                 throw new Exception('Failed to fetch transactions: ' . ($response['message'] ?? 'Unknown error'));
@@ -199,41 +187,46 @@ class BankAccountService
         
     }
 
-    private function logAndCheckRateLimit(User $user, LinkedBankAccount $account, string $provider, string $type = 'transactions'): LinkedBankAccountApiCallLog
+    private function logAndCheckRateLimit(User $user, LinkedBankAccount $account, string $provider, string $type = 'transactions'): bool
     {
+        $features = json_decode($user->subscription->model->features);
+
         $dailyCalls = LinkedBankAccountApiCallLog::where('user_id', $user->id)
             ->where('provider', $provider)
             ->wheredate('created_at', now()->format('Y-m-d'))
             ->count();
-            
+
         $monthlyCalls = LinkedBankAccountApiCallLog::where('user_id', $user->id)
             ->where('type', $type)
             ->where('provider', $provider)
             ->whereYear('created_at', now()->year)
             ->whereMonth('created_at', now()->month)
             ->count();
+
+        $latestCall = LinkedBankAccountApiCallLog::where('user_id', $user->id)
+            ->where('type', $type)
+            ->where('provider', $provider)
+            ->latest()
+            ->first();
             
-        // // Check against limits (adjust numbers as needed)
-        // $dailyLimit = 10;
-        // $monthlyLimit = 100;
         
-        // if ($dailyCalls >= $dailyLimit) {
-        //     DB::rollBack();
-        //     throw new InvalidArgumentException("Daily API call limit reached ($dailyCalls/$dailyLimit)");
-        // }
+        if ($dailyCalls >= $features->auto_bank_transaction_sync->daily_limit) {
+            $this->manualBankTransactionSync($user, $account, $features->manual_bank_transaction_sync->amount);
+            return true;
+        }
         
-        // if ($monthlyCalls >= $monthlyLimit) {
-        //     DB::rollBack();
-        //     throw new InvalidArgumentException("Monthly API call limit reached ($monthlyCalls/$monthlyLimit)");
-        // }
+        if ($monthlyCalls >= $features->auto_bank_transaction_sync->monthly_limit) {
+            $this->manualBankTransactionSync($user, $account, $features->manual_bank_transaction_sync->amount);
+            return true;
+        }
         
-        // Log the call
-        return LinkedBankAccountApiCallLog::create([
-            'linked_bank_account_id' => $account->id,
-            'user_id' => $user->id,
-            'type' => $type,
-            'provider' => $provider,
-        ]);
+        if (now()->subMinutes($features->auto_bank_transaction_sync->duration) <= $latestCall->created_at) {
+            $this->manualBankTransactionSync($user, $account, $features->manual_bank_transaction_sync->amount);
+            return true;
+        }
+        
+        $this->createLinkedBankAccountApiCallLog($user, $account);
+        return true;
     }
 
     /**
@@ -266,5 +259,28 @@ class BankAccountService
             'provider' => $this->getBankingServiceProvider()->name,
             'balance' => 0
         ]);
+    }
+
+    private function createLinkedBankAccountApiCallLog(User $user, LinkedBankAccount $account, string $type = "transactions"): LinkedBankAccountApiCallLog
+    {
+        return LinkedBankAccountApiCallLog::create([
+            'user_id' => $user->id,
+            'linked_bank_account_id' => $account->id,
+            'type' => $type,
+            'provider' => $this->getBankingServiceProvider()->name,
+        ]);
+    }
+
+    private function manualBankTransactionSync(User $user, LinkedBankAccount $account, int $amount) {
+        $narration = "Manual bank transaction sync";
+        $payload = [
+            'bank_code' => $account->bank_code,
+            'bank_name' => $account->bank_name,
+            'account_number' => $account->account_number,
+            'account_name' => $account->account_name,
+        ];
+
+        $transactionService = resolve(TransactionService::class);
+        $transactionService->bankTransactionRequest($user, $user->wallet->virtualBankAccount, $amount, $narration, $payload);
     }
 }

@@ -106,20 +106,4 @@ class MonoService
             throw $e;
         }
     }
-    
-    // public function fetchTransactionsPagination (string $id, int $page)
-    // {
-    //     try {
-    //         $id = '6867e12dc41fad92989d140c';
-    //         $url = self::$baseUrl . '/accounts/' . $id . '/transactions';
-    //         $query = [
-    //             'page' => $page
-    //         ];
-    //         $response = Http::talkToMono($url, 'GET', [], [], $query);
-    //         return $response;
-    //     } catch (Exception $e) {
-    //         Log::error('Error Encountered at get transactions pagination method in Mono Service: ' . $e->getMessage());
-    //         throw $e;
-    //     }
-    // }
 }

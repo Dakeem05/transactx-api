@@ -121,7 +121,7 @@ class SubscriptionService
         }
     }
 
-    protected function processPayment(User $user, Subscription $subscription, array $data)
+    private function processPayment(User $user, Subscription $subscription, array $data)
     {
         $model = $subscription->model;
         $amount = $data['billing'] == 'ANNUAL' ? $model->amount->multipliedby(12) : $model->amount;
