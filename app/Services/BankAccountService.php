@@ -220,9 +220,11 @@ class BankAccountService
             return true;
         }
         
-        if (now()->subMinutes($features->auto_bank_transaction_sync->duration) <= $latestCall->created_at) {
-            $this->manualBankTransactionSync($user, $account, $features->manual_bank_transaction_sync->amount);
-            return true;
+        if (!is_null($latestCall)) {
+            if (now()->subMinutes($features->auto_bank_transaction_sync->duration) <= $latestCall->created_at) {
+                $this->manualBankTransactionSync($user, $account, $features->manual_bank_transaction_sync->amount);
+                return true;
+            }
         }
         
         $this->createLinkedBankAccountApiCallLog($user, $account);
