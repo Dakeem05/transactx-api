@@ -400,9 +400,9 @@ class TransactionService
         $paymentService = resolve(PaymentService::class);
         $response = $paymentService->getTransaction($transaction->external_transaction_reference);
         if (strtolower($response['data']['status']) === "completed" && !$response['data']['isReversed']) {
-            event(new TransferSuccessful($transaction, $transaction->payload['account_number'], $transaction->currency, $transaction->payload['aaccount_name']));
+            event(new TransferSuccessful($transaction, $transaction->payload['account_number'], $transaction->currency, $transaction->payload['account_name']));
         } else if (strtolower($response['data']['status']) === "completed" && $response['data']['isReversed'])  {
-            event(new TransferFailed($transaction, $transaction->payload['aaccount_name']));
+            event(new TransferFailed($transaction, $transaction->payload['account_name']));
         }
     }
 
