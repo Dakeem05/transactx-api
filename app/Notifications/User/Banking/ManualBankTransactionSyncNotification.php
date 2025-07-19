@@ -47,7 +47,8 @@ class ManualBankTransactionSyncNotification extends Notification implements Shou
     {
         $pushNotification = $notifiable->push_in_app_notifications;
 
-        $channels = ['mail', 'database'];
+        $channels = ['database'];
+        // $channels = ['mail', 'database'];
 
         if ($pushNotification) {
             $channels[] = FCMChannel::class;
@@ -59,14 +60,14 @@ class ManualBankTransactionSyncNotification extends Notification implements Shou
     /**
      * Get the mail representation of the notification.
      */
-    public function toMail(object $notifiable): MailMessage
-    {
-        return (new MailMessage)->subject('Manual Bank Transaction Sync')
-            ->markdown(
-                'email.user.banking.manual-transaction-sync',
-                ['user' => $notifiable, 'wallet' => $this->wallet, 'transaction' => $this->transaction]
-            );
-    }
+    // public function toMail(object $notifiable): MailMessage
+    // {
+    //     return (new MailMessage)->subject('Manual Bank Transaction Sync')
+    //         ->markdown(
+    //             'email.user.banking.manual-transaction-sync',
+    //             ['user' => $notifiable, 'wallet' => $this->wallet, 'transaction' => $this->transaction]
+    //         );
+    // }
 
 
     /**

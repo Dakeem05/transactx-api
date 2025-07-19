@@ -33,7 +33,7 @@ class TransferServiceCommand extends Command
         if(!$transactions->isEmpty()) {
             foreach ($transactions as $transaction) {
                 $transactionService = resolve(TransactionService::class);
-                $transactionService->pendingPurchase($transaction);
+                $transactionService->pendingTransfers($transaction);
             }
         }
     }

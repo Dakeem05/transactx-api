@@ -31,9 +31,6 @@ class AirtimeServiceCommand extends Command
     public function handle()
     {
         $transactions = Transaction::where('type', 'AIRTIME')->where('status', 'PENDING')->with(['feeTransactions'])->get();
-        Log::info('AirtimeServiceCommand: Processing pending transactions', [
-            'transactions' => $transactions,
-        ]);
 
          // Check if there are any pending transactions
         if(!$transactions->isEmpty()) {

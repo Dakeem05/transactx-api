@@ -395,10 +395,10 @@ class TransactionService
         }
     }
 
-    public function pendingPurchase(Transaction $transaction)
+    public function pendingTransfers(Transaction $transaction)
     {
         $paymentService = resolve(PaymentService::class);
-        $response = $paymentService->transfer($transaction->external_transaction_reference);
+        $response = $paymentService->getTransaction($transaction->external_transaction_reference);
         if (strtolower($response['data']['status']) === "completed" && !$response['data']['isReversed']) {
             event(new TransferSuccessful($transaction, $transaction->payload['account_number'], $transaction->currency, $transaction->payload['aaccount_name']));
         } else if (strtolower($response['data']['status']) === "completed" && $response['data']['isReversed'])  {
